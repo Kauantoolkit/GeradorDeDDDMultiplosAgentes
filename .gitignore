@@ -1,0 +1,5 @@
+/.env
+/.env.example
+/generated
+/venv
+/__pycache__

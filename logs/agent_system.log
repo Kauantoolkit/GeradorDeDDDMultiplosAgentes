@@ -1,0 +1,1512 @@
+2026-02-27 16:25:45.729 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 16:25:45.730 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 16:25:45.730 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 16:25:45.730 | INFO     | __main__:main:136 - Requisitos recebidos: teste...
+2026-02-27 16:25:45.730 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 16:25:45.735 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 16:25:45.735 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 16:25:45.997 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 16:25:45.997 | INFO     | agents.executor_agent:__init__:50 - Executor Agent inicializado
+2026-02-27 16:25:45.997 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 16:25:45.997 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 16:25:45.997 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 16:25:45.997 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 16:25:45.997 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 16:25:45.999 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 16:25:45.999 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 16:25:45.999 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 16:25:46.000 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 16:25:46.000 | INFO     | agents.executor_agent:execute:70 - ============================================================
+2026-02-27 16:25:46.000 | INFO     | agents.executor_agent:execute:71 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 16:25:46.000 | INFO     | agents.executor_agent:execute:72 - ============================================================
+2026-02-27 16:25:46.000 | DEBUG    | agents.executor_agent:execute:76 - Prompt construído (1790 chars)
+2026-02-27 16:25:46.000 | INFO     | agents.executor_agent:execute:79 - Chamando LLM para geração de código...
+2026-02-27 16:25:46.000 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1790 chars)
+2026-02-27 16:25:46.000 | ERROR    | infrastructure.llm_provider:generate:143 - Erro ao chamar Ollama: AsyncClient.generate() got an unexpected keyword argument 'temperature'
+2026-02-27 16:25:46.000 | ERROR    | agents.executor_agent:execute:114 - Erro no Executor Agent: AsyncClient.generate() got an unexpected keyword argument 'temperature'
+Traceback (most recent call last):
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 185, in <module>
+    exit_code = asyncio.run(main())
+                │       │   └ <function main at 0x00000201A4D1D580>
+                │       └ <function run at 0x00000201A4A5F1A0>
+                └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object main at 0x00000201A4D18D00>
+           │      └ <function Runner.run at 0x00000201A4A76480>
+           └ <asyncio.runners.Runner object at 0x00000201A286A960>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<main() running at C:\Users\kauan\Desktop\integrador\main.py:165> cb=[_run_until_complete_cb...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x00000201A4A740E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x00000201A286A960>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x00000201A4B2F740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x00000201A4A75E40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x00000201A45C8400>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000201A5FF9F30>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000201A5FF9F30>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000201A5FF9F30>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000201A5FF9F30>()>
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 165, in main
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='d46d0893-5b95-4602-af8a-c967761c286b', description='teste', project_config=ProjectConfig(output_directory='ge...
+                   │            └ <function OrchestratorAgent.execute at 0x00000201A6156700>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x00000201A615D2E0>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 119, in execute
+    executor_result = await self.executor_agent.execute(requirement)
+                            │    │              │       └ Requirement(id='d46d0893-5b95-4602-af8a-c967761c286b', description='teste', project_config=ProjectConfig(output_directory='ge...
+                            │    │              └ <function ExecutorAgent.execute at 0x00000201A6155120>
+                            │    └ <agents.executor_agent.ExecutorAgent object at 0x00000201A615DA30>
+                            └ <agents.orchestrator.OrchestratorAgent object at 0x00000201A615D2E0>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 80, in execute
+    llm_output = await self.llm_provider.generate(
+                       │    │            └ <function OllamaProvider.generate at 0x00000201A613F1A0>
+                       │    └ <infrastructure.llm_provider.OllamaProvider object at 0x00000201A615D400>
+                       └ <agents.executor_agent.ExecutorAgent object at 0x00000201A615DA30>
+
+  File "C:\Users\kauan\Desktop\integrador\infrastructure\llm_provider.py", line 129, in generate
+    response = await self.client.generate(
+                     │    │      └ <function AsyncClient.generate at 0x00000201A5D6D440>
+                     │    └ <ollama._client.AsyncClient object at 0x00000201A615D220>
+                     └ <infrastructure.llm_provider.OllamaProvider object at 0x00000201A615D400>
+
+TypeError: AsyncClient.generate() got an unexpected keyword argument 'temperature'
+2026-02-27 16:25:46.010 | ERROR    | agents.orchestrator:execute:126 - ❌ Executor Agent falhou: AsyncClient.generate() got an unexpected keyword argument 'temperature'
+2026-02-27 16:27:38.390 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 16:27:38.391 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 16:27:38.391 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 16:28:53.750 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 16:28:53.751 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 16:28:53.751 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 16:29:16.691 | INFO     | __main__:main:136 - Requisitos recebidos: Você é um arquiteto de software sênior especialista em:Arquitetura de microserviçosDomain-Driven Des...
+2026-02-27 16:29:16.692 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 16:29:16.694 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 16:29:16.696 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 16:29:16.944 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 16:29:16.944 | INFO     | agents.executor_agent:__init__:50 - Executor Agent inicializado
+2026-02-27 16:29:16.945 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 16:29:16.945 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 16:29:16.945 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 16:29:16.945 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 16:29:16.945 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 16:29:16.945 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 16:29:16.946 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 16:29:16.946 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 16:29:16.946 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 16:29:16.946 | INFO     | agents.executor_agent:execute:70 - ============================================================
+2026-02-27 16:29:16.946 | INFO     | agents.executor_agent:execute:71 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 16:29:16.946 | INFO     | agents.executor_agent:execute:72 - ============================================================
+2026-02-27 16:29:16.946 | DEBUG    | agents.executor_agent:execute:76 - Prompt construído (5505 chars)
+2026-02-27 16:29:16.946 | INFO     | agents.executor_agent:execute:79 - Chamando LLM para geração de código...
+2026-02-27 16:29:16.946 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (5505 chars)
+2026-02-27 16:29:17.213 | ERROR    | infrastructure.llm_provider:generate:148 - Erro ao chamar Ollama: model 'llama3.2' not found (status code: 404)
+2026-02-27 16:29:17.213 | ERROR    | agents.executor_agent:execute:114 - Erro no Executor Agent: model 'llama3.2' not found (status code: 404)
+Traceback (most recent call last):
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 185, in <module>
+    exit_code = asyncio.run(main())
+                │       │   └ <function main at 0x0000018A6967EC00>
+                │       └ <function run at 0x0000018A6721CD60>
+                └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object main at 0x0000018A696A0D00>
+           │      └ <function Runner.run at 0x0000018A69432480>
+           └ <asyncio.runners.Runner object at 0x0000018A6A66DE50>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<main() running at C:\Users\kauan\Desktop\integrador\main.py:165> cb=[_run_until_complete_cb...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x0000018A694300E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x0000018A6A66DE50>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000018A694EF740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000018A69431E40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000018A68F84400>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018A6A7EB100>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018A6A7EB100>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018A6A7EB100>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018A6A7EB100>()>
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 165, in main
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='344c3836-67c9-4cd6-8b7e-e505b157f224', description='Você é um arquiteto de software sênior especialista em:Ar...
+                   │            └ <function OrchestratorAgent.execute at 0x0000018A6A79C900>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x0000018A6A7735C0>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 119, in execute
+    executor_result = await self.executor_agent.execute(requirement)
+                            │    │              │       └ Requirement(id='344c3836-67c9-4cd6-8b7e-e505b157f224', description='Você é um arquiteto de software sênior especialista em:Ar...
+                            │    │              └ <function ExecutorAgent.execute at 0x0000018A6A7872E0>
+                            │    └ <agents.executor_agent.ExecutorAgent object at 0x0000018A6A773710>
+                            └ <agents.orchestrator.OrchestratorAgent object at 0x0000018A6A7735C0>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 80, in execute
+    llm_output = await self.llm_provider.generate(
+                       │    │            └ <function OllamaProvider.generate at 0x0000018A6A785300>
+                       │    └ <infrastructure.llm_provider.OllamaProvider object at 0x0000018A6A773290>
+                       └ <agents.executor_agent.ExecutorAgent object at 0x0000018A6A773710>
+
+  File "C:\Users\kauan\Desktop\integrador\infrastructure\llm_provider.py", line 135, in generate
+    response = await self.client.generate(
+                     │    │      └ <function AsyncClient.generate at 0x0000018A6A68C180>
+                     │    └ <ollama._client.AsyncClient object at 0x0000018A6A773650>
+                     └ <infrastructure.llm_provider.OllamaProvider object at 0x0000018A6A773290>
+
+  File "C:\Users\kauan\Desktop\integrador\venv\Lib\site-packages\ollama\_client.py", line 879, in generate
+    return await self._request(
+                 │    └ <function AsyncClient._request at 0x0000018A6A687D80>
+                 └ <ollama._client.AsyncClient object at 0x0000018A6A773650>
+  File "C:\Users\kauan\Desktop\integrador\venv\Lib\site-packages\ollama\_client.py", line 767, in _request
+    return cls(**(await self._request_raw(*args, **kwargs)).json())
+           │            │    │             │       └ {'json': {'model': 'llama3.2', 'stream': False, 'options': {'temperature': 0.3, 'num_predict': 8000}, 'prompt': '\nVocê é o A...
+           │            │    │             └ ('POST', '/api/generate')
+           │            │    └ <function AsyncClient._request_raw at 0x0000018A6A687A60>
+           │            └ <ollama._client.AsyncClient object at 0x0000018A6A773650>
+           └ <class 'ollama._types.GenerateResponse'>
+  File "C:\Users\kauan\Desktop\integrador\venv\Lib\site-packages\ollama\_client.py", line 711, in _request_raw
+    raise ResponseError(e.response.text, e.response.status_code) from None
+          └ <class 'ollama._types.ResponseError'>
+
+ollama._types.ResponseError: model 'llama3.2' not found (status code: 404)
+2026-02-27 16:29:17.222 | ERROR    | agents.orchestrator:execute:126 - ❌ Executor Agent falhou: model 'llama3.2' not found (status code: 404)
+2026-02-27 16:35:36.296 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 16:35:36.296 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 16:35:36.296 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 16:35:42.882 | INFO     | __main__:main:136 - Requisitos recebidos: pedidos
+
+Configurações: framework=], database=postgresql...
+2026-02-27 16:35:42.882 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 16:35:42.886 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 16:35:42.886 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 16:35:43.132 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 16:35:43.132 | INFO     | agents.executor_agent:__init__:50 - Executor Agent inicializado
+2026-02-27 16:35:43.132 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 16:35:43.132 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 16:35:43.132 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 16:35:43.132 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 16:35:43.133 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 16:35:43.133 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 16:35:43.133 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 16:35:43.133 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 16:35:43.133 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 16:35:43.133 | INFO     | agents.executor_agent:execute:70 - ============================================================
+2026-02-27 16:35:43.134 | INFO     | agents.executor_agent:execute:71 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 16:35:43.134 | INFO     | agents.executor_agent:execute:72 - ============================================================
+2026-02-27 16:35:43.134 | DEBUG    | agents.executor_agent:execute:76 - Prompt construído (1841 chars)
+2026-02-27 16:35:43.134 | INFO     | agents.executor_agent:execute:79 - Chamando LLM para geração de código...
+2026-02-27 16:35:43.134 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1841 chars)
+2026-02-27 16:36:41.513 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (2843 chars)
+2026-02-27 16:36:41.513 | INFO     | agents.executor_agent:execute:87 - Resposta do LLM recebida (2843 chars)
+2026-02-27 16:36:41.513 | ERROR    | agents.executor_agent:_parse_llm_output:144 - Erro ao parsear JSON: Expecting ',' delimiter: line 39 column 20 (char 1114)
+2026-02-27 16:36:41.513 | DEBUG    | agents.executor_agent:_parse_llm_output:145 - Output recebido: ```json
+{
+  "microservices": [
+    {
+      "name": "Pedido Service",
+      "domain": "Pedidos",
+      "entities": ["Pedido", "Item"],
+      "use_cases": ["ObterPedido", "AtualizarPedido"],
+      "ports": ["/api/pedidos", "/api itens"],
+      "dependencies": []
+    },
+    {
+      "name": "Produto Service",
+      "domain": "Produtos",
+      "entities": ["Produto", "Categoria"],
+      "use_cases": ["ObterProduto", "AtualizarProduto"],
+      "ports": ["/api/produtos", "/api categorias"],
+      "depe...
+2026-02-27 16:36:41.513 | ERROR    | agents.executor_agent:execute:114 - Erro no Executor Agent: Não foi possível parsear a resposta do LLM
+Traceback (most recent call last):
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 185, in <module>
+    exit_code = asyncio.run(main())
+                │       │   └ <function main at 0x000002E74F8CEC00>
+                │       └ <function run at 0x000002E74D55CD60>
+                └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object main at 0x000002E74F8F0D00>
+           │      └ <function Runner.run at 0x000002E74F652480>
+           └ <asyncio.runners.Runner object at 0x000002E74F7EDD60>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<main() running at C:\Users\kauan\Desktop\integrador\main.py:165> cb=[_run_until_complete_cb...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000002E74F6500E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000002E74F7EDD60>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000002E74F70F740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000002E74F651E40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000002E74F194400>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002E750AEB400>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002E750AEB400>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002E750AEB400>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000002E750AEB400>()>
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 165, in main
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='b449f361-4653-4a28-a877-33cdc60978f0', description='pedidos\n\nConfigurações: framework=], database=postgresq...
+                   │            └ <function OrchestratorAgent.execute at 0x000002E750A9C900>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x000002E750A773B0>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 119, in execute
+    executor_result = await self.executor_agent.execute(requirement)
+                            │    │              │       └ Requirement(id='b449f361-4653-4a28-a877-33cdc60978f0', description='pedidos\n\nConfigurações: framework=], database=postgresq...
+                            │    │              └ <function ExecutorAgent.execute at 0x000002E750A872E0>
+                            │    └ <agents.executor_agent.ExecutorAgent object at 0x000002E750A77950>
+                            └ <agents.orchestrator.OrchestratorAgent object at 0x000002E750A773B0>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 93, in execute
+    raise ValueError("Não foi possível parsear a resposta do LLM")
+
+ValueError: Não foi possível parsear a resposta do LLM
+2026-02-27 16:36:41.519 | ERROR    | agents.orchestrator:execute:126 - ❌ Executor Agent falhou: Não foi possível parsear a resposta do LLM
+2026-02-27 19:32:46.246 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 19:32:46.247 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 19:32:46.247 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 19:33:44.358 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 19:33:44.358 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 19:33:44.358 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 19:34:17.311 | INFO     | __main__:main:136 - Requisitos recebidos: crie um sistema de gerenciamento para cademia, o foco inicial eh o controle de caixa, entradas, said...
+2026-02-27 19:34:17.314 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 19:34:17.324 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 19:34:17.324 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 19:34:17.620 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 19:34:17.620 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-27 19:34:17.620 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 19:34:17.621 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 19:34:17.621 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 19:34:17.621 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 19:34:17.621 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 19:34:17.622 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 19:34:17.622 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 19:34:17.622 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 19:34:17.622 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 19:34:17.622 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-27 19:34:17.623 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 19:34:17.623 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-27 19:34:17.623 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1992 chars)
+2026-02-27 19:34:17.623 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-27 19:34:17.623 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1992 chars)
+2026-02-27 19:34:28.050 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (2349 chars)
+2026-02-27 19:34:28.050 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (2349 chars)
+2026-02-27 19:34:28.051 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 19:34:28.051 | ERROR    | agents.executor_agent:execute:115 - Erro no Executor Agent: name 'k' is not defined
+Traceback (most recent call last):
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 185, in <module>
+    exit_code = asyncio.run(main())
+                │       │   └ <function main at 0x00000156F4B62C00>
+                │       └ <function run at 0x00000156F277CD60>
+                └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object main at 0x00000156F4B80D00>
+           │      └ <function Runner.run at 0x00000156F4912480>
+           └ <asyncio.runners.Runner object at 0x00000156F5B80710>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<main() running at C:\Users\kauan\Desktop\integrador\main.py:165> cb=[_run_until_complete_cb...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x00000156F49100E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x00000156F5B80710>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x00000156F49CF740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x00000156F4911E40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x00000156F4464400>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000156F5D4B550>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000156F5D4B550>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000156F5D4B550>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x00000156F5D4B550>()>
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 165, in main
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='be4a58ad-acae-4bb3-8068-de1076748c83', description='crie um sistema de gerenciamento para cademia, o foco ini...
+                   │            └ <function OrchestratorAgent.execute at 0x00000156F5CECC20>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x00000156F5CD7740>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 119, in execute
+    executor_result = await self.executor_agent.execute(requirement)
+                            │    │              │       └ Requirement(id='be4a58ad-acae-4bb3-8068-de1076748c83', description='crie um sistema de gerenciamento para cademia, o foco ini...
+                            │    │              └ <function ExecutorAgent.execute at 0x00000156F5CE7380>
+                            │    └ <agents.executor_agent.ExecutorAgent object at 0x00000156F5CD7DD0>
+                            └ <agents.orchestrator.OrchestratorAgent object at 0x00000156F5CD7740>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 98, in execute
+    created_files = self._create_project_files(
+                    │    └ <function ExecutorAgent._create_project_files at 0x00000156F5CE7740>
+                    └ <agents.executor_agent.ExecutorAgent object at 0x00000156F5CD7DD0>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 368, in _create_project_files
+    ddd_structure = self._generate_ddd_structure(
+                    │    └ <function ExecutorAgent._generate_ddd_structure at 0x00000156F5CE77E0>
+                    └ <agents.executor_agent.ExecutorAgent object at 0x00000156F5CD7DD0>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 431, in _generate_ddd_structure
+    files[f"{base_path}/domain/{domain.lower()}_entities.py"] = self._generate_entity(entity, domain)
+    │        │                  │      │                        │    │                │       └ 'cademia.domain'
+    │        │                  │      │                        │    │                └ 'cademia.entity.Aluno'
+    │        │                  │      │                        │    └ <function ExecutorAgent._generate_entity at 0x00000156F5CE7880>
+    │        │                  │      │                        └ <agents.executor_agent.ExecutorAgent object at 0x00000156F5CD7DD0>
+    │        │                  │      └ <method 'lower' of 'str' objects>
+    │        │                  └ 'cademia.domain'
+    │        └ 'services/cademia'
+    └ {'services/cademia/domain/__init__.py': '# cademia - Domain Layer\nfrom .cademia.domain_entities import *\nfrom .cademia.doma...
+
+  File "C:\Users\kauan\Desktop\integrador\agents\executor_agent.py", line 502, in _generate_entity
+    **{k: v for k, v in kwargs.items() if k not in ['id', 'created_at', 'updated_at']}
+
+NameError: name 'k' is not defined
+2026-02-27 19:34:28.066 | ERROR    | agents.orchestrator:execute:126 - ❌ Executor Agent falhou: name 'k' is not defined
+2026-02-27 19:35:36.562 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 19:35:36.562 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 19:35:36.562 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 19:36:12.000 | INFO     | __main__:main:136 - Requisitos recebidos: um sistema de academia, com foco no pagamento e notificacoes quando um aluno esta atrasado no pagame...
+2026-02-27 19:36:12.001 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 19:36:12.005 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 19:36:12.005 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 19:36:12.257 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 19:36:12.258 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-27 19:36:12.258 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 19:36:12.258 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 19:36:12.258 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 19:36:12.258 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 19:36:12.259 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 19:36:12.259 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 19:36:12.259 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 19:36:12.259 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 19:36:12.259 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 19:36:12.259 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-27 19:36:12.259 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 19:36:12.260 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-27 19:36:12.260 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (2010 chars)
+2026-02-27 19:36:12.260 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-27 19:36:12.260 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (2010 chars)
+2026-02-27 19:36:21.548 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (2460 chars)
+2026-02-27 19:36:21.548 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (2460 chars)
+2026-02-27 19:36:21.549 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 19:36:21.551 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/domain/__init__.py
+2026-02-27 19:36:21.552 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/domain/academia.domain.payment_entities.py
+2026-02-27 19:36:21.554 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/domain/academia.domain.payment_value_objects.py
+2026-02-27 19:36:21.555 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/domain/academia.domain.payment_aggregates.py
+2026-02-27 19:36:21.556 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/application/__init__.py
+2026-02-27 19:36:21.558 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/application/use_cases.py
+2026-02-27 19:36:21.559 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/application/dtos.py
+2026-02-27 19:36:21.560 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/application/mappers.py
+2026-02-27 19:36:21.562 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/infrastructure/__init__.py
+2026-02-27 19:36:21.563 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/infrastructure/repositories.py
+2026-02-27 19:36:21.564 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/infrastructure/database.py
+2026-02-27 19:36:21.565 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/api/__init__.py
+2026-02-27 19:36:21.567 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/api/routes.py
+2026-02-27 19:36:21.569 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/api/controllers.py
+2026-02-27 19:36:21.570 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/api/schemas.py
+2026-02-27 19:36:21.571 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/main.py
+2026-02-27 19:36:21.572 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/requirements.txt
+2026-02-27 19:36:21.573 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/Dockerfile
+2026-02-27 19:36:21.575 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/docker-compose.yml
+2026-02-27 19:36:21.576 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/tests/__init__.py
+2026-02-27 19:36:21.577 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/payment-service/tests/test_academia.domain.payment_entities.py
+2026-02-27 19:36:21.578 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/domain/__init__.py
+2026-02-27 19:36:21.580 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/domain/academia.domain.notification_value_objects.py
+2026-02-27 19:36:21.582 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/domain/academia.domain.notification_aggregates.py
+2026-02-27 19:36:21.582 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/application/__init__.py
+2026-02-27 19:36:21.584 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/application/use_cases.py
+2026-02-27 19:36:21.585 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/application/dtos.py
+2026-02-27 19:36:21.586 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/application/mappers.py
+2026-02-27 19:36:21.588 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/infrastructure/__init__.py
+2026-02-27 19:36:21.589 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/infrastructure/repositories.py
+2026-02-27 19:36:21.590 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/infrastructure/database.py
+2026-02-27 19:36:21.592 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/api/__init__.py
+2026-02-27 19:36:21.593 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/api/routes.py
+2026-02-27 19:36:21.594 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/api/controllers.py
+2026-02-27 19:36:21.595 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/api/schemas.py
+2026-02-27 19:36:21.596 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/main.py
+2026-02-27 19:36:21.598 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/requirements.txt
+2026-02-27 19:36:21.600 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/Dockerfile
+2026-02-27 19:36:21.601 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/docker-compose.yml
+2026-02-27 19:36:21.602 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/tests/__init__.py
+2026-02-27 19:36:21.603 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/notification-service/tests/test_academia.domain.notification_entities.py
+2026-02-27 19:36:21.606 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/domain/__init__.py
+2026-02-27 19:36:21.607 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/domain/academia.domain.attendance_entities.py
+2026-02-27 19:36:21.608 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/domain/academia.domain.attendance_value_objects.py
+2026-02-27 19:36:21.609 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/domain/academia.domain.attendance_aggregates.py
+2026-02-27 19:36:21.611 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/application/__init__.py
+2026-02-27 19:36:21.612 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/application/use_cases.py
+2026-02-27 19:36:21.613 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/application/dtos.py
+2026-02-27 19:36:21.614 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/application/mappers.py
+2026-02-27 19:36:21.615 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/infrastructure/__init__.py
+2026-02-27 19:36:21.616 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/infrastructure/repositories.py
+2026-02-27 19:36:21.618 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/infrastructure/database.py
+2026-02-27 19:36:21.619 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/api/__init__.py
+2026-02-27 19:36:21.620 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/api/routes.py
+2026-02-27 19:36:21.622 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/api/controllers.py
+2026-02-27 19:36:21.623 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/api/schemas.py
+2026-02-27 19:36:21.624 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/main.py
+2026-02-27 19:36:21.625 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/requirements.txt
+2026-02-27 19:36:21.626 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/Dockerfile
+2026-02-27 19:36:21.626 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/docker-compose.yml
+2026-02-27 19:36:21.628 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/tests/__init__.py
+2026-02-27 19:36:21.629 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/attendance-service/tests/test_academia.domain.attendance_entities.py
+2026-02-27 19:36:21.631 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/domain/__init__.py
+2026-02-27 19:36:21.632 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/domain/academia.domain.student_entities.py
+2026-02-27 19:36:21.634 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/domain/academia.domain.student_value_objects.py
+2026-02-27 19:36:21.635 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/domain/academia.domain.student_aggregates.py
+2026-02-27 19:36:21.636 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/application/__init__.py
+2026-02-27 19:36:21.637 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/application/use_cases.py
+2026-02-27 19:36:21.638 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/application/dtos.py
+2026-02-27 19:36:21.640 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/application/mappers.py
+2026-02-27 19:36:21.641 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/infrastructure/__init__.py
+2026-02-27 19:36:21.642 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/infrastructure/repositories.py
+2026-02-27 19:36:21.643 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/infrastructure/database.py
+2026-02-27 19:36:21.644 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/api/__init__.py
+2026-02-27 19:36:21.646 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/api/routes.py
+2026-02-27 19:36:21.647 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/api/controllers.py
+2026-02-27 19:36:21.648 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/api/schemas.py
+2026-02-27 19:36:21.649 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/main.py
+2026-02-27 19:36:21.650 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/requirements.txt
+2026-02-27 19:36:21.651 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/Dockerfile
+2026-02-27 19:36:21.652 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/docker-compose.yml
+2026-02-27 19:36:21.653 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/tests/__init__.py
+2026-02-27 19:36:21.655 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/student-service/tests/test_academia.domain.student_entities.py
+2026-02-27 19:36:21.656 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/domain/__init__.py
+2026-02-27 19:36:21.657 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/domain/academia.domain.class_entities.py
+2026-02-27 19:36:21.658 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/domain/academia.domain.class_value_objects.py
+2026-02-27 19:36:21.660 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/domain/academia.domain.class_aggregates.py
+2026-02-27 19:36:21.661 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/application/__init__.py
+2026-02-27 19:36:21.662 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/application/use_cases.py
+2026-02-27 19:36:21.663 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/application/dtos.py
+2026-02-27 19:36:21.665 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/application/mappers.py
+2026-02-27 19:36:21.666 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/infrastructure/__init__.py
+2026-02-27 19:36:21.667 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/infrastructure/repositories.py
+2026-02-27 19:36:21.668 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/infrastructure/database.py
+2026-02-27 19:36:21.670 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/api/__init__.py
+2026-02-27 19:36:21.671 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/api/routes.py
+2026-02-27 19:36:21.672 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/api/controllers.py
+2026-02-27 19:36:21.673 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/api/schemas.py
+2026-02-27 19:36:21.674 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/main.py
+2026-02-27 19:36:21.675 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/requirements.txt
+2026-02-27 19:36:21.677 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/Dockerfile
+2026-02-27 19:36:21.678 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/docker-compose.yml
+2026-02-27 19:36:21.679 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/tests/__init__.py
+2026-02-27 19:36:21.680 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/class-service/tests/test_academia.domain.class_entities.py
+2026-02-27 19:36:21.681 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: ./generated/payment_service.py
+2026-02-27 19:36:21.683 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-27 19:36:21.684 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-27 19:36:21.684 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 107 arquivos
+2026-02-27 19:36:21.684 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 9.43s
+2026-02-27 19:36:21.685 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 107
+2026-02-27 19:36:21.685 | INFO     | agents.orchestrator:execute:133 - ✅ Executor Agent concluído - 107 arquivos
+2026-02-27 19:36:21.685 | INFO     | agents.orchestrator:execute:138 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-27 19:36:21.685 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-27 19:36:21.685 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-27 19:36:21.686 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-27 19:36:21.686 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-27 19:36:21.686 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (3686 chars)
+2026-02-27 19:36:24.682 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (446 chars)
+2026-02-27 19:36:24.682 | ERROR    | agents.validator_agent:_parse_validation_output:164 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 16 column 116 (char 446)
+2026-02-27 19:36:24.682 | INFO     | agents.validator_agent:_manual_validation:187 - Realizando validação manual...
+2026-02-27 19:36:24.683 | INFO     | agents.validator_agent:_manual_validation:229 - ✅ Validação manual APROVADA - Score: 1.0
+2026-02-27 19:36:24.683 | INFO     | agents.orchestrator:execute:184 - ✅ Validação APROVADA!
+2026-02-27 19:36:24.683 | INFO     | agents.orchestrator:execute:209 - 
+🎉 SUCESSO! Projeto gerado em 12.42s
+2026-02-27 19:36:24.683 | INFO     | agents.orchestrator:execute:210 - 📁 Local: generated
+2026-02-27 19:36:24.684 | INFO     | agents.orchestrator:execute:211 - 📝 Serviços: ['payment-service', 'notification-service', 'attendance-service', 'student-service', 'class-service']
+2026-02-27 19:39:41.321 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 19:39:41.321 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 19:39:41.322 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 19:39:47.827 | INFO     | __main__:main:136 - Requisitos recebidos: sistema para academias
+
+Configurações: framework=python-fastapi, database=postgresql...
+2026-02-27 19:39:47.827 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 19:39:47.832 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 19:39:47.832 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 19:39:48.085 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 19:39:48.085 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-27 19:39:48.086 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 19:39:48.086 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 19:39:48.086 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 19:39:48.086 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 19:39:48.086 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 19:39:48.086 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 19:39:48.086 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 19:39:48.087 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 19:39:48.087 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 19:39:48.087 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-27 19:39:48.087 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 19:39:48.087 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-27 19:39:48.087 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1889 chars)
+2026-02-27 19:39:48.087 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-27 19:39:48.087 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1889 chars)
+2026-02-27 19:39:57.650 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (2300 chars)
+2026-02-27 19:39:57.650 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (2300 chars)
+2026-02-27 19:39:57.651 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 19:39:57.652 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/__init__.py
+2026-02-27 19:39:57.653 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_entities.py
+2026-02-27 19:39:57.654 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_value_objects.py
+2026-02-27 19:39:57.655 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_aggregates.py
+2026-02-27 19:39:57.655 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/__init__.py
+2026-02-27 19:39:57.656 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/use_cases.py
+2026-02-27 19:39:57.657 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/dtos.py
+2026-02-27 19:39:57.658 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/mappers.py
+2026-02-27 19:39:57.659 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/__init__.py
+2026-02-27 19:39:57.660 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/repositories.py
+2026-02-27 19:39:57.660 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/database.py
+2026-02-27 19:39:57.661 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/__init__.py
+2026-02-27 19:39:57.662 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/routes.py
+2026-02-27 19:39:57.663 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/controllers.py
+2026-02-27 19:39:57.664 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/schemas.py
+2026-02-27 19:39:57.665 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/main.py
+2026-02-27 19:39:57.666 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/requirements.txt
+2026-02-27 19:39:57.667 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/Dockerfile
+2026-02-27 19:39:57.668 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/docker-compose.yml
+2026-02-27 19:39:57.669 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/__init__.py
+2026-02-27 19:39:57.670 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/test_academias_entities.py
+2026-02-27 19:39:57.671 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/domain/__init__.py
+2026-02-27 19:39:57.672 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/domain/agendamentos_entities.py
+2026-02-27 19:39:57.673 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/domain/agendamentos_value_objects.py
+2026-02-27 19:39:57.674 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/domain/agendamentos_aggregates.py
+2026-02-27 19:39:57.675 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/application/__init__.py
+2026-02-27 19:39:57.676 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/application/use_cases.py
+2026-02-27 19:39:57.676 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/application/dtos.py
+2026-02-27 19:39:57.677 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/application/mappers.py
+2026-02-27 19:39:57.678 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/infrastructure/__init__.py
+2026-02-27 19:39:57.679 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/infrastructure/repositories.py
+2026-02-27 19:39:57.680 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/infrastructure/database.py
+2026-02-27 19:39:57.681 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/api/__init__.py
+2026-02-27 19:39:57.682 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/api/routes.py
+2026-02-27 19:39:57.682 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/api/controllers.py
+2026-02-27 19:39:57.684 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/api/schemas.py
+2026-02-27 19:39:57.685 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/main.py
+2026-02-27 19:39:57.686 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/requirements.txt
+2026-02-27 19:39:57.686 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/Dockerfile
+2026-02-27 19:39:57.687 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/docker-compose.yml
+2026-02-27 19:39:57.688 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/tests/__init__.py
+2026-02-27 19:39:57.689 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/agendamento/tests/test_agendamentos_entities.py
+2026-02-27 19:39:57.690 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/domain/__init__.py
+2026-02-27 19:39:57.691 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/domain/pagamentos_entities.py
+2026-02-27 19:39:57.692 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/domain/pagamentos_value_objects.py
+2026-02-27 19:39:57.693 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/domain/pagamentos_aggregates.py
+2026-02-27 19:39:57.694 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/application/__init__.py
+2026-02-27 19:39:57.695 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/application/use_cases.py
+2026-02-27 19:39:57.696 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/application/dtos.py
+2026-02-27 19:39:57.697 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/application/mappers.py
+2026-02-27 19:39:57.698 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/infrastructure/__init__.py
+2026-02-27 19:39:57.698 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/infrastructure/repositories.py
+2026-02-27 19:39:57.699 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/infrastructure/database.py
+2026-02-27 19:39:57.700 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/api/__init__.py
+2026-02-27 19:39:57.702 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/api/routes.py
+2026-02-27 19:39:57.702 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/api/controllers.py
+2026-02-27 19:39:57.703 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/api/schemas.py
+2026-02-27 19:39:57.704 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/main.py
+2026-02-27 19:39:57.705 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/requirements.txt
+2026-02-27 19:39:57.706 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/Dockerfile
+2026-02-27 19:39:57.707 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/docker-compose.yml
+2026-02-27 19:39:57.707 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/tests/__init__.py
+2026-02-27 19:39:57.708 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamento/tests/test_pagamentos_entities.py
+2026-02-27 19:39:57.709 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/api/academias.py
+2026-02-27 19:39:57.710 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/api/agendamentos.py
+2026-02-27 19:39:57.711 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/api/pagamentos.py
+2026-02-27 19:39:57.712 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-27 19:39:57.713 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-27 19:39:57.713 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 68 arquivos
+2026-02-27 19:39:57.713 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 9.63s
+2026-02-27 19:39:57.713 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 68
+2026-02-27 19:39:57.713 | INFO     | agents.orchestrator:execute:133 - ✅ Executor Agent concluído - 68 arquivos
+2026-02-27 19:39:57.713 | INFO     | agents.orchestrator:execute:138 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-27 19:39:57.714 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-27 19:39:57.714 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-27 19:39:57.714 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-27 19:39:57.714 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-27 19:39:57.714 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (3405 chars)
+2026-02-27 19:40:01.333 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (641 chars)
+2026-02-27 19:40:01.333 | WARNING  | agents.validator_agent:validate:125 - ❌ Validação REPROVADA - Score: 0.0
+2026-02-27 19:40:01.333 | WARNING  | agents.orchestrator:execute:153 - ❌ Validação reprovada: O código não atende aos requisitos originais, principalmente em relação à implementação das uso cases e portas.
+2026-02-27 19:40:01.334 | INFO     | agents.orchestrator:execute:156 - 
+📋 FASE 3: Executando Rollback Agent...
+2026-02-27 19:40:01.334 | INFO     | agents.rollback_agent:execute:72 - ============================================================
+2026-02-27 19:40:01.334 | INFO     | agents.rollback_agent:execute:73 - ROLLBACK AGENT - Iniciando rollback
+2026-02-27 19:40:01.334 | INFO     | agents.rollback_agent:execute:74 - ============================================================
+2026-02-27 19:40:01.334 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 19:40:01.334 | INFO     | agents.rollback_agent:execute:93 - Arquivos a remover: 68
+2026-02-27 19:40:01.335 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/__init__.py
+2026-02-27 19:40:01.336 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academias_entities.py
+2026-02-27 19:40:01.336 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academias_value_objects.py
+2026-02-27 19:40:01.337 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academias_aggregates.py
+2026-02-27 19:40:01.338 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/__init__.py
+2026-02-27 19:40:01.338 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/use_cases.py
+2026-02-27 19:40:01.339 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/dtos.py
+2026-02-27 19:40:01.339 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/mappers.py
+2026-02-27 19:40:01.340 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/__init__.py
+2026-02-27 19:40:01.341 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/repositories.py
+2026-02-27 19:40:01.341 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/database.py
+2026-02-27 19:40:01.342 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/__init__.py
+2026-02-27 19:40:01.343 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/routes.py
+2026-02-27 19:40:01.343 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/controllers.py
+2026-02-27 19:40:01.344 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/schemas.py
+2026-02-27 19:40:01.345 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/main.py
+2026-02-27 19:40:01.345 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/requirements.txt
+2026-02-27 19:40:01.346 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/Dockerfile
+2026-02-27 19:40:01.346 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/docker-compose.yml
+2026-02-27 19:40:01.347 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/tests/__init__.py
+2026-02-27 19:40:01.348 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/tests/test_academias_entities.py
+2026-02-27 19:40:01.348 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/domain/__init__.py
+2026-02-27 19:40:01.349 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/domain/agendamentos_entities.py
+2026-02-27 19:40:01.350 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/domain/agendamentos_value_objects.py
+2026-02-27 19:40:01.350 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/domain/agendamentos_aggregates.py
+2026-02-27 19:40:01.351 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/application/__init__.py
+2026-02-27 19:40:01.352 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/application/use_cases.py
+2026-02-27 19:40:01.352 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/application/dtos.py
+2026-02-27 19:40:01.353 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/application/mappers.py
+2026-02-27 19:40:01.353 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/infrastructure/__init__.py
+2026-02-27 19:40:01.354 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/infrastructure/repositories.py
+2026-02-27 19:40:01.355 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/infrastructure/database.py
+2026-02-27 19:40:01.356 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/api/__init__.py
+2026-02-27 19:40:01.357 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/api/routes.py
+2026-02-27 19:40:01.357 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/api/controllers.py
+2026-02-27 19:40:01.358 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/api/schemas.py
+2026-02-27 19:40:01.358 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/main.py
+2026-02-27 19:40:01.359 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/requirements.txt
+2026-02-27 19:40:01.360 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/Dockerfile
+2026-02-27 19:40:01.361 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/docker-compose.yml
+2026-02-27 19:40:01.361 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/tests/__init__.py
+2026-02-27 19:40:01.362 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/agendamento/tests/test_agendamentos_entities.py
+2026-02-27 19:40:01.363 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/domain/__init__.py
+2026-02-27 19:40:01.364 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/domain/pagamentos_entities.py
+2026-02-27 19:40:01.364 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/domain/pagamentos_value_objects.py
+2026-02-27 19:40:01.365 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/domain/pagamentos_aggregates.py
+2026-02-27 19:40:01.365 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/application/__init__.py
+2026-02-27 19:40:01.366 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/application/use_cases.py
+2026-02-27 19:40:01.367 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/application/dtos.py
+2026-02-27 19:40:01.368 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/application/mappers.py
+2026-02-27 19:40:01.368 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/infrastructure/__init__.py
+2026-02-27 19:40:01.369 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/infrastructure/repositories.py
+2026-02-27 19:40:01.370 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/infrastructure/database.py
+2026-02-27 19:40:01.370 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/api/__init__.py
+2026-02-27 19:40:01.371 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/api/routes.py
+2026-02-27 19:40:01.371 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/api/controllers.py
+2026-02-27 19:40:01.372 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/api/schemas.py
+2026-02-27 19:40:01.373 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/main.py
+2026-02-27 19:40:01.374 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/requirements.txt
+2026-02-27 19:40:01.374 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/Dockerfile
+2026-02-27 19:40:01.375 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/docker-compose.yml
+2026-02-27 19:40:01.376 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/tests/__init__.py
+2026-02-27 19:40:01.376 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamento/tests/test_pagamentos_entities.py
+2026-02-27 19:40:01.377 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: generated/api/academias.py
+2026-02-27 19:40:01.378 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: generated/api/agendamentos.py
+2026-02-27 19:40:01.378 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: generated/api/pagamentos.py
+2026-02-27 19:40:01.379 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: README.md
+2026-02-27 19:40:01.380 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: docker-compose.yml
+2026-02-27 19:40:01.382 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\domain
+2026-02-27 19:40:01.383 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamento\domain
+2026-02-27 19:40:01.383 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: generated\api
+2026-02-27 19:40:01.384 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\application
+2026-02-27 19:40:01.385 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\tests
+2026-02-27 19:40:01.385 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\api
+2026-02-27 19:40:01.386 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\agendamento\tests
+2026-02-27 19:40:01.387 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamento\api
+2026-02-27 19:40:01.388 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamento\infrastructure
+2026-02-27 19:40:01.389 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\infrastructure
+2026-02-27 19:40:01.390 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamento\tests
+2026-02-27 19:40:01.391 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\agendamento\api
+2026-02-27 19:40:01.391 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\agendamento\infrastructure
+2026-02-27 19:40:01.392 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\agendamento\domain
+2026-02-27 19:40:01.393 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamento\application
+2026-02-27 19:40:01.393 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\agendamento\application
+2026-02-27 19:40:01.394 | INFO     | agents.rollback_agent:execute:121 - Rollback concluído com sucesso
+2026-02-27 19:40:01.394 | INFO     | agents.rollback_agent:execute:126 - Rollback Agent - Concluído em 0.06s
+2026-02-27 22:55:13.392 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 22:55:13.392 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 22:55:13.392 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 22:55:29.837 | INFO     | __main__:main:136 - Requisitos recebidos: sistema para gestao de academias
+
+Configurações: framework=python-fastapi, database=postgresql...
+2026-02-27 22:55:29.837 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 22:55:29.842 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 22:55:29.842 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 22:55:30.093 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 22:55:30.093 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-27 22:55:30.094 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 22:55:30.094 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:__init__:89 - Orchestrator Agent inicializado
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:__init__:90 - Fluxo de agentes: Executor → Validator → Rollback
+2026-02-27 22:55:30.094 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:execute:108 - ============================================================
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:execute:109 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 22:55:30.094 | INFO     | agents.orchestrator:execute:116 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 22:55:30.095 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-27 22:55:30.095 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 22:55:30.095 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-27 22:55:30.095 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1899 chars)
+2026-02-27 22:55:30.095 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-27 22:55:30.095 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1899 chars)
+2026-02-27 22:55:46.866 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (1379 chars)
+2026-02-27 22:55:46.866 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (1379 chars)
+2026-02-27 22:55:46.866 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 22:55:46.867 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/__init__.py
+2026-02-27 22:55:46.869 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_entities.py
+2026-02-27 22:55:46.870 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_value_objects.py
+2026-02-27 22:55:46.871 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias_aggregates.py
+2026-02-27 22:55:46.872 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/__init__.py
+2026-02-27 22:55:46.872 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/use_cases.py
+2026-02-27 22:55:46.873 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/dtos.py
+2026-02-27 22:55:46.874 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/mappers.py
+2026-02-27 22:55:46.875 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/__init__.py
+2026-02-27 22:55:46.876 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/repositories.py
+2026-02-27 22:55:46.877 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/database.py
+2026-02-27 22:55:46.877 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/__init__.py
+2026-02-27 22:55:46.878 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/routes.py
+2026-02-27 22:55:46.879 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/controllers.py
+2026-02-27 22:55:46.880 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/schemas.py
+2026-02-27 22:55:46.881 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/main.py
+2026-02-27 22:55:46.882 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/requirements.txt
+2026-02-27 22:55:46.882 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/Dockerfile
+2026-02-27 22:55:46.883 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/docker-compose.yml
+2026-02-27 22:55:46.884 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/__init__.py
+2026-02-27 22:55:46.885 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/test_academias_entities.py
+2026-02-27 22:55:46.886 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/domain/__init__.py
+2026-02-27 22:55:46.887 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/domain/turmas_entities.py
+2026-02-27 22:55:46.888 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/domain/turmas_value_objects.py
+2026-02-27 22:55:46.889 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/domain/turmas_aggregates.py
+2026-02-27 22:55:46.890 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/application/__init__.py
+2026-02-27 22:55:46.890 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/application/use_cases.py
+2026-02-27 22:55:46.891 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/application/dtos.py
+2026-02-27 22:55:46.892 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/application/mappers.py
+2026-02-27 22:55:46.893 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/infrastructure/__init__.py
+2026-02-27 22:55:46.894 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/infrastructure/repositories.py
+2026-02-27 22:55:46.894 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/infrastructure/database.py
+2026-02-27 22:55:46.895 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/api/__init__.py
+2026-02-27 22:55:46.896 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/api/routes.py
+2026-02-27 22:55:46.897 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/api/controllers.py
+2026-02-27 22:55:46.897 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/api/schemas.py
+2026-02-27 22:55:46.898 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/main.py
+2026-02-27 22:55:46.899 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/requirements.txt
+2026-02-27 22:55:46.900 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/Dockerfile
+2026-02-27 22:55:46.901 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/docker-compose.yml
+2026-02-27 22:55:46.902 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/tests/__init__.py
+2026-02-27 22:55:46.903 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/turma/tests/test_turmas_entities.py
+2026-02-27 22:55:46.904 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/domain/__init__.py
+2026-02-27 22:55:46.905 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/domain/alunos_entities.py
+2026-02-27 22:55:46.905 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/domain/alunos_value_objects.py
+2026-02-27 22:55:46.907 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/domain/alunos_aggregates.py
+2026-02-27 22:55:46.907 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/application/__init__.py
+2026-02-27 22:55:46.908 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/application/use_cases.py
+2026-02-27 22:55:46.909 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/application/dtos.py
+2026-02-27 22:55:46.909 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/application/mappers.py
+2026-02-27 22:55:46.910 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/infrastructure/__init__.py
+2026-02-27 22:55:46.911 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/infrastructure/repositories.py
+2026-02-27 22:55:46.912 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/infrastructure/database.py
+2026-02-27 22:55:46.912 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/api/__init__.py
+2026-02-27 22:55:46.913 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/api/routes.py
+2026-02-27 22:55:46.914 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/api/controllers.py
+2026-02-27 22:55:46.915 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/api/schemas.py
+2026-02-27 22:55:46.916 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/main.py
+2026-02-27 22:55:46.917 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/requirements.txt
+2026-02-27 22:55:46.918 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/Dockerfile
+2026-02-27 22:55:46.919 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/docker-compose.yml
+2026-02-27 22:55:46.920 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/tests/__init__.py
+2026-02-27 22:55:46.920 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/aluno/tests/test_alunos_entities.py
+2026-02-27 22:55:46.921 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/academia.py
+2026-02-27 22:55:46.922 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-27 22:55:46.923 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-27 22:55:46.923 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 66 arquivos
+2026-02-27 22:55:46.923 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 16.83s
+2026-02-27 22:55:46.923 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 66
+2026-02-27 22:55:46.924 | INFO     | agents.orchestrator:execute:133 - ✅ Executor Agent concluído - 66 arquivos
+2026-02-27 22:55:46.924 | INFO     | agents.orchestrator:execute:138 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-27 22:55:46.924 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-27 22:55:46.924 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-27 22:55:46.924 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-27 22:55:46.924 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-27 22:55:46.925 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (2494 chars)
+2026-02-27 22:55:48.458 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (497 chars)
+2026-02-27 22:55:48.458 | ERROR    | agents.validator_agent:_parse_validation_output:164 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 12 column 102 (char 497)
+2026-02-27 22:55:48.458 | INFO     | agents.validator_agent:_manual_validation:187 - Realizando validação manual...
+2026-02-27 22:55:48.459 | INFO     | agents.validator_agent:_manual_validation:229 - ✅ Validação manual APROVADA - Score: 1.0
+2026-02-27 22:55:48.459 | INFO     | agents.orchestrator:execute:184 - ✅ Validação APROVADA!
+2026-02-27 22:55:48.459 | INFO     | agents.orchestrator:execute:209 - 
+🎉 SUCESSO! Projeto gerado em 18.36s
+2026-02-27 22:55:48.459 | INFO     | agents.orchestrator:execute:210 - 📁 Local: generated
+2026-02-27 22:55:48.460 | INFO     | agents.orchestrator:execute:211 - 📝 Serviços: ['academia', 'turma', 'aluno']
+2026-02-27 23:54:28.062 | INFO     | __main__:main:123 - ============================================================
+2026-02-27 23:54:28.063 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-27 23:54:28.063 | INFO     | __main__:main:125 - ============================================================
+2026-02-27 23:54:47.015 | INFO     | __main__:main:136 - Requisitos recebidos: sistema para gestao de academia com foco em pagamentos atrasados e entradas e saidas
+
+Configurações:...
+2026-02-27 23:54:47.015 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-27 23:54:47.021 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-27 23:54:47.021 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-27 23:54:47.289 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-27 23:54:47.290 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-27 23:54:47.290 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-27 23:54:47.290 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-27 23:54:47.290 | INFO     | agents.docker_test_agent:__init__:51 - Docker Test Agent inicializado
+2026-02-27 23:54:47.291 | INFO     | agents.orchestrator:__init__:91 - Orchestrator Agent inicializado
+2026-02-27 23:54:47.291 | INFO     | agents.orchestrator:__init__:92 - Fluxo de agentes: Executor → Validator → Docker Test → Rollback
+2026-02-27 23:54:47.291 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-27 23:54:47.291 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-27 23:54:47.291 | INFO     | agents.orchestrator:execute:111 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-27 23:54:47.292 | INFO     | agents.orchestrator:execute:112 - ============================================================
+2026-02-27 23:54:47.292 | INFO     | agents.orchestrator:execute:118 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-27 23:54:47.292 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-27 23:54:47.292 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-27 23:54:47.292 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-27 23:54:47.292 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1951 chars)
+2026-02-27 23:54:47.292 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-27 23:54:47.293 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1951 chars)
+2026-02-27 23:54:55.431 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (1609 chars)
+2026-02-27 23:54:55.431 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (1609 chars)
+2026-02-27 23:54:55.432 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-27 23:54:55.434 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/__init__.py
+2026-02-27 23:54:55.435 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias.domain_entities.py
+2026-02-27 23:54:55.436 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias.domain_value_objects.py
+2026-02-27 23:54:55.437 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academias.domain_aggregates.py
+2026-02-27 23:54:55.438 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/__init__.py
+2026-02-27 23:54:55.439 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/use_cases.py
+2026-02-27 23:54:55.440 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/dtos.py
+2026-02-27 23:54:55.441 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/mappers.py
+2026-02-27 23:54:55.442 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/__init__.py
+2026-02-27 23:54:55.442 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/repositories.py
+2026-02-27 23:54:55.443 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/database.py
+2026-02-27 23:54:55.444 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/__init__.py
+2026-02-27 23:54:55.445 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/routes.py
+2026-02-27 23:54:55.446 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/controllers.py
+2026-02-27 23:54:55.446 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/schemas.py
+2026-02-27 23:54:55.447 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/main.py
+2026-02-27 23:54:55.448 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/requirements.txt
+2026-02-27 23:54:55.449 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/Dockerfile
+2026-02-27 23:54:55.450 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/docker-compose.yml
+2026-02-27 23:54:55.450 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/__init__.py
+2026-02-27 23:54:55.452 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/test_academias.domain_entities.py
+2026-02-27 23:54:55.453 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/__init__.py
+2026-02-27 23:54:55.454 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos.domain_entities.py
+2026-02-27 23:54:55.455 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos.domain_value_objects.py
+2026-02-27 23:54:55.456 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos.domain_aggregates.py
+2026-02-27 23:54:55.456 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/__init__.py
+2026-02-27 23:54:55.457 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/use_cases.py
+2026-02-27 23:54:55.458 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/dtos.py
+2026-02-27 23:54:55.459 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/mappers.py
+2026-02-27 23:54:55.459 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/__init__.py
+2026-02-27 23:54:55.460 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/repositories.py
+2026-02-27 23:54:55.461 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/database.py
+2026-02-27 23:54:55.462 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/__init__.py
+2026-02-27 23:54:55.463 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/routes.py
+2026-02-27 23:54:55.464 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/controllers.py
+2026-02-27 23:54:55.465 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/schemas.py
+2026-02-27 23:54:55.465 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/main.py
+2026-02-27 23:54:55.467 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/requirements.txt
+2026-02-27 23:54:55.467 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/Dockerfile
+2026-02-27 23:54:55.468 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/docker-compose.yml
+2026-02-27 23:54:55.469 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/tests/__init__.py
+2026-02-27 23:54:55.470 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/tests/test_pagamentos.domain_entities.py
+2026-02-27 23:54:55.471 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/domain/__init__.py
+2026-02-27 23:54:55.472 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/domain/entradas.domain_entities.py
+2026-02-27 23:54:55.473 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/domain/entradas.domain_value_objects.py
+2026-02-27 23:54:55.474 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/domain/entradas.domain_aggregates.py
+2026-02-27 23:54:55.475 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/application/__init__.py
+2026-02-27 23:54:55.476 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/application/use_cases.py
+2026-02-27 23:54:55.476 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/application/dtos.py
+2026-02-27 23:54:55.477 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/application/mappers.py
+2026-02-27 23:54:55.478 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/infrastructure/__init__.py
+2026-02-27 23:54:55.479 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/infrastructure/repositories.py
+2026-02-27 23:54:55.480 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/infrastructure/database.py
+2026-02-27 23:54:55.481 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/api/__init__.py
+2026-02-27 23:54:55.482 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/api/routes.py
+2026-02-27 23:54:55.483 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/api/controllers.py
+2026-02-27 23:54:55.484 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/api/schemas.py
+2026-02-27 23:54:55.485 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/main.py
+2026-02-27 23:54:55.486 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/requirements.txt
+2026-02-27 23:54:55.487 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/Dockerfile
+2026-02-27 23:54:55.488 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/docker-compose.yml
+2026-02-27 23:54:55.489 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/tests/__init__.py
+2026-02-27 23:54:55.490 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas/tests/test_entradas.domain_entities.py
+2026-02-27 23:54:55.490 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/main.py
+2026-02-27 23:54:55.491 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/tests/test_academia.py
+2026-02-27 23:54:55.492 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-27 23:54:55.493 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-27 23:54:55.493 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 67 arquivos
+2026-02-27 23:54:55.493 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 8.20s
+2026-02-27 23:54:55.494 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 67
+2026-02-27 23:54:55.494 | INFO     | agents.orchestrator:execute:135 - ✅ Executor Agent concluído - 67 arquivos
+2026-02-27 23:54:55.494 | INFO     | agents.orchestrator:execute:140 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-27 23:54:55.494 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-27 23:54:55.494 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-27 23:54:55.495 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-27 23:54:55.495 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-27 23:54:55.495 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (2776 chars)
+2026-02-27 23:54:57.329 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (579 chars)
+2026-02-27 23:54:57.330 | ERROR    | agents.validator_agent:_parse_validation_output:164 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 17 column 111 (char 579)
+2026-02-27 23:54:57.330 | INFO     | agents.validator_agent:_manual_validation:187 - Realizando validação manual...
+2026-02-27 23:54:57.330 | INFO     | agents.validator_agent:_manual_validation:229 - ✅ Validação manual APROVADA - Score: 1.0
+2026-02-27 23:54:57.330 | INFO     | agents.orchestrator:execute:186 - 
+📋 FASE 4: Executando Docker Test Agent...
+2026-02-27 23:54:57.330 | INFO     | agents.docker_test_agent:execute:66 - ============================================================
+2026-02-27 23:54:57.331 | INFO     | agents.docker_test_agent:execute:67 - DOCKER TEST AGENT - Iniciando validação
+2026-02-27 23:54:57.331 | INFO     | agents.docker_test_agent:execute:68 - ============================================================
+2026-02-27 23:54:57.331 | ERROR    | agents.orchestrator:execute:238 - Erro fatal no Orchestrator: ExecutionResult.__init__() missing 1 required positional argument: 'status'
+Traceback (most recent call last):
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 191, in <module>
+    exit_code = asyncio.run(main())
+                │       │   └ <function main at 0x0000018AE6CE2C00>
+                │       └ <function run at 0x0000018AE497CD60>
+                └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object main at 0x0000018AE6D00D00>
+           │      └ <function Runner.run at 0x0000018AE6A62480>
+           └ <asyncio.runners.Runner object at 0x0000018AE6AEF050>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<main() running at C:\Users\kauan\Desktop\integrador\main.py:165> cb=[_run_until_complete_cb...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x0000018AE6A600E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x0000018AE6AEF050>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000018AE6B1F740>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000018AE6A61E40>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000018AE4FF4400>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018AE7FF44F0>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018AE7FF44F0>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018AE7FF44F0>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x0000018AE7FF44F0>()>
+
+  File "C:\Users\kauan\Desktop\integrador\main.py", line 165, in main
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='517a847f-440d-4b32-9aed-d140a9b5df6d', description='sistema para gestao de academia com foco em pagamentos at...
+                   │            └ <function OrchestratorAgent.execute at 0x0000018AE7F6CCC0>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x0000018AE7F9C560>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 189, in execute
+    docker_test_result = await self.docker_test_agent.execute(
+                               │    │                 └ <function DockerTestAgent.execute at 0x0000018AE7F6D260>
+                               │    └ <agents.docker_test_agent.DockerTestAgent object at 0x0000018AE7F9C950>
+                               └ <agents.orchestrator.OrchestratorAgent object at 0x0000018AE7F9C560>
+
+  File "C:\Users\kauan\Desktop\integrador\agents\docker_test_agent.py", line 70, in execute
+    result = ExecutionResult(
+             └ <class 'domain.entities.ExecutionResult'>
+
+TypeError: ExecutionResult.__init__() missing 1 required positional argument: 'status'
+2026-02-28 00:34:29.520 | INFO     | __main__:main:123 - ============================================================
+2026-02-28 00:34:29.520 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-28 00:34:29.520 | INFO     | __main__:main:125 - ============================================================
+2026-02-28 00:34:47.156 | INFO     | __main__:main:136 - Requisitos recebidos: sistema de academia com foco nas mensaldiades atrasadas e entradas e saidas de todos os donos
+
+Confi...
+2026-02-28 00:34:47.157 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-28 00:34:47.160 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-28 00:34:47.161 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-28 00:34:47.434 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-28 00:34:47.435 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-28 00:34:47.435 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-28 00:34:47.435 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-28 00:34:47.435 | INFO     | agents.docker_test_agent:__init__:51 - Docker Test Agent inicializado
+2026-02-28 00:34:47.436 | INFO     | agents.orchestrator:__init__:91 - Orchestrator Agent inicializado
+2026-02-28 00:34:47.436 | INFO     | agents.orchestrator:__init__:92 - Fluxo de agentes: Executor → Validator → Docker Test → Rollback
+2026-02-28 00:34:47.436 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-28 00:34:47.436 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-28 00:34:47.436 | INFO     | agents.orchestrator:execute:111 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-28 00:34:47.436 | INFO     | agents.orchestrator:execute:112 - ============================================================
+2026-02-28 00:34:47.437 | INFO     | agents.orchestrator:execute:118 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-28 00:34:47.437 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-28 00:34:47.437 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-28 00:34:47.437 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-28 00:34:47.437 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1960 chars)
+2026-02-28 00:34:47.437 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-28 00:34:47.437 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1960 chars)
+2026-02-28 00:34:56.154 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (1752 chars)
+2026-02-28 00:34:56.154 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (1752 chars)
+2026-02-28 00:34:56.154 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-28 00:34:56.156 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/domain/__init__.py
+2026-02-28 00:34:56.157 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/domain/donos_entities.py
+2026-02-28 00:34:56.158 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/domain/donos_value_objects.py
+2026-02-28 00:34:56.159 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/domain/donos_aggregates.py
+2026-02-28 00:34:56.160 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/application/__init__.py
+2026-02-28 00:34:56.161 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/application/use_cases.py
+2026-02-28 00:34:56.163 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/application/dtos.py
+2026-02-28 00:34:56.164 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/application/mappers.py
+2026-02-28 00:34:56.164 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/infrastructure/__init__.py
+2026-02-28 00:34:56.165 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/infrastructure/repositories.py
+2026-02-28 00:34:56.166 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/infrastructure/database.py
+2026-02-28 00:34:56.167 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/api/__init__.py
+2026-02-28 00:34:56.168 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/api/routes.py
+2026-02-28 00:34:56.169 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/api/controllers.py
+2026-02-28 00:34:56.170 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/api/schemas.py
+2026-02-28 00:34:56.171 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/main.py
+2026-02-28 00:34:56.172 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/requirements.txt
+2026-02-28 00:34:56.173 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/Dockerfile
+2026-02-28 00:34:56.173 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/docker-compose.yml
+2026-02-28 00:34:56.174 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/tests/__init__.py
+2026-02-28 00:34:56.175 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/cadastro-donos/tests/test_donos_entities.py
+2026-02-28 00:34:56.178 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/domain/__init__.py
+2026-02-28 00:34:56.178 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/domain/mensalidade_entities.py
+2026-02-28 00:34:56.179 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/domain/mensalidade_value_objects.py
+2026-02-28 00:34:56.181 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/domain/mensalidade_aggregates.py
+2026-02-28 00:34:56.182 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/application/__init__.py
+2026-02-28 00:34:56.183 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/application/use_cases.py
+2026-02-28 00:34:56.184 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/application/dtos.py
+2026-02-28 00:34:56.184 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/application/mappers.py
+2026-02-28 00:34:56.186 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/infrastructure/__init__.py
+2026-02-28 00:34:56.187 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/infrastructure/repositories.py
+2026-02-28 00:34:56.188 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/infrastructure/database.py
+2026-02-28 00:34:56.189 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/api/__init__.py
+2026-02-28 00:34:56.190 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/api/routes.py
+2026-02-28 00:34:56.191 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/api/controllers.py
+2026-02-28 00:34:56.192 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/api/schemas.py
+2026-02-28 00:34:56.193 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/main.py
+2026-02-28 00:34:56.194 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/requirements.txt
+2026-02-28 00:34:56.195 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/Dockerfile
+2026-02-28 00:34:56.195 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/docker-compose.yml
+2026-02-28 00:34:56.196 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/tests/__init__.py
+2026-02-28 00:34:56.197 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/mensalidades/tests/test_mensalidade_entities.py
+2026-02-28 00:34:56.198 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/domain/__init__.py
+2026-02-28 00:34:56.199 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/domain/entrada_saida_entities.py
+2026-02-28 00:34:56.200 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/domain/entrada_saida_value_objects.py
+2026-02-28 00:34:56.202 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/domain/entrada_saida_aggregates.py
+2026-02-28 00:34:56.203 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/application/__init__.py
+2026-02-28 00:34:56.204 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/application/use_cases.py
+2026-02-28 00:34:56.205 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/application/dtos.py
+2026-02-28 00:34:56.206 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/application/mappers.py
+2026-02-28 00:34:56.206 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/infrastructure/__init__.py
+2026-02-28 00:34:56.207 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/infrastructure/repositories.py
+2026-02-28 00:34:56.208 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/infrastructure/database.py
+2026-02-28 00:34:56.210 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/api/__init__.py
+2026-02-28 00:34:56.211 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/api/routes.py
+2026-02-28 00:34:56.212 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/api/controllers.py
+2026-02-28 00:34:56.213 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/api/schemas.py
+2026-02-28 00:34:56.214 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/main.py
+2026-02-28 00:34:56.215 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/requirements.txt
+2026-02-28 00:34:56.215 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/Dockerfile
+2026-02-28 00:34:56.217 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/docker-compose.yml
+2026-02-28 00:34:56.218 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/tests/__init__.py
+2026-02-28 00:34:56.219 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/entradas-saidas/tests/test_entrada_saida_entities.py
+2026-02-28 00:34:56.219 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/api/main.py
+2026-02-28 00:34:56.221 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-28 00:34:56.222 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-28 00:34:56.222 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 66 arquivos
+2026-02-28 00:34:56.222 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 8.78s
+2026-02-28 00:34:56.222 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 66
+2026-02-28 00:34:56.223 | INFO     | agents.orchestrator:execute:135 - ✅ Executor Agent concluído - 66 arquivos
+2026-02-28 00:34:56.223 | INFO     | agents.orchestrator:execute:140 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-28 00:34:56.223 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-28 00:34:56.223 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-28 00:34:56.223 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-28 00:34:56.224 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-28 00:34:56.224 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (2928 chars)
+2026-02-28 00:34:57.541 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (356 chars)
+2026-02-28 00:34:57.541 | WARNING  | agents.validator_agent:validate:125 - ❌ Validação REPROVADA - Score: 0.4
+2026-02-28 00:34:57.541 | WARNING  | agents.orchestrator:execute:155 - ❌ Validação reprovada: O código gerado apresenta problemas de dependência e estrutura DDD incompleta.
+2026-02-28 00:34:57.542 | INFO     | agents.orchestrator:execute:158 - 
+📋 FASE 3: Executando Rollback Agent...
+2026-02-28 00:34:57.542 | INFO     | agents.rollback_agent:execute:72 - ============================================================
+2026-02-28 00:34:57.542 | INFO     | agents.rollback_agent:execute:73 - ROLLBACK AGENT - Iniciando rollback
+2026-02-28 00:34:57.542 | INFO     | agents.rollback_agent:execute:74 - ============================================================
+2026-02-28 00:34:57.543 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-28 00:34:57.543 | INFO     | agents.rollback_agent:execute:93 - Arquivos a remover: 66
+2026-02-28 00:34:57.543 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/domain/__init__.py
+2026-02-28 00:34:57.545 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/domain/donos_entities.py
+2026-02-28 00:34:57.546 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/domain/donos_value_objects.py
+2026-02-28 00:34:57.547 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/domain/donos_aggregates.py
+2026-02-28 00:34:57.548 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/application/__init__.py
+2026-02-28 00:34:57.549 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/application/use_cases.py
+2026-02-28 00:34:57.550 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/application/dtos.py
+2026-02-28 00:34:57.551 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/application/mappers.py
+2026-02-28 00:34:57.551 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/infrastructure/__init__.py
+2026-02-28 00:34:57.553 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/infrastructure/repositories.py
+2026-02-28 00:34:57.554 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/infrastructure/database.py
+2026-02-28 00:34:57.555 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/api/__init__.py
+2026-02-28 00:34:57.556 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/api/routes.py
+2026-02-28 00:34:57.557 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/api/controllers.py
+2026-02-28 00:34:57.558 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/api/schemas.py
+2026-02-28 00:34:57.558 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/main.py
+2026-02-28 00:34:57.559 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/requirements.txt
+2026-02-28 00:34:57.560 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/Dockerfile
+2026-02-28 00:34:57.561 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/docker-compose.yml
+2026-02-28 00:34:57.562 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/tests/__init__.py
+2026-02-28 00:34:57.563 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/cadastro-donos/tests/test_donos_entities.py
+2026-02-28 00:34:57.564 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/domain/__init__.py
+2026-02-28 00:34:57.565 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/domain/mensalidade_entities.py
+2026-02-28 00:34:57.566 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/domain/mensalidade_value_objects.py
+2026-02-28 00:34:57.567 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/domain/mensalidade_aggregates.py
+2026-02-28 00:34:57.568 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/application/__init__.py
+2026-02-28 00:34:57.569 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/application/use_cases.py
+2026-02-28 00:34:57.570 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/application/dtos.py
+2026-02-28 00:34:57.571 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/application/mappers.py
+2026-02-28 00:34:57.572 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/infrastructure/__init__.py
+2026-02-28 00:34:57.573 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/infrastructure/repositories.py
+2026-02-28 00:34:57.574 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/infrastructure/database.py
+2026-02-28 00:34:57.575 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/api/__init__.py
+2026-02-28 00:34:57.577 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/api/routes.py
+2026-02-28 00:34:57.578 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/api/controllers.py
+2026-02-28 00:34:57.579 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/api/schemas.py
+2026-02-28 00:34:57.580 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/main.py
+2026-02-28 00:34:57.582 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/requirements.txt
+2026-02-28 00:34:57.584 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/Dockerfile
+2026-02-28 00:34:57.585 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/docker-compose.yml
+2026-02-28 00:34:57.586 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/tests/__init__.py
+2026-02-28 00:34:57.587 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/mensalidades/tests/test_mensalidade_entities.py
+2026-02-28 00:34:57.589 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/domain/__init__.py
+2026-02-28 00:34:57.590 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/domain/entrada_saida_entities.py
+2026-02-28 00:34:57.591 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/domain/entrada_saida_value_objects.py
+2026-02-28 00:34:57.592 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/domain/entrada_saida_aggregates.py
+2026-02-28 00:34:57.593 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/application/__init__.py
+2026-02-28 00:34:57.594 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/application/use_cases.py
+2026-02-28 00:34:57.596 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/application/dtos.py
+2026-02-28 00:34:57.597 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/application/mappers.py
+2026-02-28 00:34:57.598 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/infrastructure/__init__.py
+2026-02-28 00:34:57.600 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/infrastructure/repositories.py
+2026-02-28 00:34:57.602 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/infrastructure/database.py
+2026-02-28 00:34:57.603 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/api/__init__.py
+2026-02-28 00:34:57.603 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/api/routes.py
+2026-02-28 00:34:57.604 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/api/controllers.py
+2026-02-28 00:34:57.606 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/api/schemas.py
+2026-02-28 00:34:57.608 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/main.py
+2026-02-28 00:34:57.609 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/requirements.txt
+2026-02-28 00:34:57.610 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/Dockerfile
+2026-02-28 00:34:57.610 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/docker-compose.yml
+2026-02-28 00:34:57.611 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/tests/__init__.py
+2026-02-28 00:34:57.613 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/entradas-saidas/tests/test_entrada_saida_entities.py
+2026-02-28 00:34:57.614 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: generated/api/main.py
+2026-02-28 00:34:57.615 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: README.md
+2026-02-28 00:34:57.615 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: docker-compose.yml
+2026-02-28 00:34:57.618 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\entradas-saidas\tests
+2026-02-28 00:34:57.619 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\mensalidades\application
+2026-02-28 00:34:57.620 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\cadastro-donos\tests
+2026-02-28 00:34:57.621 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\entradas-saidas\infrastructure
+2026-02-28 00:34:57.621 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\entradas-saidas\api
+2026-02-28 00:34:57.622 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\cadastro-donos\domain
+2026-02-28 00:34:57.624 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\entradas-saidas\application
+2026-02-28 00:34:57.625 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\cadastro-donos\api
+2026-02-28 00:34:57.626 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\mensalidades\api
+2026-02-28 00:34:57.626 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\mensalidades\domain
+2026-02-28 00:34:57.627 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\mensalidades\tests
+2026-02-28 00:34:57.628 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: generated\api
+2026-02-28 00:34:57.630 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\entradas-saidas\domain
+2026-02-28 00:34:57.631 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\cadastro-donos\infrastructure
+2026-02-28 00:34:57.632 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\cadastro-donos\application
+2026-02-28 00:34:57.638 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\mensalidades\infrastructure
+2026-02-28 00:34:57.639 | INFO     | agents.rollback_agent:execute:121 - Rollback concluído com sucesso
+2026-02-28 00:34:57.639 | INFO     | agents.rollback_agent:execute:126 - Rollback Agent - Concluído em 0.10s
+2026-02-28 00:35:24.333 | INFO     | __main__:main:123 - ============================================================
+2026-02-28 00:35:24.334 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-28 00:35:24.334 | INFO     | __main__:main:125 - ============================================================
+2026-02-28 00:35:28.842 | INFO     | __main__:main:136 - Requisitos recebidos: sistema para gestao de academia com foco em pagamentos atrasados e entradas e saidas
+
+Configurações:...
+2026-02-28 00:35:28.843 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-28 00:35:28.847 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-28 00:35:28.847 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-28 00:35:29.095 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-28 00:35:29.095 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-28 00:35:29.095 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-28 00:35:29.095 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-28 00:35:29.095 | INFO     | agents.docker_test_agent:__init__:51 - Docker Test Agent inicializado
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:__init__:91 - Orchestrator Agent inicializado
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:__init__:92 - Fluxo de agentes: Executor → Validator → Docker Test → Rollback
+2026-02-28 00:35:29.096 | INFO     | __main__:main:164 - Iniciando execução dos agentes...
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:execute:110 - ============================================================
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:execute:111 - ORCHESTRATOR AGENT - Iniciando fluxo completo
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:execute:112 - ============================================================
+2026-02-28 00:35:29.096 | INFO     | agents.orchestrator:execute:118 - 
+📋 FASE 1: Executando Executor Agent...
+2026-02-28 00:35:29.097 | INFO     | agents.executor_agent:execute:71 - ============================================================
+2026-02-28 00:35:29.097 | INFO     | agents.executor_agent:execute:72 - EXECUTOR AGENT - Iniciando geração de código
+2026-02-28 00:35:29.097 | INFO     | agents.executor_agent:execute:73 - ============================================================
+2026-02-28 00:35:29.097 | DEBUG    | agents.executor_agent:execute:77 - Prompt construído (1951 chars)
+2026-02-28 00:35:29.097 | INFO     | agents.executor_agent:execute:80 - Chamando LLM para geração de código...
+2026-02-28 00:35:29.097 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (1951 chars)
+2026-02-28 00:35:34.334 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (1320 chars)
+2026-02-28 00:35:34.334 | INFO     | agents.executor_agent:execute:88 - Resposta do LLM recebida (1320 chars)
+2026-02-28 00:35:34.335 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-28 00:35:34.336 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/__init__.py
+2026-02-28 00:35:34.337 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academia_entities.py
+2026-02-28 00:35:34.337 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academia_value_objects.py
+2026-02-28 00:35:34.338 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/domain/academia_aggregates.py
+2026-02-28 00:35:34.339 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/__init__.py
+2026-02-28 00:35:34.339 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/use_cases.py
+2026-02-28 00:35:34.340 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/dtos.py
+2026-02-28 00:35:34.341 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/application/mappers.py
+2026-02-28 00:35:34.342 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/__init__.py
+2026-02-28 00:35:34.343 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/repositories.py
+2026-02-28 00:35:34.344 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/infrastructure/database.py
+2026-02-28 00:35:34.344 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/__init__.py
+2026-02-28 00:35:34.345 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/routes.py
+2026-02-28 00:35:34.346 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/controllers.py
+2026-02-28 00:35:34.347 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/api/schemas.py
+2026-02-28 00:35:34.348 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/main.py
+2026-02-28 00:35:34.349 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/requirements.txt
+2026-02-28 00:35:34.350 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/Dockerfile
+2026-02-28 00:35:34.350 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/docker-compose.yml
+2026-02-28 00:35:34.351 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/__init__.py
+2026-02-28 00:35:34.352 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/academia/tests/test_academia_entities.py
+2026-02-28 00:35:34.353 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/__init__.py
+2026-02-28 00:35:34.353 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos_entities.py
+2026-02-28 00:35:34.354 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos_value_objects.py
+2026-02-28 00:35:34.355 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/domain/pagamentos_aggregates.py
+2026-02-28 00:35:34.356 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/__init__.py
+2026-02-28 00:35:34.357 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/use_cases.py
+2026-02-28 00:35:34.358 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/dtos.py
+2026-02-28 00:35:34.358 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/application/mappers.py
+2026-02-28 00:35:34.359 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/__init__.py
+2026-02-28 00:35:34.360 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/repositories.py
+2026-02-28 00:35:34.361 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/infrastructure/database.py
+2026-02-28 00:35:34.361 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/__init__.py
+2026-02-28 00:35:34.362 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/routes.py
+2026-02-28 00:35:34.363 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/controllers.py
+2026-02-28 00:35:34.364 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/api/schemas.py
+2026-02-28 00:35:34.364 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/main.py
+2026-02-28 00:35:34.365 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/requirements.txt
+2026-02-28 00:35:34.366 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/Dockerfile
+2026-02-28 00:35:34.367 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/docker-compose.yml
+2026-02-28 00:35:34.368 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/tests/__init__.py
+2026-02-28 00:35:34.368 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/pagamentos/tests/test_pagamentos_entities.py
+2026-02-28 00:35:34.369 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/domain/__init__.py
+2026-02-28 00:35:34.370 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/domain/users_entities.py
+2026-02-28 00:35:34.371 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/domain/users_value_objects.py
+2026-02-28 00:35:34.372 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/domain/users_aggregates.py
+2026-02-28 00:35:34.373 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/application/__init__.py
+2026-02-28 00:35:34.374 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/application/use_cases.py
+2026-02-28 00:35:34.375 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/application/dtos.py
+2026-02-28 00:35:34.375 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/application/mappers.py
+2026-02-28 00:35:34.376 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/infrastructure/__init__.py
+2026-02-28 00:35:34.378 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/infrastructure/repositories.py
+2026-02-28 00:35:34.379 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/infrastructure/database.py
+2026-02-28 00:35:34.380 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/api/__init__.py
+2026-02-28 00:35:34.381 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/api/routes.py
+2026-02-28 00:35:34.381 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/api/controllers.py
+2026-02-28 00:35:34.382 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/api/schemas.py
+2026-02-28 00:35:34.384 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/main.py
+2026-02-28 00:35:34.385 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/requirements.txt
+2026-02-28 00:35:34.386 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/Dockerfile
+2026-02-28 00:35:34.386 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/docker-compose.yml
+2026-02-28 00:35:34.387 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/tests/__init__.py
+2026-02-28 00:35:34.388 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: services/users/tests/test_users_entities.py
+2026-02-28 00:35:34.389 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: generated/api/academia/entradas.py
+2026-02-28 00:35:34.389 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: README.md
+2026-02-28 00:35:34.391 | INFO     | infrastructure.file_manager:create_file:54 - Arquivo criado: docker-compose.yml
+2026-02-28 00:35:34.391 | INFO     | agents.executor_agent:_create_project_files:395 - Criados 66 arquivos
+2026-02-28 00:35:34.391 | INFO     | agents.executor_agent:execute:109 - Executor Agent - Concluído em 5.30s
+2026-02-28 00:35:34.391 | INFO     | agents.executor_agent:execute:110 - Arquivos criados: 66
+2026-02-28 00:35:34.391 | INFO     | agents.orchestrator:execute:135 - ✅ Executor Agent concluído - 66 arquivos
+2026-02-28 00:35:34.391 | INFO     | agents.orchestrator:execute:140 - 
+📋 FASE 2: Executando Validator Agent...
+2026-02-28 00:35:34.392 | INFO     | agents.validator_agent:validate:70 - ============================================================
+2026-02-28 00:35:34.392 | INFO     | agents.validator_agent:validate:71 - VALIDATOR AGENT - Iniciando validação
+2026-02-28 00:35:34.392 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-02-28 00:35:34.392 | INFO     | agents.validator_agent:validate:94 - Chamando LLM para validação...
+2026-02-28 00:35:34.392 | DEBUG    | infrastructure.llm_provider:generate:127 - Enviando prompt para llama3.2 (2487 chars)
+2026-02-28 00:35:35.834 | DEBUG    | infrastructure.llm_provider:generate:144 - Resposta recebida (425 chars)
+2026-02-28 00:35:35.834 | WARNING  | agents.validator_agent:validate:125 - ❌ Validação REPROVADA - Score: 0.4
+2026-02-28 00:35:35.834 | WARNING  | agents.orchestrator:execute:155 - ❌ Validação reprovada: Implemente o domínio PagamentoAtrasado e o uso caso RealizarPagamentoAtrasado, além do domínio Usuario e o uso caso CriarUsuario
+2026-02-28 00:35:35.835 | INFO     | agents.orchestrator:execute:158 - 
+📋 FASE 3: Executando Rollback Agent...
+2026-02-28 00:35:35.835 | INFO     | agents.rollback_agent:execute:72 - ============================================================
+2026-02-28 00:35:35.835 | INFO     | agents.rollback_agent:execute:73 - ROLLBACK AGENT - Iniciando rollback
+2026-02-28 00:35:35.835 | INFO     | agents.rollback_agent:execute:74 - ============================================================
+2026-02-28 00:35:35.835 | INFO     | infrastructure.file_manager:__init__:32 - FileManager inicializado em: generated
+2026-02-28 00:35:35.835 | INFO     | agents.rollback_agent:execute:93 - Arquivos a remover: 66
+2026-02-28 00:35:35.836 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/__init__.py
+2026-02-28 00:35:35.837 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academia_entities.py
+2026-02-28 00:35:35.838 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academia_value_objects.py
+2026-02-28 00:35:35.839 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/domain/academia_aggregates.py
+2026-02-28 00:35:35.839 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/__init__.py
+2026-02-28 00:35:35.840 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/use_cases.py
+2026-02-28 00:35:35.841 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/dtos.py
+2026-02-28 00:35:35.842 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/application/mappers.py
+2026-02-28 00:35:35.843 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/__init__.py
+2026-02-28 00:35:35.844 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/repositories.py
+2026-02-28 00:35:35.844 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/infrastructure/database.py
+2026-02-28 00:35:35.845 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/__init__.py
+2026-02-28 00:35:35.846 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/routes.py
+2026-02-28 00:35:35.847 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/controllers.py
+2026-02-28 00:35:35.847 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/api/schemas.py
+2026-02-28 00:35:35.848 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/main.py
+2026-02-28 00:35:35.849 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/requirements.txt
+2026-02-28 00:35:35.849 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/Dockerfile
+2026-02-28 00:35:35.850 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/docker-compose.yml
+2026-02-28 00:35:35.850 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/tests/__init__.py
+2026-02-28 00:35:35.851 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/academia/tests/test_academia_entities.py
+2026-02-28 00:35:35.852 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/domain/__init__.py
+2026-02-28 00:35:35.853 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/domain/pagamentos_entities.py
+2026-02-28 00:35:35.854 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/domain/pagamentos_value_objects.py
+2026-02-28 00:35:35.854 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/domain/pagamentos_aggregates.py
+2026-02-28 00:35:35.855 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/application/__init__.py
+2026-02-28 00:35:35.856 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/application/use_cases.py
+2026-02-28 00:35:35.856 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/application/dtos.py
+2026-02-28 00:35:35.857 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/application/mappers.py
+2026-02-28 00:35:35.858 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/infrastructure/__init__.py
+2026-02-28 00:35:35.859 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/infrastructure/repositories.py
+2026-02-28 00:35:35.860 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/infrastructure/database.py
+2026-02-28 00:35:35.860 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/api/__init__.py
+2026-02-28 00:35:35.861 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/api/routes.py
+2026-02-28 00:35:35.862 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/api/controllers.py
+2026-02-28 00:35:35.862 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/api/schemas.py
+2026-02-28 00:35:35.863 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/main.py
+2026-02-28 00:35:35.864 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/requirements.txt
+2026-02-28 00:35:35.865 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/Dockerfile
+2026-02-28 00:35:35.865 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/docker-compose.yml
+2026-02-28 00:35:35.866 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/tests/__init__.py
+2026-02-28 00:35:35.867 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/pagamentos/tests/test_pagamentos_entities.py
+2026-02-28 00:35:35.867 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/domain/__init__.py
+2026-02-28 00:35:35.868 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/domain/users_entities.py
+2026-02-28 00:35:35.869 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/domain/users_value_objects.py
+2026-02-28 00:35:35.870 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/domain/users_aggregates.py
+2026-02-28 00:35:35.871 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/application/__init__.py
+2026-02-28 00:35:35.872 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/application/use_cases.py
+2026-02-28 00:35:35.872 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/application/dtos.py
+2026-02-28 00:35:35.873 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/application/mappers.py
+2026-02-28 00:35:35.873 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/infrastructure/__init__.py
+2026-02-28 00:35:35.874 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/infrastructure/repositories.py
+2026-02-28 00:35:35.875 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/infrastructure/database.py
+2026-02-28 00:35:35.877 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/api/__init__.py
+2026-02-28 00:35:35.878 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/api/routes.py
+2026-02-28 00:35:35.879 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/api/controllers.py
+2026-02-28 00:35:35.879 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/api/schemas.py
+2026-02-28 00:35:35.880 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/main.py
+2026-02-28 00:35:35.881 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/requirements.txt
+2026-02-28 00:35:35.881 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/Dockerfile
+2026-02-28 00:35:35.882 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/docker-compose.yml
+2026-02-28 00:35:35.883 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/tests/__init__.py
+2026-02-28 00:35:35.884 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: services/users/tests/test_users_entities.py
+2026-02-28 00:35:35.884 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: generated/api/academia/entradas.py
+2026-02-28 00:35:35.885 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: README.md
+2026-02-28 00:35:35.886 | INFO     | infrastructure.file_manager:delete_file:93 - Arquivo removido: docker-compose.yml
+2026-02-28 00:35:35.888 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\infrastructure
+2026-02-28 00:35:35.888 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamentos\application
+2026-02-28 00:35:35.889 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: generated\api\academia
+2026-02-28 00:35:35.890 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\users\domain
+2026-02-28 00:35:35.891 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\users\infrastructure
+2026-02-28 00:35:35.892 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\users\application
+2026-02-28 00:35:35.893 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\users\api
+2026-02-28 00:35:35.894 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\application
+2026-02-28 00:35:35.895 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamentos\api
+2026-02-28 00:35:35.896 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\pagamentos\infrastructure
+2026-02-28 00:35:35.896 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\users\tests
+2026-02-28 00:35:35.897 | INFO     | infrastructure.file_manager:rollback_files:200 - Diretório vazio removido: services\academia\api
+2026-02-28 00:35:35.897 | INFO     | agents.rollback_agent:execute:121 - Rollback concluído com sucesso
+2026-02-28 00:35:35.897 | INFO     | agents.rollback_agent:execute:126 - Rollback Agent - Concluído em 0.06s
+2026-02-28 01:29:46.840 | INFO     | __main__:main:123 - ============================================================
+2026-02-28 01:29:46.840 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-28 01:29:46.840 | INFO     | __main__:main:125 - ============================================================
+2026-02-28 01:29:54.980 | INFO     | __main__:main:136 - Requisitos recebidos: sistema de academia
+
+Configurações: framework=python-fastapi, database=postgresql...
+2026-02-28 01:29:54.980 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-28 01:29:54.984 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-28 01:29:54.984 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-28 01:29:55.236 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-28 01:29:55.236 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-28 01:29:55.236 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-28 01:29:55.237 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-28 01:29:55.237 | INFO     | agents.docker_test_agent:__init__:51 - Docker Test Agent inicializado
+2026-02-28 12:20:12.265 | INFO     | __main__:main:123 - ============================================================
+2026-02-28 12:20:12.265 | INFO     | __main__:main:124 -   INICIANDO SISTEMA DE AGENTES
+2026-02-28 12:20:12.266 | INFO     | __main__:main:125 - ============================================================
+2026-02-28 12:20:41.151 | INFO     | __main__:main:136 - Requisitos recebidos: criar sistema de academia com foco nos pagamentos atrasados de mensalidade e no controle de entradas...
+2026-02-28 12:20:41.151 | INFO     | __main__:main:153 - Verificando/Iniciando Ollama...
+2026-02-28 12:20:41.156 | INFO     | infrastructure.llm_provider:ensure_ollama_running:45 - Ollama já está rodando!
+2026-02-28 12:20:41.156 | INFO     | __main__:main:157 - Inicializando Ollama com modelo: llama3.2
+2026-02-28 12:20:41.422 | INFO     | infrastructure.llm_provider:__init__:106 - OllamaProvider inicializado com modelo: llama3.2
+2026-02-28 12:20:41.422 | INFO     | agents.executor_agent:__init__:51 - Executor Agent inicializado
+2026-02-28 12:20:41.423 | INFO     | agents.validator_agent:__init__:51 - Validator Agent inicializado
+2026-02-28 12:20:41.423 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-02-28 12:20:41.423 | INFO     | agents.docker_test_agent:__init__:51 - Docker Test Agent inicializado
