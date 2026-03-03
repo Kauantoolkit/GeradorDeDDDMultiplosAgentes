@@ -9,6 +9,7 @@ ollama>=0.1.0
 # Utilities
 python-dotenv>=1.0.0
 pathlib>=1.0.1
+PyYAML>=6.0.0
 
 # Logging
 loguru>=0.7.0

@@ -26,7 +26,7 @@ from domain.entities import (
     Requirement,
     ValidationResult
 )
-from infrastructure.llm_provider import OllamaProvider
+from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
 
 from .error_logger import get_error_logger
@@ -56,7 +56,7 @@ class FixAgent:
         Inicializa o Fix Agent.
         
         Args:
-            llm_provider: Provedor de LLM para辅助 correção (opcional)
+            llm_provider: Provedor de LLM para correção (opcional)
         """
         self.llm_provider = llm_provider
         self.name = "Fix Agent"
@@ -116,9 +116,14 @@ class FixAgent:
             # Cria plano de correção
             fix_plan = self._create_fix_plan(issues_to_fix)
             
+            # Obtém o execution_result do requisito
+            execution_result = requirement.execution_result if hasattr(requirement, 'execution_result') else None
+            
             # Aplica correções
             files_modified = await self._apply_fixes(
                 requirement,
+                validation_result,
+                execution_result,
                 fix_plan,
                 issues_to_fix
             )
@@ -257,6 +262,8 @@ class FixAgent:
     async def _apply_fixes(
         self,
         requirement: Requirement,
+        validation_result: ValidationResult,
+        execution_result: Any,
         fix_plan: dict,
         issues: list[str]
     ) -> list[str]:
@@ -265,6 +272,8 @@ class FixAgent:
         
         Args:
             requirement: Requisito original
+            validation_result: Resultado da validação
+            execution_result: Resultado da execução do Executor
             fix_plan: Plano de correção
             issues: Lista de problemas
             
@@ -281,7 +290,8 @@ class FixAgent:
                 await self._fix_with_llm(
                     file_manager,
                     requirement,
-                    issues,
+                    validation_result,
+                    execution_result,
                     project_path
                 )
             )
@@ -301,7 +311,8 @@ class FixAgent:
         self,
         file_manager: FileManager,
         requirement: Requirement,
-        issues: list[str],
+        validation_result: ValidationResult,
+        execution_result: Any,
         project_path: str
     ) -> list[str]:
         """
@@ -310,7 +321,8 @@ class FixAgent:
         Args:
             file_manager: Gerenciador de arquivos
             requirement: Requisito original
-            issues: Lista de problemas
+            validation_result: Resultado da validação
+            execution_result: Resultado da execução do Executor
             project_path: Caminho do projeto
             
         Returns:
@@ -319,8 +331,12 @@ class FixAgent:
         files_modified = []
         
         try:
-            # Constrói prompt para correção
-            prompt = self._build_fix_prompt(requirement, issues)
+            # Constrói prompt para correção usando o novo PromptBuilder
+            prompt = PromptBuilder.build_fix_prompt(
+                requirement,
+                validation_result,
+                execution_result
+            )
             
             # Chama LLM
             logger.info("Chamando LLM para gerar correções...")

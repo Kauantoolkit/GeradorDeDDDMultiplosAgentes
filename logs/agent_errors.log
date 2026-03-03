@@ -4,136 +4,82 @@
 {"timestamp": "2026-03-03T15:40:39.487438", "type": "FIX_ATTEMPT", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 2, "issues_to_fix": ["Rejeitado: petshop-usecase", "A estrutura DDD não está completa", "O microservice petshop-usecase não está implementado", "Faltando: petshop-domain", "Rejeitado: petshop-domain", "O código gerado não atende aos requisitos originais e não está completo em termos de estrutura DDD", "Faltando: petshop-usecase"], "actions_taken": ["Criar casos de uso", "Criar estrutura de domínio DDD"], "files_modified": ["petshop-usecase.py", "petshop-domain.py"], "success": true}
 {"timestamp": "2026-03-03T15:42:52.713805", "type": "VALIDATION_FAILURE", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 3, "score": 0.2, "issues": ["A estrutura DDD não está completa", "O petshop-usecase e petshop-domain não estão implementados", "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados"], "rejected_items": ["petshop-usecase", "petshop-domain"], "missing_items": ["petshop-usecase", "petshop-domain"], "feedback": "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados"}
 {"timestamp": "2026-03-03T15:44:16.555124", "type": "FIX_ATTEMPT", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 3, "issues_to_fix": ["Rejeitado: petshop-usecase", "A estrutura DDD não está completa", "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados", "O petshop-usecase e petshop-domain não estão implementados", "Faltando: petshop-domain", "Rejeitado: petshop-domain", "Faltando: petshop-usecase"], "actions_taken": ["Criar casos de uso", "Criar estrutura de domínio DDD"], "files_modified": ["petshop-usecase.py", "petshop-domain.py", "petshop-usecase.py", "petshop-domain.py"], "success": true}
-2026-03-03 15:44:16 | INFO | Correções aplicadas: 4 arquivos modificados
-2026-03-03 15:44:16 | INFO | ============================================================
-2026-03-03 15:44:16 | INFO | VALIDATOR AGENT - Iniciando validação
-2026-03-03 15:44:16 | INFO | ============================================================
-2026-03-03 15:44:16 | INFO | Chamando LLM para validação...
-2026-03-03 15:46:58 | WARNING | ❌ Validação REPROVADA - Score: 0.2
-2026-03-03 15:46:58 | INFO | ============================================================
-2026-03-03 15:46:58 | INFO | ROLLBACK AGENT - Iniciando rollback
-2026-03-03 15:46:58 | INFO | ============================================================
-2026-03-03 15:46:58 | INFO | FileManager inicializado em: generated
-2026-03-03 15:46:58 | INFO | Arquivos a remover: 88
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/__init__.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_entities.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_value_objects.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_aggregates.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/__init__.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/use_cases.py
-2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/dtos.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/application/mappers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/repositories.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/database.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/routes.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/controllers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/schemas.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/main.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/requirements.txt
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/Dockerfile
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/docker-compose.yml
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/tests/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/tests/test_petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_value_objects.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_aggregates.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/use_cases.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/dtos.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/mappers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/repositories.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/database.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/routes.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/controllers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/schemas.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/main.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/requirements.txt
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/Dockerfile
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/docker-compose.yml
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/tests/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/tests/test_petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_value_objects.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_aggregates.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/use_cases.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/dtos.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/mappers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/repositories.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/database.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/routes.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/controllers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/schemas.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/main.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/requirements.txt
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/Dockerfile
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/docker-compose.yml
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/tests/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/tests/test_petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_value_objects.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_aggregates.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/use_cases.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/dtos.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/mappers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/repositories.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/database.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/routes.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/controllers.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/schemas.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/main.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/requirements.txt
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/Dockerfile
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/docker-compose.yml
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/tests/__init__.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/tests/test_petshop.domain_entities.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: generated/petshop_api/main.py
-2026-03-03 15:46:59 | INFO | Arquivo removido: README.md
-2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/static/index.html
-2026-03-03 15:46:59 | INFO | Arquivo removido: docker-compose.yml
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: generated\petshop_api
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\infrastructure
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\application
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\domain
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\tests
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\api
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\application
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\api
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\tests
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\static
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\tests
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\domain
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\application
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\infrastructure
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\application
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\tests
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\api
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\domain
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\api
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\infrastructure
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\infrastructure
-2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\domain
-2026-03-03 15:46:59 | INFO | Rollback concluído com sucesso
-2026-03-03 15:46:59 | INFO | Rollback Agent - Concluído em 0.59s
-2026-03-03 16:04:31 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 1
-2026-03-03 16:04:31 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 0
-2026-03-03 16:12:27 | INFO | Cliente client_1772562578005_mqlcn7aae conectado. Total: 1
-2026-03-03 16:12:27 | INFO | Cliente client_1772562578005_mqlcn7aae conectado. Total: 2
-2026-03-03 16:12:34 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 1
-2026-03-03 16:12:34 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 0
-2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 conectado. Total: 1
-2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 conectado. Total: 2
-2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 desconectado. Total: 1
-2026-03-03 16:14:38 | INFO | Cliente client_1772565154639_hakhfwfp6 desconectado. Total: 0
+{"timestamp": "2026-03-03T17:12:24.754069", "type": "VALIDATION_FAILURE", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 1, "score": 0.2, "issues": ["Falta implementação de use_cases para CreateOrder e CreateProduct", "Dependencies não definidos", "O código não atende aos requisitos originais, especialmente em relação à implementação de use_cases e definição de dependencies."], "rejected_items": ["CreateOrder", "CreateProduct", "dependencies"], "missing_items": ["CreateOrder", "CreateProduct"], "feedback": "O código não atende aos requisitos originais, especialmente em relação à implementação de use_cases e definição de dependencies."}
+{"timestamp": "2026-03-03T17:12:30.225893", "type": "FIX_ATTEMPT", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 1, "issues_to_fix": ["Dependencies não definidos", "Rejeitado: CreateOrder", "Faltando: CreateOrder", "O código não atende aos requisitos originais, especialmente em relação à implementação de use_cases e definição de dependencies.", "Falta implementação de use_cases para CreateOrder e CreateProduct", "Faltando: CreateProduct", "Rejeitado: CreateProduct", "Rejeitado: dependencies"], "actions_taken": [], "files_modified": ["requirements.txt", "use_cases/create_order.py", "use_cases/create_product.py", "dependencies.py"], "success": true}
+{"timestamp": "2026-03-03T17:12:32.827929", "type": "VALIDATION_FAILURE", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 2, "score": 0.2, "issues": ["Falta implementação de entities", "Falta implementação de use_cases", "Falta implementação de ports", "Falta implementação de dependencies", "O código gerado não atende aos requisitos originais, especialmente em relação à implementação de entities, use_cases, ports e dependencies."], "rejected_items": ["entities", "use_cases", "ports", "dependencies"], "missing_items": ["entities", "use_cases", "ports", "dependencies"], "feedback": "O código gerado não atende aos requisitos originais, especialmente em relação à implementação de entities, use_cases, ports e dependencies."}
+{"timestamp": "2026-03-03T17:12:40.679090", "type": "FIX_ATTEMPT", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 2, "issues_to_fix": ["Rejeitado: ports", "Faltando: dependencies", "Faltando: use_cases", "Faltando: entities", "Rejeitado: use_cases", "Falta implementação de use_cases", "Faltando: ports", "Rejeitado: entities", "Rejeitado: dependencies", "Falta implementação de entities", "O código gerado não atende aos requisitos originais, especialmente em relação à implementação de entities, use_cases, ports e dependencies.", "Falta implementação de dependencies", "Falta implementação de ports"], "actions_taken": [], "files_modified": ["app.py", "domain/use_cases.py", "domain/entities.py", "domain/ports.py", "domain/dependencies.py"], "success": true}
+{"timestamp": "2026-03-03T17:12:42.961347", "type": "VALIDATION_FAILURE", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 3, "score": 0.2, "issues": ["Falta de implementação de entities", "Falta de implementação de use_cases", "Falta de implementação de ports", "Falta de implementação de dependencies", "O código não atende aos requisitos originais, especialmente em relação às entidades, use-cases, ports e dependências."], "rejected_items": ["entities", "use_cases", "ports", "dependencies"], "missing_items": ["entities", "use_cases", "ports", "dependencies"], "feedback": "O código não atende aos requisitos originais, especialmente em relação às entidades, use-cases, ports e dependências."}
+{"timestamp": "2026-03-03T17:12:51.008888", "type": "FIX_ATTEMPT", "requirement_id": "92b6a2b9-4244-4456-81ef-17472d40e0b1", "attempt": 3, "issues_to_fix": ["Rejeitado: ports", "Faltando: dependencies", "O código não atende aos requisitos originais, especialmente em relação às entidades, use-cases, ports e dependências.", "Falta de implementação de entities", "Faltando: entities", "Rejeitado: use_cases", "Faltando: use_cases", "Faltando: ports", "Rejeitado: entities", "Falta de implementação de dependencies", "Falta de implementação de use_cases", "Falta de implementação de ports", "Rejeitado: dependencies"], "actions_taken": [], "files_modified": ["app.py", "domain/entities/petshop.py", "domain/use_cases/get_pets_use_case.py", "domain/ports/get_pets_port.py", "domain/dependencies/pet_shop_repository.py"], "success": true}
+2026-03-03 17:12:51 | INFO | Correções aplicadas: 5 arquivos modificados
+2026-03-03 17:12:51 | INFO | ============================================================
+2026-03-03 17:12:51 | INFO | VALIDATOR AGENT - Iniciando validação
+2026-03-03 17:12:51 | INFO | ============================================================
+2026-03-03 17:12:51 | INFO | Chamando LLM para validação...
+2026-03-03 17:12:53 | WARNING | ❌ Validação REPROVADA - Score: 0.2
+2026-03-03 17:12:53 | INFO | ============================================================
+2026-03-03 17:12:53 | INFO | ROLLBACK AGENT - Iniciando rollback
+2026-03-03 17:12:53 | INFO | ============================================================
+2026-03-03 17:12:53 | INFO | FileManager inicializado em: generated
+2026-03-03 17:12:53 | INFO | Arquivos a remover: 47
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/domain/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/domain/petshop_entities.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/domain/petshop_value_objects.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/domain/petshop_aggregates.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/application/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/application/use_cases.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/application/dtos.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/application/mappers.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/infrastructure/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/infrastructure/repositories.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/infrastructure/database.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/api/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/api/routes.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/api/controllers.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/api/schemas.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/main.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/requirements.txt
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/Dockerfile
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/docker-compose.yml
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/tests/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/tests/test_petshop_entities.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/domain/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/domain/user_entities.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/domain/user_value_objects.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/domain/user_aggregates.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/application/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/application/use_cases.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/application/dtos.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/application/mappers.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/infrastructure/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/infrastructure/repositories.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/infrastructure/database.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/api/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/api/routes.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/api/controllers.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/api/schemas.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/main.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/requirements.txt
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/Dockerfile
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/docker-compose.yml
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/tests/__init__.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/user/tests/test_user_entities.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: generated/petshop/petshop.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: generated/user/user.py
+2026-03-03 17:12:53 | INFO | Arquivo removido: README.md
+2026-03-03 17:12:53 | INFO | Arquivo removido: services/petshop/static/index.html
+2026-03-03 17:12:53 | INFO | Arquivo removido: docker-compose.yml
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\user\api
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\tests
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\user\application
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\user\infrastructure
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: generated\user
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\user\tests
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\infrastructure
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: generated\petshop
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\static
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\domain
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\user\domain
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\application
+2026-03-03 17:12:53 | INFO | Diretório vazio removido: services\petshop\api
+2026-03-03 17:12:53 | INFO | Rollback concluído com sucesso
+2026-03-03 17:12:53 | INFO | Rollback Agent - Concluído em 0.05s

@@ -15,6 +15,8 @@ import os
 import subprocess
 from datetime import datetime
 from pathlib import Path
+
+import yaml
 from loguru import logger
 
 from domain.entities import (
@@ -160,6 +162,9 @@ class DockerTestAgent:
         """
         Gera um docker-compose.yml unificado para todos os serviços.
         
+        Usa estrutura dict Python e yaml.safe_dump() para geração robusta
+        e livre de erros estruturais.
+        
         Args:
             requirement: Requisitos do projeto
             services: Lista de nomes dos serviços
@@ -169,68 +174,72 @@ class DockerTestAgent:
         """
         logger.info("Gerando docker-compose.yml unificado...")
         
-        # Mapeia portas para cada serviço (evitar conflitos)
-        port_map = {
-            "academia": 8001,
-            "aluno": 8002,
-            "attendance-service": 8003,
-            "class-service": 8004,
-            "notification-service": 8005,
-            "payment-service": 8006,
-            "student-service": 8007,
-            "turma": 8008,
-            "agendamento": 8009,
-            "pagamento": 8010
+        # Porta inicial para serviços
+        base_service_port = 8001
+        base_db_port = 5432
+        
+        # Define se cada serviço precisa de banco (extensível)
+        # Por padrão, todos os serviços têm banco PostgreSQL
+        services_needing_db = set(services)
+        
+        # Início da construção da estrutura Docker Compose como dict
+        compose = {
+            "version": "3.8",
+            "services": {},
+            "networks": {"academia-network": {"driver": "bridge"}},
+            "volumes": {}
         }
         
-        # Constrói o conteúdo do docker-compose
-        services_yaml = []
+        logger.info(f"Construindo estrutura Docker Compose para {len(services)} serviços...")
         
-        for service_name in services:
-            port = port_map.get(service_name, 8000 + len(services_yaml) + 1)
+        # Processa cada serviço
+        for idx, service_name in enumerate(services):
+            # Porta dinâmica baseada no índice (evita conflitos)
+            service_port = base_service_port + idx
+            db_port = base_db_port + idx + 1  # Offset para evitar conflito com porta padrão
             
-            service_config = f"""  {service_name}:
-    build:
-      context: ./services/{service_name}
-      dockerfile: Dockerfile
-    ports:
-      - "{port}:8000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db-{service_name}:5432/{service_name}
-      - SERVICE_NAME={service_name}
-    depends_on:
-      - db-{service_name}
-    networks:
-      - academia-network
-
-  db-{service_name}:
-    image: postgresql
-    environment:
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB={service_name}
-    ports:
-      - "{5432 + len(services_yaml) + 1}:5432"
-    volumes:
-      - pgdata-{service_name}:/var/lib/postgresql/data
-    networks:
-      - academia-network"""
+            logger.info(f"  - {service_name}: porta={service_port}, db_port={db_port}")
             
-            services_yaml.append(service_config)
+            # Define container do serviço principal
+            service_container_name = service_name
+            db_container_name = f"db-{service_name}"
+            
+            # Configuração do serviço
+            compose["services"][service_container_name] = {
+                "build": {
+                    "context": f"./services/{service_name}",
+                    "dockerfile": "Dockerfile"
+                },
+                "ports": [f"{service_port}:8000"],
+                "environment": [
+                    f"DATABASE_URL=postgresql://postgres:postgres@{db_container_name}:5432/{service_name}",
+                    f"SERVICE_NAME={service_name}"
+                ],
+                "depends_on": [db_container_name],
+                "networks": ["academia-network"]
+            }
+            
+            # Adiciona banco de dados apenas se o serviço precisa
+            if service_name in services_needing_db:
+                # Configuração do banco de dados
+                compose["services"][db_container_name] = {
+                    "image": "postgres",  # CORRIGIDO: era "postgresql"
+                    "environment": [
+                        "POSTGRES_PASSWORD=postgres",
+                        f"POSTGRES_DB={service_name}"
+                    ],
+                    "ports": [f"{db_port}:5432"],
+                    "volumes": [f"pgdata-{service_name}:/var/lib/postgresql/data"],
+                    "networks": ["academia-network"]
+                }
+                
+                # Define volume para persistência do banco
+                compose["volumes"][f"pgdata-{service_name}"] = None
         
-        docker_compose_content = f"""version: '3.8'
-
-services:
-{chr(10).join(services_yaml)}
-
-{chr(10).join([f"  db-{s}:" for s in services])}
-
-networks:
-  academia-network:
-    driver: bridge
-
-volumes:
-{chr(10).join([f"  pgdata-{s}:" for s in services])}
-"""
+        logger.info(f"Estrutura Docker Compose pronta: {len(compose['services'])} serviços/contêineres")
+        
+        # Gera YAML a partir da estrutura dict
+        docker_compose_content = yaml.safe_dump(compose, sort_keys=False, allow_unicode=True)
         
         # Escreve o arquivo
         output_dir = requirement.project_config.output_directory

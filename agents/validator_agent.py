@@ -283,6 +283,25 @@ class ValidationRules:
     Regras de validação predefined para verificar qualidade do código.
     """
     
+    # Patterns that indicate domain anemia (entities without behavior)
+    ANEMIC_PATTERNS = [
+        r'def\s+get_\w+\(self\)',  # Only getters
+        r'def\s+set_\w+\(self',     # Only setters
+        r'pass\s*$',                # Empty methods
+    ]
+    
+    # Frameworks that should NOT be in domain layer
+    FORBIDDEN_IN_DOMAIN = [
+        'sqlalchemy',
+        'fastapi',
+        'pydantic',
+        'flask',
+        'django',
+        'orm',
+        'Column',
+        'Table',
+    ]
+    
     @staticmethod
     def check_ddd_structure(files: list[str]) -> dict[str, bool]:
         """
@@ -326,3 +345,205 @@ class ValidationRules:
         """Verifica se há rotas de API definidas."""
         route_files = [f for f in files if "routes" in f]
         return len(route_files) > 0
+    
+    # ============================================================
+    # DDD-SPECIFIC VALIDATION RULES
+    # ============================================================
+    
+    @staticmethod
+    def detect_domain_anemia(code: str) -> list[str]:
+        """
+        Detecta se há anemia de domínio no código.
+        
+        Args:
+            code: Código a ser analisado
+            
+        Returns:
+            Lista de problemas encontrados
+        """
+        import re
+        issues = []
+        
+        # Check for empty classes or classes with only getters/setters
+        class_pattern = r'class\s+(\w+).*?:'
+        classes = re.findall(class_pattern, code)
+        
+        for cls in classes:
+            # Check if class has only data attributes and getters/setters
+            class_block = re.search(rf'class\s+{cls}.*?(?=\nclass|\Z)', code, re.DOTALL)
+            if class_block:
+                block = class_block.group(0)
+                
+                # Count meaningful methods (not __init__, getters/setters)
+                methods = re.findall(r'def\s+(\w+)\(', block)
+                meaningful_methods = [m for m in methods 
+                                     if not m.startswith('_') 
+                                     and not m.startswith('get_') 
+                                     and not m.startswith('set_')
+                                     and m not in ['to_dict', 'to_dict']]
+                
+                if len(meaningful_methods) == 0:
+                    issues.append(f"Entidade '{cls}' parece ser anêmica (sem comportamento)")
+        
+        return issues
+    
+    @staticmethod
+    def check_domain_layer_purity(code: str) -> list[str]:
+        """
+        Verifica se a camada de domínio está pura (sem dependências de frameworks).
+        
+        Args:
+            code: Código do domínio
+            
+        Returns:
+            Lista de problemas encontrados
+        """
+        issues = []
+        
+        for forbidden in ValidationRules.FORBIDDEN_IN_DOMAIN:
+            if forbidden.lower() in code.lower():
+                # Check if it's an import (not just a comment)
+                import re
+                if re.search(rf'^\s*(from|import)\s+.*{forbidden}', code, re.MULTILINE):
+                    issues.append(f"Dependência de framework '{forbidden}' encontrada no domínio")
+        
+        return issues
+    
+    @staticmethod
+    def check_aggregate_root_exists(files: list[str]) -> bool:
+        """Verifica se há aggregate roots definidos."""
+        aggregate_files = [f for f in files if "aggregate" in f.lower()]
+        return len(aggregate_files) > 0
+    
+    @staticmethod
+    def check_value_objects_exist(files: list[str]) -> bool:
+        """Verifica se há value objects definidos."""
+        vo_files = [f for f in files if "value_object" in f.lower() or "valueobject" in f.lower()]
+        return len(vo_files) > 0
+    
+    @staticmethod
+    def check_domain_events_exist(files: list[str]) -> bool:
+        """Verifica se há domain events definidos."""
+        event_files = [f for f in files if "event" in f.lower() and "domain" in f.lower()]
+        return len(event_files) > 0
+    
+    @staticmethod
+    def check_repository_interface_separation(files: list[str]) -> dict[str, bool]:
+        """
+        Verifica se interfaces de repositório estão separadas das implementações.
+        
+        Returns:
+            dict com 'interface_in_domain' e 'implementation_in_infrastructure'
+        """
+        result = {
+            'interface_in_domain': False,
+            'implementation_in_infrastructure': False
+        }
+        
+        for f in files:
+            if '/domain/' in f and 'repository' in f.lower():
+                result['interface_in_domain'] = True
+            if '/infrastructure/' in f and 'repository' in f.lower():
+                result['implementation_in_infrastructure'] = True
+        
+        return result
+    
+    @staticmethod
+    def check_layer_dependencies(files: list[str], code_contents: dict[str, str]) -> list[str]:
+        """
+        Verifica se as dependências entre camadas estão corretas.
+        
+        Args:
+            files: Lista de caminhos de arquivos
+            code_contents: Dicionário {caminho: conteúdo}
+            
+        Returns:
+            Lista de violações encontradas
+        """
+        violations = []
+        
+        # Domain should not import from infrastructure or api
+        domain_files = [f for f in files if '/domain/' in f]
+        
+        for file_path in domain_files:
+            code = code_contents.get(file_path, '')
+            
+            # Check for imports from other layers
+            if '/infrastructure/' in code:
+                violations.append(f"{file_path}: Domínio importa de infraestrutura")
+            if '/api/' in code:
+                violations.append(f"{file_path}: Domínio importa de API")
+        
+        return violations
+    
+    @staticmethod
+    def run_full_ddd_validation(files: list[str], code_contents: dict[str, str]) -> dict:
+        """
+        Executa validação completa de DDD.
+        
+        Args:
+            files: Lista de arquivos
+            code_contents: Conteúdo dos arquivos
+            
+        Returns:
+            Dicionário com resultado da validação
+        """
+        result = {
+            'has_ddd_structure': False,
+            'has_aggregates': False,
+            'has_value_objects': False,
+            'has_domain_events': False,
+            'domain_is_pure': True,
+            'repository_separation': False,
+            'layer_violations': [],
+            'anemia_issues': [],
+            'score': 0.0
+        }
+        
+        # Check structure
+        structure = ValidationRules.check_ddd_structure(files)
+        result['has_ddd_structure'] = all(structure.values())
+        
+        # Check aggregates
+        result['has_aggregates'] = ValidationRules.check_aggregate_root_exists(files)
+        
+        # Check value objects
+        result['has_value_objects'] = ValidationRules.check_value_objects_exist(files)
+        
+        # Check domain events
+        result['has_domain_events'] = ValidationRules.check_domain_events_exist(files)
+        
+        # Check repository separation
+        repo_sep = ValidationRules.check_repository_interface_separation(files)
+        result['repository_separation'] = all(repo_sep.values())
+        
+        # Check domain purity
+        domain_files = [f for f in files if '/domain/' in f]
+        domain_purity_issues = []
+        for f in domain_files:
+            issues = ValidationRules.check_domain_layer_purity(code_contents.get(f, ''))
+            domain_purity_issues.extend(issues)
+        result['domain_is_pure'] = len(domain_purity_issues) == 0
+        result['layer_violations'] = domain_purity_issues
+        
+        # Check for domain anemia
+        anemia_issues = []
+        for f in files:
+            if '/domain/' in f:
+                issues = ValidationRules.detect_domain_anemia(code_contents.get(f, ''))
+                anemia_issues.extend(issues)
+        result['anemia_issues'] = anemia_issues
+        
+        # Calculate score
+        checks = [
+            result['has_ddd_structure'],
+            result['has_aggregates'],
+            result['has_value_objects'],
+            result['domain_is_pure'],
+            result['repository_separation'],
+            len(result['anemia_issues']) == 0
+        ]
+        
+        result['score'] = sum(checks) / len(checks)
+        
+        return result
