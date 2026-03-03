@@ -1,229 +1,139 @@
-2026-02-28 01:29:55 | INFO | Error Logger inicializado - Arquivo: logs\agent_errors.log
-2026-02-28 01:29:55 | INFO | Fix Agent inicializado
-2026-02-28 01:29:55 | INFO | Orchestrator Agent inicializado
-2026-02-28 01:29:55 | INFO | Fluência: Executor → Validator → Fix Agent (max 3x) → Docker Test
-2026-02-28 01:29:55 | INFO | Iniciando execução dos agentes...
-2026-02-28 01:29:55 | INFO | ============================================================
-2026-02-28 01:29:55 | INFO | ORCHESTRATOR AGENT - Iniciando fluxo completo
-2026-02-28 01:29:55 | INFO | ============================================================
-2026-02-28 01:29:55 | INFO | 
-📋 FASE 1: Executando Executor Agent...
-2026-02-28 01:29:55 | INFO | ============================================================
-2026-02-28 01:29:55 | INFO | EXECUTOR AGENT - Iniciando geração de código
-2026-02-28 01:29:55 | INFO | ============================================================
-2026-02-28 01:29:55 | INFO | Chamando LLM para geração de código...
-2026-02-28 01:30:02 | INFO | Resposta do LLM recebida (1355 chars)
-2026-02-28 01:30:02 | INFO | FileManager inicializado em: generated
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/domain/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/domain/academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/domain/academia_value_objects.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/domain/academia_aggregates.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/application/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/application/use_cases.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/application/dtos.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/application/mappers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/infrastructure/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/infrastructure/repositories.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/infrastructure/database.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/api/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/api/routes.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/api/controllers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/api/schemas.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/main.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/requirements.txt
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/Dockerfile
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/docker-compose.yml
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/tests/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/academia/tests/test_academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/domain/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/domain/academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/domain/academia_value_objects.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/domain/academia_aggregates.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/application/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/application/use_cases.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/application/dtos.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/application/mappers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/infrastructure/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/infrastructure/repositories.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/infrastructure/database.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/api/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/api/routes.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/api/controllers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/api/schemas.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/main.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/requirements.txt
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/Dockerfile
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/docker-compose.yml
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/tests/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/usuario/tests/test_academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/domain/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/domain/academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/domain/academia_value_objects.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/domain/academia_aggregates.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/application/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/application/use_cases.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/application/dtos.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/application/mappers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/infrastructure/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/infrastructure/repositories.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/infrastructure/database.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/api/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/api/routes.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/api/controllers.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/api/schemas.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/main.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/requirements.txt
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/Dockerfile
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/docker-compose.yml
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/tests/__init__.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: services/treino/tests/test_academia_entities.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: generated/usuario.py
-2026-02-28 01:30:02 | INFO | Arquivo criado: README.md
-2026-02-28 01:30:02 | INFO | Arquivo criado: docker-compose.yml
-2026-02-28 01:30:02 | INFO | Criados 66 arquivos
-2026-02-28 01:30:02 | INFO | Executor Agent - Concluído em 7.16s
-2026-02-28 01:30:02 | INFO | Arquivos criados: 66
-2026-02-28 01:30:02 | INFO | ✅ Executor Agent concluído - 66 arquivos
-2026-02-28 01:30:02 | INFO | 
-📋 FASE 2: Executando Validator Agent...
-2026-02-28 01:30:02 | INFO | ============================================================
-2026-02-28 01:30:02 | INFO | VALIDATOR AGENT - Iniciando validação
-2026-02-28 01:30:02 | INFO | ============================================================
-2026-02-28 01:30:02 | INFO | Chamando LLM para validação...
-2026-02-28 01:30:03 | ERROR | Erro ao parsear JSON de validação: Expecting ',' delimiter: line 11 column 89 (char 408)
-2026-02-28 01:30:03 | INFO | Realizando validação manual...
-2026-02-28 01:30:03 | INFO | ✅ Validação manual APROVADA - Score: 1.0
-2026-02-28 01:30:03 | INFO | 
-📋 FASE 4: Executando Docker Test Agent...
-2026-02-28 01:30:03 | INFO | ============================================================
-2026-02-28 01:30:03 | INFO | DOCKER TEST AGENT - Iniciando validação
-2026-02-28 01:30:03 | INFO | ============================================================
-2026-02-28 01:30:03 | INFO | Serviços identificados: ['academia', 'usuario', 'treino']
-2026-02-28 01:30:03 | INFO | Gerando docker-compose.yml unificado...
-2026-02-28 01:30:03 | INFO | docker-compose.yml gerado em: generated\docker-compose.yml
-2026-02-28 01:30:03 | INFO | Gerando script de validação...
-2026-02-28 01:30:03 | INFO | Script de validacao gerado em: generated\validate_dockers.bat
-2026-02-28 01:30:03 | INFO | Executando validacao Docker real...
-2026-02-28 01:30:03 | WARNING | Docker nao disponivel: [WinError 2] O sistema não pode encontrar o arquivo especificado
-2026-02-28 01:30:03 | INFO | ✅ Docker Test Agent concluído em 0.05s
-2026-02-28 01:30:03 | INFO | ✅ Docker Test Agent concluído com sucesso
-2026-02-28 01:30:03 | INFO | ✅ Validação APROVADA!
-2026-02-28 01:30:03 | INFO | 
-🎉 SUCESSO! Projeto gerado em 8.57s
-2026-02-28 01:30:03 | INFO | 📁 Local: generated
-2026-02-28 01:30:03 | INFO | 📝 Serviços: ['academia', 'usuario', 'treino']
-2026-02-28 12:20:41 | INFO | Error Logger inicializado - Arquivo: logs\agent_errors.log
-2026-02-28 12:20:41 | INFO | Fix Agent inicializado
-2026-02-28 12:20:41 | INFO | Orchestrator Agent inicializado
-2026-02-28 12:20:41 | INFO | Fluência: Executor → Validator → Fix Agent (max 3x) → Docker Test
-2026-02-28 12:20:41 | INFO | Iniciando execução dos agentes...
-2026-02-28 12:20:41 | INFO | ============================================================
-2026-02-28 12:20:41 | INFO | ORCHESTRATOR AGENT - Iniciando fluxo completo
-2026-02-28 12:20:41 | INFO | ============================================================
-2026-02-28 12:20:41 | INFO | 
-📋 FASE 1: Executando Executor Agent...
-2026-02-28 12:20:41 | INFO | ============================================================
-2026-02-28 12:20:41 | INFO | EXECUTOR AGENT - Iniciando geração de código
-2026-02-28 12:20:41 | INFO | ============================================================
-2026-02-28 12:20:41 | INFO | Chamando LLM para geração de código...
-2026-02-28 12:20:51 | INFO | Resposta do LLM recebida (1229 chars)
-2026-02-28 12:20:51 | INFO | FileManager inicializado em: generated
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/domain/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/domain/academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/domain/academia_value_objects.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/domain/academia_aggregates.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/application/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/application/use_cases.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/application/dtos.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/application/mappers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/infrastructure/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/infrastructure/repositories.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/infrastructure/database.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/api/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/api/routes.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/api/controllers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/api/schemas.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/main.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/requirements.txt
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/Dockerfile
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/docker-compose.yml
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/tests/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/tests/test_academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/domain/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/domain/academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/domain/academia_value_objects.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/domain/academia_aggregates.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/application/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/application/use_cases.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/application/dtos.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/application/mappers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/infrastructure/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/infrastructure/repositories.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/infrastructure/database.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/api/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/api/routes.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/api/controllers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/api/schemas.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/main.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/requirements.txt
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/Dockerfile
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/docker-compose.yml
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/tests/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/entradas-saidas/tests/test_academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/domain/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/domain/academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/domain/academia_value_objects.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/domain/academia_aggregates.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/application/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/application/use_cases.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/application/dtos.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/application/mappers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/infrastructure/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/infrastructure/repositories.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/infrastructure/database.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/api/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/api/routes.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/api/controllers.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/api/schemas.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/main.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/requirements.txt
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/Dockerfile
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/docker-compose.yml
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/tests/__init__.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/usuários/tests/test_academia_entities.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: generated/pagamentos/pagamento.py
-2026-02-28 12:20:51 | INFO | Arquivo criado: README.md
-2026-02-28 12:20:51 | INFO | Arquivo criado: services/pagamentos/static/index.html
-2026-02-28 12:20:51 | INFO | Arquivo criado: docker-compose.yml
-2026-02-28 12:20:51 | INFO | Criados 67 arquivos
-2026-02-28 12:20:51 | INFO | Executor Agent - Concluído em 10.50s
-2026-02-28 12:20:51 | INFO | Arquivos criados: 67
-2026-02-28 12:20:51 | INFO | ✅ Executor Agent concluído - 67 arquivos
-2026-02-28 12:20:51 | INFO | 
-📋 FASE 2: Executando Validator Agent...
-2026-02-28 12:20:51 | INFO | ============================================================
-2026-02-28 12:20:51 | INFO | VALIDATOR AGENT - Iniciando validação
-2026-02-28 12:20:51 | INFO | ============================================================
-2026-02-28 12:20:51 | INFO | Chamando LLM para validação...
-2026-02-28 12:20:53 | ERROR | Erro ao parsear JSON de validação: Expecting ',' delimiter: line 11 column 84 (char 424)
-2026-02-28 12:20:53 | INFO | Realizando validação manual...
-2026-02-28 12:20:53 | INFO | ✅ Validação manual APROVADA - Score: 1.0
-2026-02-28 12:20:53 | INFO | 
-📋 FASE 4: Executando Docker Test Agent...
-2026-02-28 12:20:53 | INFO | ============================================================
-2026-02-28 12:20:53 | INFO | DOCKER TEST AGENT - Iniciando validação
-2026-02-28 12:20:53 | INFO | ============================================================
-2026-02-28 12:20:53 | INFO | Serviços identificados: ['pagamentos', 'entradas-saidas', 'usuários']
-2026-02-28 12:20:53 | INFO | Gerando docker-compose.yml unificado...
-2026-02-28 12:20:53 | INFO | docker-compose.yml gerado em: generated\docker-compose.yml
-2026-02-28 12:20:53 | INFO | Gerando script de validação...
-2026-02-28 12:20:53 | INFO | Script de validacao gerado em: generated\validate_dockers.bat
-2026-02-28 12:20:53 | INFO | Executando validacao Docker real...
-2026-02-28 12:20:53 | WARNING | Docker nao disponivel: [WinError 2] O sistema não pode encontrar o arquivo especificado
-2026-02-28 12:20:53 | INFO | ✅ Docker Test Agent concluído em 0.02s
-2026-02-28 12:20:53 | INFO | ✅ Docker Test Agent concluído com sucesso
-2026-02-28 12:20:53 | INFO | ✅ Validação APROVADA!
-2026-02-28 12:20:53 | INFO | 
-🎉 SUCESSO! Projeto gerado em 11.96s
-2026-02-28 12:20:53 | INFO | 📁 Local: generated
-2026-02-28 12:20:53 | INFO | 📝 Serviços: ['pagamentos', 'entradas-saidas', 'usuários']
+{"timestamp": "2026-03-03T15:36:02.569420", "type": "VALIDATION_FAILURE", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 1, "score": 0.2, "issues": ["O microservice petshop-usecase não está implementado", "A estrutura DDD não está completa", "O microservice petshop-usecase e a estrutura DDD não estão implementados corretamente"], "rejected_items": ["petshop-usecase", "petshop-domain"], "missing_items": ["petshop-usecase", "petshop-domain"], "feedback": "O microservice petshop-usecase e a estrutura DDD não estão implementados corretamente"}
+{"timestamp": "2026-03-03T15:37:10.500356", "type": "FIX_ATTEMPT", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 1, "issues_to_fix": ["Rejeitado: petshop-usecase", "A estrutura DDD não está completa", "O microservice petshop-usecase não está implementado", "Faltando: petshop-domain", "Rejeitado: petshop-domain", "O microservice petshop-usecase e a estrutura DDD não estão implementados corretamente", "Faltando: petshop-usecase"], "actions_taken": ["Criar casos de uso", "Criar estrutura de domínio DDD"], "files_modified": ["petshop-usecase.py", "domain.py"], "success": true}
+{"timestamp": "2026-03-03T15:39:26.714262", "type": "VALIDATION_FAILURE", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 2, "score": 0.4, "issues": ["O microservice petshop-usecase não está implementado", "A estrutura DDD não está completa", "O código gerado não atende aos requisitos originais e não está completo em termos de estrutura DDD"], "rejected_items": ["petshop-usecase", "petshop-domain"], "missing_items": ["petshop-usecase", "petshop-domain"], "feedback": "O código gerado não atende aos requisitos originais e não está completo em termos de estrutura DDD"}
+{"timestamp": "2026-03-03T15:40:39.487438", "type": "FIX_ATTEMPT", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 2, "issues_to_fix": ["Rejeitado: petshop-usecase", "A estrutura DDD não está completa", "O microservice petshop-usecase não está implementado", "Faltando: petshop-domain", "Rejeitado: petshop-domain", "O código gerado não atende aos requisitos originais e não está completo em termos de estrutura DDD", "Faltando: petshop-usecase"], "actions_taken": ["Criar casos de uso", "Criar estrutura de domínio DDD"], "files_modified": ["petshop-usecase.py", "petshop-domain.py"], "success": true}
+{"timestamp": "2026-03-03T15:42:52.713805", "type": "VALIDATION_FAILURE", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 3, "score": 0.2, "issues": ["A estrutura DDD não está completa", "O petshop-usecase e petshop-domain não estão implementados", "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados"], "rejected_items": ["petshop-usecase", "petshop-domain"], "missing_items": ["petshop-usecase", "petshop-domain"], "feedback": "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados"}
+{"timestamp": "2026-03-03T15:44:16.555124", "type": "FIX_ATTEMPT", "requirement_id": "44a44f4f-43c5-4ba5-a08f-0ceefae9fe70", "attempt": 3, "issues_to_fix": ["Rejeitado: petshop-usecase", "A estrutura DDD não está completa", "A estrutura DDD não está completa e os microservices petshop-usecase e petshop-domain não estão implementados", "O petshop-usecase e petshop-domain não estão implementados", "Faltando: petshop-domain", "Rejeitado: petshop-domain", "Faltando: petshop-usecase"], "actions_taken": ["Criar casos de uso", "Criar estrutura de domínio DDD"], "files_modified": ["petshop-usecase.py", "petshop-domain.py", "petshop-usecase.py", "petshop-domain.py"], "success": true}
+2026-03-03 15:44:16 | INFO | Correções aplicadas: 4 arquivos modificados
+2026-03-03 15:44:16 | INFO | ============================================================
+2026-03-03 15:44:16 | INFO | VALIDATOR AGENT - Iniciando validação
+2026-03-03 15:44:16 | INFO | ============================================================
+2026-03-03 15:44:16 | INFO | Chamando LLM para validação...
+2026-03-03 15:46:58 | WARNING | ❌ Validação REPROVADA - Score: 0.2
+2026-03-03 15:46:58 | INFO | ============================================================
+2026-03-03 15:46:58 | INFO | ROLLBACK AGENT - Iniciando rollback
+2026-03-03 15:46:58 | INFO | ============================================================
+2026-03-03 15:46:58 | INFO | FileManager inicializado em: generated
+2026-03-03 15:46:58 | INFO | Arquivos a remover: 88
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/__init__.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_entities.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_value_objects.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/domain/petshop.domain_aggregates.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/__init__.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/use_cases.py
+2026-03-03 15:46:58 | INFO | Arquivo removido: services/petshop-api/application/dtos.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/application/mappers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/repositories.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/infrastructure/database.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/routes.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/controllers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/api/schemas.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/main.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/requirements.txt
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/Dockerfile
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/docker-compose.yml
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/tests/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/tests/test_petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_value_objects.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/domain/petshop.domain_aggregates.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/use_cases.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/dtos.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/application/mappers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/repositories.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/infrastructure/database.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/routes.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/controllers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/api/schemas.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/main.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/requirements.txt
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/Dockerfile
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/docker-compose.yml
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/tests/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-repository/tests/test_petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_value_objects.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/domain/petshop.domain_aggregates.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/use_cases.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/dtos.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/application/mappers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/repositories.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/infrastructure/database.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/routes.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/controllers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/api/schemas.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/main.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/requirements.txt
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/Dockerfile
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/docker-compose.yml
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/tests/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-usecase/tests/test_petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_value_objects.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/domain/petshop.domain_aggregates.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/use_cases.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/dtos.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/application/mappers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/repositories.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/infrastructure/database.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/routes.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/controllers.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/api/schemas.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/main.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/requirements.txt
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/Dockerfile
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/docker-compose.yml
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/tests/__init__.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-domain/tests/test_petshop.domain_entities.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: generated/petshop_api/main.py
+2026-03-03 15:46:59 | INFO | Arquivo removido: README.md
+2026-03-03 15:46:59 | INFO | Arquivo removido: services/petshop-api/static/index.html
+2026-03-03 15:46:59 | INFO | Arquivo removido: docker-compose.yml
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: generated\petshop_api
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\infrastructure
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\application
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\domain
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\tests
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\api
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\application
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\api
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\tests
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\static
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\tests
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\domain
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\application
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\infrastructure
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\application
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\tests
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\api
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-domain\domain
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\api
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-repository\infrastructure
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-api\infrastructure
+2026-03-03 15:46:59 | INFO | Diretório vazio removido: services\petshop-usecase\domain
+2026-03-03 15:46:59 | INFO | Rollback concluído com sucesso
+2026-03-03 15:46:59 | INFO | Rollback Agent - Concluído em 0.59s
+2026-03-03 16:04:31 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 1
+2026-03-03 16:04:31 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 0
+2026-03-03 16:12:27 | INFO | Cliente client_1772562578005_mqlcn7aae conectado. Total: 1
+2026-03-03 16:12:27 | INFO | Cliente client_1772562578005_mqlcn7aae conectado. Total: 2
+2026-03-03 16:12:34 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 1
+2026-03-03 16:12:34 | INFO | Cliente client_1772562578005_mqlcn7aae desconectado. Total: 0
+2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 conectado. Total: 1
+2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 conectado. Total: 2
+2026-03-03 16:12:34 | INFO | Cliente client_1772565154639_hakhfwfp6 desconectado. Total: 1
+2026-03-03 16:14:38 | INFO | Cliente client_1772565154639_hakhfwfp6 desconectado. Total: 0

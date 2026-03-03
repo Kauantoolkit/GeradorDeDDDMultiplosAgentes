@@ -15,18 +15,76 @@ from ollama import AsyncClient
 
 
 import subprocess
+import shutil
 
 # Adiciona o caminho do Ollama ao PATH se não estiver
 def _setup_ollama_path():
     """Adiciona o Ollama ao PATH do sistema se necessário."""
-    ollama_path = r"C:\Users\kauan\AppData\Local\Programs\ollama"
-    if ollama_path not in os.environ.get("PATH", ""):
-        os.environ["PATH"] = ollama_path + os.pathsep + os.environ.get("PATH", "")
-        logger.info(f"Ollama adicionado ao PATH: {ollama_path}")
-    return ollama_path
+    # Primeiro, tenta encontrar o Ollama no sistema
+    ollama_path = shutil.which("ollama")
+    
+    if ollama_path:
+        # Encontrou o Ollama no PATH, usa o diretório onde está
+        ollama_dir = os.path.dirname(ollama_path)
+        logger.info(f"Ollama encontrado em: {ollama_dir}")
+        return ollama_dir
+    
+    # Se não encontrou, tenta os caminhos comuns de instalação
+    possible_paths = [
+        r"C:\Users\kauan\AppData\Local\Programs\ollama",
+        r"C:\Program Files\ollama",
+        os.path.expanduser(r"~\AppData\Local\Programs\ollama"),
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            ollama_exe = os.path.join(path, "ollama.exe")
+            if os.path.exists(ollama_exe):
+                logger.info(f"Ollama encontrado em: {path}")
+                # Adiciona ao PATH
+                if path not in os.environ.get("PATH", ""):
+                    os.environ["PATH"] = path + os.pathsep + os.environ.get("PATH", "")
+                return path
+    
+    # Não encontrou, retorna o caminho padrão para tentar iniciar mesmo assim
+    default_path = r"C:\Users\kauan\AppData\Local\Programs\ollama"
+    logger.warning(f"Ollama não encontrado no sistema. Tentará usar: {default_path}")
+    return default_path
 
 # Executa a configuração do PATH ao importar o módulo
 _OLLAMA_PATH = _setup_ollama_path()
+
+
+def check_ollama_installation() -> bool:
+    """
+    Verifica se o Ollama está instalado no sistema.
+    
+    Returns:
+        True se o Ollama está instalado, False caso contrário
+    """
+    import shutil
+    
+    # Primeiro, tenta encontrar o Ollama no PATH do sistema
+    ollama_path = shutil.which("ollama")
+    
+    if ollama_path:
+        logger.info(f"Ollama encontrado em: {ollama_path}")
+        return True
+    
+    # Se não encontrou no PATH, verifica nos caminhos comuns de instalação no Windows
+    possible_paths = [
+        r"C:\Users\kauan\AppData\Local\Programs\ollama\ollama.exe",
+        r"C:\Program Files\ollama\ollama.exe",
+        os.path.expanduser(r"~\AppData\Local\Programs\ollama\ollama.exe"),
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            logger.info(f"Ollama encontrado em: {path}")
+            return True
+    
+    logger.warning("Ollama não encontrado no sistema")
+    return False
 
 
 def ensure_ollama_running():

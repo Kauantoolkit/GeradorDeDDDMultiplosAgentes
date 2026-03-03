@@ -1,102 +1,60 @@
-# TODO - Fix Agent Flow Implementation
+# TODO - Frontend React com WebSocket
 
 ## ✅ Concluído
 
-### Fase 1: Criar FixAgent ✅
-- [x] Criar agents/fix_agent.py
-  - [x] Implementar classe FixAgent
-  - [x] Receber feedback do Validator
-  - [x] Corrigir os problemas identificados
-  - [x] Registrar ações realizadas no log de erros
+## Fase 1: Backend API com WebSocket ✅
+- [x] 1.1 Criar `api/server.py` - Servidor FastAPI com WebSocket
+- [x] 1.2 Adicionar rotas REST para iniciar geração
+- [x] 1.3 Adicionar WebSocket para eventos em tempo real
+- [x] 1.4 Integrar com o OrchestratorAgent existente
+- [x] 1.5 Atualizar `requirements.txt` com dependências necessárias
 
-### Fase 2: Criar Log de Erros ✅
-- [x] Criar agents/error_logger.py
-  - [x] Implementar classe ErrorLogger
-  - [x] Salvar logs em logs/agent_errors.log
-  - [x] Registrar: problema, correção aplicada, resultado
-  - [x] Formato estruturado para análise posterior
+## Fase 2: Frontend React com Vite ✅
+- [x] 2.1 Criar projeto React com Vite
+- [x] 2.2 Criar componentes de UI:
+  - [x] Header
+  - [x] Formulário de requisitos
+  - [x] Timeline de execução dos agentes
+  - [x] Cards de status por agente
+  - [x] Resultados finais
+- [x] 2.3 Implementar WebSocket client
+- [x] 2.4 Implementar integração com API
 
-### Fase 3: Modificar Orchestrator ✅
-- [x] Modificar agents/orchestrator.py
-  - [x] Substituir Rollback por FixAgent no fluxo
-  - [x] Adicionar loop de retry com Fix Agent
-  - [x] Adicionar limite máximo de tentativas (max_fix_attempts)
-  - [x] Integrar ErrorLogger
-  - [x] Manter Rollback apenas para erros críticos (após limite de correções)
+## Fase 3: Integração e Testes ✅
+- [x] 3.1 Criar scripts de execução (start_api.bat, start_frontend.bat)
+- [x] 3.2 Atualizar README.md com instruções
 
-### Fase 4: Atualizar Entidades ✅
-- [x] Modificar domain/entities.py
-  - [x] Adicionar FIX ao AgentType enum
+## Como Executar
 
-## Novo Fluxo de Agentes
-
+### Terminal 1 - API:
 ```
-┌──────────────┐
-│  REQUISITOS  │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  EXECUTOR   │ ◄── Gera código
-│   AGENT     │
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│  VALIDATOR  │ ◄── Valida código
-│   AGENT     │
-└──────┬───────┘
-       │
- ┌─────┴─────┐
- │           │
- ▼           ▼
-APROVADO   REPROVADO
- │           │
- ▼           ▼
-SUCESSO   FIX AGENT
-           (loop)
-             │
-       ┌─────┴─────┐
-       ▼           ▼
-   APROVADO    REPROVADO
-       │           │
-       ▼           ▼
-  DOCKER TEST  ROLLBACK
-  (continua)   (limite atingido)
+bash
+python -m uvicorn api.server:app --reload --port 8000
 ```
 
-## Arquivos Criados/Modificados
-
-1. **agents/fix_agent.py** (NOVO)
-   - Agente que corrige problemas identificados pelo Validator
-   - Pode usar LLM para sugerir correções
-   - Fallback para correções básicas
-
-2. **agents/error_logger.py** (NOVO)
-   - Registra erros em logs/agent_errors.log
-   - Mantém histórico de correções
-   - Fornece análise de problemas comuns
-
-3. **agents/orchestrator.py** (MODIFICADO)
-   - Novo fluxo com Fix Agent
-   - Loop de correção até aprovação ou limite
-   - Rollback apenas após falha do Fix Agent
-
-4. **domain/entities.py** (MODIFICADO)
-   - Adicionado AgentType.FIX
-
-## Configuração
-
-O número máximo de tentativas de correção pode ser configurado:
+### Terminal 2 - Frontend:
 ```
-python
-orchestrator = OrchestratorAgent(llm_provider, max_fix_attempts=3)
+bash
+cd frontend
+npm install
+npm run dev
 ```
 
-## Logs de Erros
+Acesse: http://localhost:5173
 
-Os erros são salvos em formato JSON em `logs/agent_errors.log`:
-- Problemas identificados
-- Correções aplicadas
-- Resultados de cada tentativa
-- Problemas comuns (para análise)
+## Estrutura de Arquivos a Criar:
+```
+agentesCodeGenerator/
+├── api/
+│   ├── __init__.py
+│   ├── server.py        # FastAPI server com WebSocket
+│   └── routes.py        # Rotas da API
+├── frontend/            # Projeto Vite React
+│   ├── src/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   └── package.json
+└── README.md           # Atualizado com instruções
