@@ -10,6 +10,12 @@ Este agente é responsável por:
 
 Trabalha em conjunto com o Validator Agent para garantir
 que o código gerado atende aos requisitos.
+
+MUDANÇAS IMPLEMENTADAS:
+- Sistema de substituição de placeholders (PlaceholderReplacer)
+- Validação de integridade após geração
+- Geração na ordem correta DDD
+- Correção de templates com placeholders não substituídos
 """
 
 import json
@@ -27,6 +33,78 @@ from domain.entities import (
 )
 from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
+
+
+class PlaceholderReplacer:
+    """
+    Substituidor de placeholders para templates.
+    
+    Garante que TODOS os placeholders sejam substituídos
+    antes de salvar o arquivo.
+    """
+    
+    @staticmethod
+    def replace(content: str, entity_name: str = None, domain: str = None, service_name: str = None) -> str:
+        """
+        Substitui todos os placeholders no conteúdo.
+        
+        Args:
+            content: Conteúdo do template
+            entity_name: Nome da entidade (ex: Order, User)
+            domain: Nome do domínio (ex: orders, users)
+            service_name: Nome do serviço (ex: orders)
+            
+        Returns:
+            Conteúdo com placeholders substituídos
+        """
+        result = content
+        
+        # Substituições para entity_name
+        if entity_name:
+            result = result.replace('{entity_name}', entity_name)
+            result = result.replace('{{entity_name}}', entity_name)
+            result = result.replace('{entity_name.lower()}', entity_name.lower())
+            result = result.replace('{{entity_name.lower()}}', entity_name.lower())
+            # Corrige placeholders em f-strings quebradas
+            result = result.replace("'{entity_name.lower()}'s", f"'{entity_name.lower()}'s")
+            result = result.replace("{entity_name.lower()}s", f"{entity_name.lower()}s")
+        
+        # Substituições para domain
+        if domain:
+            result = result.replace('{domain}', domain)
+            result = result.replace('{{domain}}', domain)
+            result = result.replace('{domain.lower()}', domain.lower())
+            result = result.replace('{{domain.lower()}}', domain.lower())
+        
+        # Substituições para service_name
+        if service_name:
+            result = result.replace('{service_name}', service_name)
+            result = result.replace('{{service_name}}', service_name)
+        
+        # Verificar se ainda há placeholders perigosos
+        remaining = re.findall(r'\{[a-z_]+\}', result)
+        if remaining:
+            logger.warning(f"Placeholders restantes após substituição: {set(remaining)}")
+        
+        return result
+    
+    @staticmethod
+    def has_placeholders(content: str) -> bool:
+        """Verifica se o conteúdo ainda tem placeholders não substituídos."""
+        patterns = [
+            r'\{entity_name\}',
+            r'\{domain\}',
+            r'\{service_name\}',
+            r'\{entity_name\.lower\(\)\}',
+            r'\{domain\.lower\(\)\}',
+            r'\{\{entity_name\}\}',
+            r'\{\{domain\}\}',
+        ]
+        
+        for pattern in patterns:
+            if re.search(pattern, content):
+                return True
+        return False
 
 
 class ExecutorAgent:
@@ -87,6 +165,9 @@ class ExecutorAgent:
             result.output = llm_output
             logger.info(f"Resposta do LLM recebida ({len(llm_output)} chars)")
             
+            # Log the first part of the LLM output for debugging
+            logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
+            
             # Parseia o JSON retornado
             generated_data = self._parse_llm_output(llm_output)
             
@@ -131,9 +212,13 @@ class ExecutorAgent:
             Dicionário com os dados parseados ou None
         """
         
+        # PRIMEIRO: Salvar o output original para debugging
+        self._save_llm_output_for_debug(llm_output)
+        
         # Tentativa 1: Limpar e parsear diretamente
         try:
             cleaned_output = self._clean_llm_output(llm_output)
+            logger.debug(f"Tentativa 1 - Output limpo: {cleaned_output[:500]}...")
             return json.loads(cleaned_output)
         except (json.JSONDecodeError, Exception) as e:
             logger.debug(f"Tentativa 1 falhou: {e}")
@@ -142,6 +227,7 @@ class ExecutorAgent:
         try:
             cleaned_output = self._clean_llm_output(llm_output)
             fixed_output = self._fix_common_json_issues(cleaned_output)
+            logger.debug(f"Tentativa 2 - Output corrigido: {fixed_output[:500]}...")
             return json.loads(fixed_output)
         except (json.JSONDecodeError, Exception) as e:
             logger.debug(f"Tentativa 2 falhou: {e}")
@@ -150,6 +236,7 @@ class ExecutorAgent:
         try:
             extracted = self._extract_json_with_braces(llm_output)
             if extracted:
+                logger.debug(f"Tentativa 3 - Extraído: {extracted[:500]}...")
                 fixed = self._fix_common_json_issues(extracted)
                 return json.loads(fixed)
         except (json.JSONDecodeError, Exception) as e:
@@ -159,6 +246,7 @@ class ExecutorAgent:
         try:
             cleaned_output = self._clean_llm_output(llm_output)
             balanced = self._balance_braces(cleaned_output)
+            logger.debug(f"Tentativa 4 - Balanceado: {balanced[:500]}...")
             fixed = self._fix_common_json_issues(balanced)
             return json.loads(fixed)
         except (json.JSONDecodeError, Exception) as e:
@@ -170,14 +258,113 @@ class ExecutorAgent:
             json_end = llm_output.rfind('}')
             if json_start >= 0 and json_end >= json_start:
                 json_str = llm_output[json_start:json_end+1]
+                logger.debug(f"Tentativa 5 - Extraído direto: {json_str[:500]}...")
                 fixed = self._fix_common_json_issues(json_str)
                 return json.loads(fixed)
         except (json.JSONDecodeError, Exception) as e:
             logger.debug(f"Tentativa 5 falhou: {e}")
 
+        # Tentativa 6: Tentar extrair array JSON
+        try:
+            json_start = llm_output.find('[')
+            json_end = llm_output.rfind(']')
+            if json_start >= 0 and json_end >= json_start:
+                json_str = llm_output[json_start:json_end+1]
+                logger.debug(f"Tentativa 6 - Array: {json_str[:500]}...")
+                fixed = self._fix_common_json_issues(json_str)
+                return json.loads(fixed)
+        except (json.JSONDecodeError, Exception) as e:
+            logger.debug(f"Tentativa 6 falhou: {e}")
+
+        # Tentativa 7: Usar regex para encontrar JSON mais aggressivamente
+        try:
+            json_str = self._extract_json_aggressive(llm_output)
+            if json_str:
+                logger.debug(f"Tentativa 7 - Regex: {json_str[:500]}...")
+                fixed = self._fix_common_json_issues(json_str)
+                return json.loads(fixed)
+        except (json.JSONDecodeError, Exception) as e:
+            logger.debug(f"Tentativa 7 falhou: {e}")
+
         # Todas as tentativas falharam
         logger.error(f"Erro ao parsear JSON após múltiplas tentativas")
-        logger.debug(f"Output original: {llm_output[:1000]}...")
+        logger.error(f"Output original (primeiros 1000 chars): {llm_output[:1000]}")
+        return None
+
+    def _save_llm_output_for_debug(self, llm_output: str) -> None:
+        """
+        Salva o output do LLM em um arquivo para debugging.
+        
+        Args:
+            llm_output: Output original do LLM
+        """
+        try:
+            import os
+            from datetime import datetime
+            
+            debug_dir = "logs/debug"
+            os.makedirs(debug_dir, exist_ok=True)
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            debug_file = os.path.join(debug_dir, f"llm_output_{timestamp}.txt")
+            
+            with open(debug_file, 'w', encoding='utf-8') as f:
+                f.write("="*60 + "\n")
+                f.write(f"LLM Output - {timestamp}\n")
+                f.write("="*60 + "\n\n")
+                f.write(llm_output)
+                f.write("\n\n" + "="*60 + "\n")
+                f.write(f"Total chars: {len(llm_output)}\n")
+                f.write(f"Primeiro char: {repr(llm_output[0]) if llm_output else 'N/A'}\n")
+                f.write(f"Último char: {repr(llm_output[-1]) if llm_output else 'N/A'}\n")
+            
+            logger.info(f"LLM output salvo para debug: {debug_file}")
+        except Exception as e:
+            logger.warning(f"Não foi possível salvar output para debug: {e}")
+
+    def _extract_json_aggressive(self, text: str) -> str | None:
+        """
+        Extrai JSON usando múltiplas estratégias agressivas.
+        
+        Args:
+            text: Texto contendo JSON
+            
+        Returns:
+            String JSON extraída ou None
+        """
+        import re
+        
+        # Estratégia 1: Encontrar qualquer objeto ou array JSON
+        # Procura por { ... } ou [ ... ]
+        patterns = [
+            # Objeto JSON completo
+            r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',
+            # Array JSON completo
+            r'\[[^\[\]]*(?:\[[^\[\]]*\][^\[\]]*)*\]',
+        ]
+        
+        for pattern in patterns:
+            matches = re.findall(pattern, text, re.DOTALL)
+            for match in matches:
+                if len(match) > 50:  # Ignora matches muito pequenos
+                    try:
+                        # Tenta verificar se é JSON válido
+                        json.loads(match)
+                        return match
+                    except:
+                        continue
+        
+        # Estratégia 2: Remover markdown e tentar extrair
+        # Remove ```json e ```wrapper
+        cleaned = re.sub(r'^```json\s*', '', text)
+        cleaned = re.sub(r'^```\s*', '', cleaned)
+        cleaned = re.sub(r'```$', '', cleaned)
+        
+        # Procura por { ou [ 
+        json_match = re.search(r'(\{.*\}|\[.*\])', cleaned, re.DOTALL)
+        if json_match:
+            return json_match.group(1)
+        
         return None
 
     def _fix_common_json_issues(self, json_str: str) -> str:
@@ -392,8 +579,59 @@ class ExecutorAgent:
             if file_manager.create_file(file_path, content):
                 created_files.append(file_path)
         
+        # VALIDAÇÃO: Verificar arquivos gerados para detectar problemas
+        self._validate_generated_files(created_files, file_manager)
+        
         logger.info(f"Criados {len(created_files)} arquivos")
         return created_files
+    
+    def _validate_generated_files(self, created_files: list, file_manager: FileManager) -> None:
+        """
+        Valida os arquivos gerados para detectar problemas comuns.
+        
+        Args:
+            created_files: Lista de arquivos criados
+            file_manager: Gerenciador de arquivos para ler conteúdo
+        """
+        logger.info("="*60)
+        logger.info("VALIDAÇÃO - Verificando arquivos gerados...")
+        
+        issues_found = False
+        
+        for file_path in created_files:
+            try:
+                content = file_manager.read_file(file_path)
+                if not content:
+                    logger.warning(f"Arquivo vazio: {file_path}")
+                    issues_found = True
+                    continue
+                
+                # Verifica placeholders não substituídos
+                if PlaceholderReplacer.has_placeholders(content):
+                    logger.error(f"PLACEHOLDER encontrado em: {file_path}")
+                    issues_found = True
+                
+                # Verifica padrões comuns de código vazio/incompleto
+                if 'pass\n' in content and content.count('pass\n') > 3:
+                    # Mais de 3 'pass' pode indicar código incompleto
+                    logger.warning(f"Muitos 'pass' em: {file_path} - possível código incompleto")
+                
+                # Verifica se há imports faltando para arquivos Python
+                if file_path.endswith('.py'):
+                    # Verifica se o arquivo tem pelo menos uma função ou classe definida
+                    if 'def ' not in content and 'class ' not in content:
+                        logger.warning(f"Arquivo Python sem definições: {file_path}")
+                        
+            except Exception as e:
+                logger.warning(f"Erro ao validar {file_path}: {e}")
+        
+        if issues_found:
+            logger.error("VALIDAÇÃO - Problemas encontrados nos arquivos gerados!")
+            logger.error("Recomendação: Revise os templates de geração")
+        else:
+            logger.info("VALIDAÇÃO - Todos os arquivos passaram na verificação!")
+        
+        logger.info("="*60)
     
     def _generate_ddd_structure(
         self, 
@@ -414,58 +652,69 @@ class ExecutorAgent:
         Returns:
             Dicionário {caminho: conteúdo}
         """
+        # ============================================================
+        # CORREÇÃO CRÍTICA: Normalizar nomes de serviços
+        # Isso garante que auth-service -> auth_service
+        # ============================================================
+        normalized_service_name = service_name.replace('-', '_')
+        
         files = {}
-        base_path = f"services/{service_name}"
+        base_path = f"services/{normalized_service_name}"
         
         entities = microservice.get("entities", [])
         
-        # Domain Layer
-        files[f"{base_path}/domain/__init__.py"] = f"""# {service_name} - Domain Layer
-from .{domain.lower()}_entities import *
-from .{domain.lower()}_value_objects import *
-from .{domain.lower()}_aggregates import *
+        # Normalizar domain também
+        normalized_domain = domain.replace('-', '_').lower()
+        
+        # Domain Layer - CORRIGIDO: Usar normalized_domain
+        files[f"{base_path}/domain/__init__.py"] = f"""# {normalized_service_name} - Domain Layer
+from .{normalized_domain}_entities import *
+from .{normalized_domain}_value_objects import *
+from .{normalized_domain}_aggregates import *
 """
         
         # Entities
         for entity in entities:
-            files[f"{base_path}/domain/{domain.lower()}_entities.py"] = self._generate_entity(entity, domain)
+            files[f"{base_path}/domain/{normalized_domain}_entities.py"] = self._generate_entity(entity, normalized_domain)
         
-        # Value Objects
-        files[f"{base_path}/domain/{domain.lower()}_value_objects.py"] = self._generate_value_objects(domain)
+        # Value Objects - CORRIGIDO: Usar normalized_domain
+        files[f"{base_path}/domain/{normalized_domain}_value_objects.py"] = self._generate_value_objects(normalized_domain)
         
-        # Aggregates
-        files[f"{base_path}/domain/{domain.lower()}_aggregates.py"] = self._generate_aggregates(domain, entities)
+        # Aggregates - CORRIGIDO: Usar normalized_domain
+        files[f"{base_path}/domain/{normalized_domain}_aggregates.py"] = self._generate_aggregates(normalized_domain, entities)
         
-        # Application Layer
-        files[f"{base_path}/application/__init__.py"] = self._generate_application_init(service_name)
-        files[f"{base_path}/application/use_cases.py"] = self._generate_use_cases(domain, entities)
+        # Application Layer - CORRIGIDO: Usar normalized_service_name
+        files[f"{base_path}/application/__init__.py"] = self._generate_application_init(normalized_service_name)
+        files[f"{base_path}/application/use_cases.py"] = self._generate_use_cases(normalized_domain, entities)
         files[f"{base_path}/application/dtos.py"] = self._generate_dtos(entities)
         files[f"{base_path}/application/mappers.py"] = self._generate_mappers(entities)
         
         # Infrastructure Layer
         files[f"{base_path}/infrastructure/__init__.py"] = self._generate_infrastructure_init()
-        files[f"{base_path}/infrastructure/repositories.py"] = self._generate_repositories(domain, entities)
-        files[f"{base_path}/infrastructure/database.py"] = self._generate_database(config.database)
+        # Pass entity_name to database generation to avoid placeholders
+        entity_name = entities[0] if entities else "Entity"
+        files[f"{base_path}/infrastructure/repositories.py"] = self._generate_repositories(normalized_domain, entities)
+        files[f"{base_path}/infrastructure/database.py"] = self._generate_database(config.database, entity_name)
         
-        # API Layer
+        # API Layer - CORRIGIDO: Usar normalized_service_name
         files[f"{base_path}/api/__init__.py"] = self._generate_api_init()
-        files[f"{base_path}/api/routes.py"] = self._generate_routes(service_name, entities)
-        files[f"{base_path}/api/controllers.py"] = self._generate_controllers(service_name, entities)
+        files[f"{base_path}/api/routes.py"] = self._generate_routes(normalized_service_name, normalized_domain, entities)
+        files[f"{base_path}/api/controllers.py"] = self._generate_controllers(normalized_service_name, entities)
         files[f"{base_path}/api/schemas.py"] = self._generate_schemas(entities)
         
-        # Main
-        files[f"{base_path}/main.py"] = self._generate_main(service_name, config)
+        # Main - CORRIGIDO: Usar normalized_service_name
+        files[f"{base_path}/main.py"] = self._generate_main(normalized_service_name, config)
         files[f"{base_path}/requirements.txt"] = self._generate_requirements()
         
         # Docker
         if config.include_docker:
-            files[f"{base_path}/Dockerfile"] = self._generate_dockerfile(service_name)
-            files[f"{base_path}/docker-compose.yml"] = self._generate_docker_compose(service_name, config.database)
+            files[f"{base_path}/Dockerfile"] = self._generate_dockerfile(normalized_service_name)
+            files[f"{base_path}/docker-compose.yml"] = self._generate_docker_compose(normalized_service_name, config.database)
         
         # Tests
         if config.include_tests:
             files[f"{base_path}/tests/__init__.py"] = ""
-            files[f"{base_path}/tests/test_{domain.lower()}_entities.py"] = self._generate_test_entities(domain, entities)
+            files[f"{base_path}/tests/test_{normalized_domain}_entities.py"] = self._generate_test_entities(normalized_domain, entities)
         
         return files
     
@@ -695,7 +944,21 @@ class Delete{entity_name}UseCase:
 '''
     
     def _generate_dtos(self, entities: list) -> str:
+        """
+        Gera código de DTOs com campos properiados.
+        
+        Args:
+            entities: Lista de nomes de entidades
+            
+        Returns:
+            Conteúdo do arquivo dtos.py
+        """
         entity_name = entities[0] if entities else "Entity"
+        
+        # Define campos padrão baseados no tipo de entidade
+        # Esses campos serão usados se não forem especificados pelo LLM
+        default_fields = self._get_default_dto_fields(entity_name)
+        
         return f'''"""
 DTOs - Data Transfer Objects
 ===========================
@@ -711,6 +974,7 @@ from datetime import datetime
 class {entity_name}DTO:
     """DTO para {entity_name}."""
     id: UUID | None = None
+    {default_fields["dto_fields"]}
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
@@ -718,14 +982,65 @@ class {entity_name}DTO:
 @dataclass
 class Create{entity_name}DTO:
     """DTO para criação de {entity_name}."""
-    pass
+    {default_fields["create_fields"]}
 
 
 @dataclass
 class Update{entity_name}DTO:
     """DTO para atualização de {entity_name}."""
-    pass
+    {default_fields["update_fields"]}
 '''
+    
+    def _get_default_dto_fields(self, entity_name: str) -> dict:
+        """
+        Retorna campos padrão para DTOs baseados no nome da entidade.
+        
+        Args:
+            entity_name: Nome da entidade
+            
+        Returns:
+            Dicionário com campos para cada tipo de DTO
+        """
+        entity_lower = entity_name.lower()
+        
+        # Campos específicos por tipo de entidade
+        if 'user' in entity_lower or 'usuario' in entity_lower:
+            return {
+                "dto_fields": "nome: str | None = None\n    email: str | None = None",
+                "create_fields": "nome: str\n    email: str\n    senha: str",
+                "update_fields": "nome: str | None = None\n    email: str | None = None"
+            }
+        elif 'post' in entity_lower:
+            return {
+                "dto_fields": "usuario_id: UUID | None = None\n    conteudo: str | None = None",
+                "create_fields": "usuario_id: UUID\n    conteudo: str",
+                "update_fields": "conteudo: str | None = None"
+            }
+        elif 'comment' in entity_lower or 'comentario' in entity_lower:
+            return {
+                "dto_fields": "post_id: UUID | None = None\n    usuario_id: UUID | None = None\n    conteudo: str | None = None",
+                "create_fields": "post_id: UUID\n    usuario_id: UUID\n    conteudo: str",
+                "update_fields": "conteudo: str | None = None"
+            }
+        elif 'order' in entity_lower or 'pedido' in entity_lower:
+            return {
+                "dto_fields": "usuario_id: UUID | None = None\n    total: float | None = None\n    status: str | None = None",
+                "create_fields": "usuario_id: UUID\n    itens: list",
+                "update_fields": "status: str | None = None"
+            }
+        elif 'product' in entity_lower or 'produto' in entity_lower:
+            return {
+                "dto_fields": "nome: str | None = None\n    preco: float | None = None\n    descricao: str | None = None",
+                "create_fields": "nome: str\n    preco: float\n    descricao: str | None = None",
+                "update_fields": "nome: str | None = None\n    preco: float | None = None\n    descricao: str | None = None"
+            }
+        else:
+            # Campos genéricos para outras entidades
+            return {
+                "dto_fields": "nome: str | None = None",
+                "create_fields": "nome: str",
+                "update_fields": "nome: str | None = None"
+            }
     
     def _generate_mappers(self, entities: list) -> str:
         entity_name = entities[0] if entities else "Entity"
@@ -774,12 +1089,15 @@ Camada de infraestrutura com repositórios e banco de dados.
     def _generate_repositories(self, domain: str, entities: list) -> str:
         entity_name = entities[0] if entities else "Entity"
         db_type = "sqlalchemy"  # Padrão
-        return f'''"""
+        # Apply placeholder replacements first
+        content = f'''"""
 Repositories - Infrastructure Layer
 ====================================
 Implementação de repositórios para {domain}.
 """
 
+import asyncpg
+import os
 from uuid import UUID
 from typing import Optional
 from ..domain.{entity_name.lower()} import {entity_name}, {entity_name}Repository
@@ -790,94 +1108,149 @@ class {entity_name}RepositoryImpl({entity_name}Repository):
     """Implementação do repositório de {entity_name}."""
     
     def __init__(self):
-        self.db = get_db()
+        self.db = None
+    
+    def _get_db(self):
+        """Obtém conexão do banco."""
+        if self.db is None:
+            raise RuntimeError("Database not initialized. Call init_db() first.")
+        return self.db
     
     async def get_by_id(self, id: UUID) -> Optional[{entity_name}]:
-        data = await self.db.fetchone(
-            "SELECT * FROM {entity_name.lower()}s WHERE id = $1", id
+        db = self._get_db()
+        row = await db.fetchrow(
+            "SELECT * FROM {entity_name.lower()}s WHERE id = $1", str(id)
         )
-        if data:
-            return {entity_name}(**data)
+        if row:
+            return {entity_name}(**row)
         return None
     
     async def get_all(self) -> list[{entity_name}]:
-        rows = await self.db.fetch("SELECT * FROM {entity_name.lower()}s")
+        db = self._get_db()
+        rows = await db.fetch("SELECT * FROM {entity_name.lower()}s")
         return [{entity_name}(**row) for row in rows]
     
     async def save(self, entity: {entity_name}) -> {entity_name}:
+        db = self._get_db()
         data = entity.to_dict()
-        if await self.get_by_id(entity.id):
-            await self.db.execute(
-                f"UPDATE {{'{'}}entity_name.lower(){{'}'}}s SET ... WHERE id = $1",
-                entity.id
+        
+        existing = await self.get_by_id(entity.id)
+        if existing:
+            # Build dynamic UPDATE query
+            set_clause = ", ".join([f"${{i+1}} = ${{i+2}}" for i, k in enumerate(data.keys()) if k != 'id'])
+            await db.execute(
+                f"UPDATE {entity_name.lower()}s SET {{set_clause}} WHERE id = $1",
+                *[data[k] for k in data.keys() if k != 'id']
             )
         else:
-            await self.db.execute(
-                f"INSERT INTO {{'{'}}entity_name.lower(){{'}'}}s ...",
+            columns = ", ".join(data.keys())
+            values = ", ".join([f"${{i+1}}" for i in range(len(data))])
+            await db.execute(
+                f"INSERT INTO {entity_name.lower()}s ({{columns}}) VALUES ({{values}})",
                 *data.values()
             )
         return entity
     
     async def delete(self, id: UUID) -> bool:
-        result = await self.db.execute(
-            "DELETE FROM {entity_name.lower()}s WHERE id = $1", id
+        db = self._get_db()
+        result = await db.execute(
+            "DELETE FROM {entity_name.lower()}s WHERE id = $1", str(id)
         )
-        return result > 0
+        return result != "DELETE 0"
+
+
+# Instância global do repositório
+_repository_instance = None
+
+
+def get_{entity_name.lower()}_repository() -> {entity_name}RepositoryImpl:
+    """Dependência para obter repositório de {entity_name}."""
+    global _repository_instance
+    if _repository_instance is None:
+        _repository_instance = {entity_name}RepositoryImpl()
+    return _repository_instance
 '''
+        # Apply replacements to fix any remaining placeholders
+        result = content.replace('{entity_name}', entity_name)
+        result = result.replace('{entity_name.lower()}', entity_name.lower())
+        result = result.replace('{domain}', domain)
+        result = result.replace('{set_clause}', ', '.join([f'{{k}} = ${{i+2}}' for i, k in enumerate(['nome', 'email', 'created_at', 'updated_at'])]))
+        result = result.replace('{{set_clause}}', ', '.join([f'{k} = ${i+2}' for i, k in enumerate(['nome', 'email', 'created_at', 'updated_at'])]))
+        return result
     
-    def _generate_database(self, db_type: str) -> str:
-        return f'''"""
+    def _generate_database(self, db_type: str, entity_name: str = "Entity") -> str:
+        """
+        Gera código de Database Configuration usando asyncpg.
+        
+        Args:
+            db_type: Tipo de banco (postgresql, mysql, etc)
+            entity_name: Nome da entidade principal
+            
+        Returns:
+            Conteúdo do arquivo database.py
+        """
+        # Gera template usando asyncpg (async)
+        content = f'''"""
 Database Configuration - Infrastructure Layer
 =============================================
-Configuração de banco de dados ({db_type}).
+Configuração de banco de dados ({db_type}) - Async version.
 """
 
-from sqlalchemy import create_engine, Column, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+import asyncpg
 import os
+from typing import Optional
 
 
-Base = declarative_base()
+# Database connection pool
+_pool: Optional[asyncpg.Pool] = None
 
 
-# Entity for PostgreSQL - SQLAlchemy ORM
-class {{
-    entity_name
-}}Entity(Base):
-    """Tabela de {{entity_name.lower()}} no banco de dados."""
-    __tablename__ = "{{entity_name.lower()}}s"
-    
-    id = Column(String, primary_key=True)
-    nome = Column(String, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+async def get_db_pool() -> asyncpg.Pool:
+    """Obtém o pool de conexões do banco."""
+    global _pool
+    if _pool is None:
+        DATABASE_URL = os.getenv(
+            "DATABASE_URL", 
+            "postgresql://postgres:postgres@localhost:5432/dbname"
+        )
+        _pool = await asyncpg.create_pool(
+            DATABASE_URL,
+            min_size=2,
+            max_size=10
+        )
+    return _pool
 
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:postgres@localhost:5432/dbname"
-)
+async def close_db_pool():
+    """Fecha o pool de conexões."""
+    global _pool
+    if _pool is not None:
+        await _pool.close()
+        _pool = None
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+async def init_db():
+    """Inicializa o banco de dados criando as tabelas."""
+    pool = await get_db_pool()
+    async with pool.acquire() as conn:
+        # Create {entity_name.lower()}s table
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS {entity_name.lower()}s (
+                id UUID PRIMARY KEY,
+                nome VARCHAR(100) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
 
 
 def get_db():
-    """Dependência para obter sessão do banco."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def init_db():
-    """Inicializa o banco de dados."""
-    Base.metadata.create_all(bind=engine)
+    """Dependência para obter conexão do banco (async)."""
+    return get_db_pool()
 '''
+        # Usa o replacer para garantir que não há placeholders restantes
+        return PlaceholderReplacer.replace(content, entity_name=entity_name)
     
     def _generate_api_init(self) -> str:
         return '''"""
@@ -887,7 +1260,18 @@ Camada de API com controllers e rotas.
 """
 '''
     
-    def _generate_routes(self, service_name: str, entities: list) -> str:
+    def _generate_routes(self, service_name: str, domain: str, entities: list) -> str:
+        """
+        Gera código de Routes com APIRouter.
+        
+        Args:
+            service_name: Nome do serviço (normalizado)
+            domain: Nome do domínio (normalizado)
+            entities: Lista de entidades
+            
+        Returns:
+            Conteúdo do arquivo routes.py
+        """
         entity_name = entities[0] if entities else "Entity"
         return f'''"""
 Routes - API Layer
@@ -991,14 +1375,27 @@ def get_{entity_name.lower()}_repository() -> {entity_name}RepositoryImpl:
 '''
     
     def _generate_schemas(self, entities: list) -> str:
+        """
+        Gera código de Schemas com campos e validação.
+        
+        Args:
+            entities: Lista de nomes de entidades
+            
+        Returns:
+            Conteúdo do arquivo schemas.py
+        """
         entity_name = entities[0] if entities else "Entity"
+        
+        # Get default fields based on entity type
+        default_fields = self._get_default_schema_fields(entity_name)
+        
         return f'''"""
 Schemas - API Layer
 ==================
 Schemas Pydantic para validação de API.
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from uuid import UUID
 from datetime import datetime
 
@@ -1006,6 +1403,7 @@ from datetime import datetime
 class {entity_name}Schema(BaseModel):
     """Schema para {entity_name}."""
     id: UUID
+    {default_fields["schema_fields"]}
     created_at: datetime
     updated_at: datetime
     
@@ -1015,13 +1413,64 @@ class {entity_name}Schema(BaseModel):
 
 class Create{entity_name}Schema(BaseModel):
     """Schema para criação de {entity_name}."""
-    pass
+    {default_fields["create_fields"]}
 
 
 class Update{entity_name}Schema(BaseModel):
     """Schema para atualização de {entity_name}."""
-    pass
+    {default_fields["update_fields"]}
 '''
+    
+    def _get_default_schema_fields(self, entity_name: str) -> dict:
+        """
+        Retorna campos padrão para Schemas Pydantic baseados no nome da entidade.
+        
+        Args:
+            entity_name: Nome da entidade
+            
+        Returns:
+            Dicionário com campos para cada tipo de Schema
+        """
+        entity_lower = entity_name.lower()
+        
+        # Campos específicos por tipo de entidade
+        if 'user' in entity_lower or 'usuario' in entity_lower:
+            return {
+                "schema_fields": "nome: str\n    email: str",
+                "create_fields": "nome: str = Field(..., min_length=2, max_length=100)\n    email: EmailStr\n    senha: str = Field(..., min_length=6)",
+                "update_fields": "nome: str | None = Field(None, min_length=2, max_length=100)\n    email: EmailStr | None = None"
+            }
+        elif 'post' in entity_lower:
+            return {
+                "schema_fields": "usuario_id: UUID\n    conteudo: str",
+                "create_fields": "usuario_id: UUID\n    conteudo: str = Field(..., min_length=1)",
+                "update_fields": "conteudo: str | None = Field(None, min_length=1)"
+            }
+        elif 'comment' in entity_lower or 'comentario' in entity_lower:
+            return {
+                "schema_fields": "post_id: UUID\n    usuario_id: UUID\n    conteudo: str",
+                "create_fields": "post_id: UUID\n    usuario_id: UUID\n    conteudo: str = Field(..., min_length=1)",
+                "update_fields": "conteudo: str | None = Field(None, min_length=1)"
+            }
+        elif 'order' in entity_lower or 'pedido' in entity_lower:
+            return {
+                "schema_fields": "usuario_id: UUID\n    total: float\n    status: str",
+                "create_fields": "usuario_id: UUID\n    itens: list",
+                "update_fields": "status: str | None = None"
+            }
+        elif 'product' in entity_lower or 'produto' in entity_lower:
+            return {
+                "schema_fields": "nome: str\n    preco: float\n    descricao: str",
+                "create_fields": "nome: str = Field(..., min_length=2, max_length=100)\n    preco: float = Field(..., gt=0)\n    descricao: str | None = None",
+                "update_fields": "nome: str | None = Field(None, min_length=2, max_length=100)\n    preco: float | None = Field(None, gt=0)\n    descricao: str | None = None"
+            }
+        else:
+            # Campos genéricos para outras entidades
+            return {
+                "schema_fields": "nome: str",
+                "create_fields": "nome: str = Field(..., min_length=2, max_length=100)",
+                "update_fields": "nome: str | None = Field(None, min_length=2, max_length=100)"
+            }
     
     def _generate_main(self, service_name: str, config: Any) -> str:
         return f'''"""
@@ -1192,9 +1641,10 @@ python main.py
 '''
         
         # Gera frontend para o primeiro serviço (se houver)
+        # GENERIC: O nome do serviço e entidades devem vir do requirement
         if microservices:
-            service_name = microservices[0].get("name", "academia")
-            entities = microservices[0].get("entities", ["Usuario"])
+            service_name = microservices[0].get("name", "service")
+            entities = microservices[0].get("entities", ["Entity"])
             files[f"services/{service_name}/static/index.html"] = self._generate_frontend(service_name, entities)
         
         # docker-compose principal se houver múltiplos serviços
@@ -1209,7 +1659,8 @@ services:
     
     def _generate_frontend(self, service_name: str, entities: list) -> str:
         """Gera um frontend moderno com login e CRUD."""
-        entity_name = entities[0] if entities else "Usuario"
+        # GENERIC: entity name should come from the requirement, not hardcoded
+        entity_name = entities[0] if entities else "Entity"
         
         return f'''<!DOCTYPE html>
 <html lang="pt-BR">

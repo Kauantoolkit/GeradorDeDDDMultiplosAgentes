@@ -182,11 +182,15 @@ class DockerTestAgent:
         # Por padrão, todos os serviços têm banco PostgreSQL
         services_needing_db = set(services)
         
+        # GENERIC: Nome da rede deve ser dinâmico, baseado no projeto
+        # Não deve haver referências a domínios específicos
+        project_network_name = "project-network"
+        
         # Início da construção da estrutura Docker Compose como dict
         compose = {
             "version": "3.8",
             "services": {},
-            "networks": {"academia-network": {"driver": "bridge"}},
+            "networks": {project_network_name: {"driver": "bridge"}},
             "volumes": {}
         }
         
@@ -204,7 +208,7 @@ class DockerTestAgent:
             service_container_name = service_name
             db_container_name = f"db-{service_name}"
             
-            # Configuração do serviço
+            # Configuração do serviço - GENERIC: usa rede dinâmica
             compose["services"][service_container_name] = {
                 "build": {
                     "context": f"./services/{service_name}",
@@ -216,7 +220,7 @@ class DockerTestAgent:
                     f"SERVICE_NAME={service_name}"
                 ],
                 "depends_on": [db_container_name],
-                "networks": ["academia-network"]
+                "networks": [project_network_name]
             }
             
             # Adiciona banco de dados apenas se o serviço precisa
@@ -230,7 +234,7 @@ class DockerTestAgent:
                     ],
                     "ports": [f"{db_port}:5432"],
                     "volumes": [f"pgdata-{service_name}:/var/lib/postgresql/data"],
-                    "networks": ["academia-network"]
+                    "networks": [project_network_name]
                 }
                 
                 # Define volume para persistência do banco
@@ -265,24 +269,13 @@ class DockerTestAgent:
         """
         logger.info("Gerando script de validação...")
         
-        # Mapeia portas
-        port_map = {
-            "academia": 8001,
-            "aluno": 8002,
-            "attendance-service": 8003,
-            "class-service": 8004,
-            "notification-service": 8005,
-            "payment-service": 8006,
-            "student-service": 8007,
-            "turma": 8008,
-            "agendamento": 8009,
-            "pagamento": 8010
-        }
+        # GENERIC: Portas devem ser dinâmicas baseadas no índice do serviço
+        base_port = 8001
         
-        # Gera verificações de saúde para cada serviço
+        # Gera verificações de saúde para cada serviço com portas dinâmicas
         health_checks = []
-        for service in services:
-            port = port_map.get(service, 8000)
+        for idx, service in enumerate(services):
+            port = base_port + idx
             health_checks.append(f"""
 echo.
 echo ============================================
@@ -470,22 +463,11 @@ echo.
             )
             result["containers_status"] = ps_result.stdout
             
-            #health checks
-            port_map = {
-                "academia": 8001,
-                "aluno": 8002,
-                "attendance-service": 8003,
-                "class-service": 8004,
-                "notification-service": 8005,
-                "payment-service": 8006,
-                "student-service": 8007,
-                "turma": 8008,
-                "agendamento": 8009,
-                "pagamento": 8010
-            }
+            # GENERIC: Portas dinâmicas baseadas no índice do serviço
+            base_port = 8001
             
-            for service in services:
-                port = port_map.get(service, 8000)
+            for idx, service in enumerate(services):
+                port = base_port + idx
                 try:
                     check = subprocess.run(
                         ["curl", "-s", f"http://localhost:{port}/health"],
