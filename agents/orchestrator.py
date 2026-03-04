@@ -44,8 +44,8 @@ Fluxo de Execução:
     APROVADO     REPROVADO
         │              │
         ▼              ▼
-   SUCESSO      ROLLBACK
-                 (se limite atingido)
+   SUCESSO      FALHA
+           (arquivos mantidos para debug)
 """
 
 import asyncio
@@ -70,6 +70,7 @@ from .rollback_agent import RollbackAgent
 from .docker_test_agent import DockerTestAgent
 from .fix_agent import FixAgent
 from .error_logger import get_error_logger
+from .agent_logger import get_logger, create_trace, log_communication
 
 
 class OrchestratorAgent:
@@ -82,7 +83,7 @@ class OrchestratorAgent:
     3. Chama o Validator Agent para validar
     4. Se aprovado → retorna sucesso
     5. Se reprovado → chama Fix Agent para correção → revalida
-    6. Se ainda reprovado após limite → Rollback
+    6. Se ainda reprovado após limite → Mantém arquivos para debug
     """
     
     def __init__(self, llm_provider: OllamaProvider, max_fix_attempts: int = 3):
@@ -120,14 +121,31 @@ class OrchestratorAgent:
         Returns:
             ProjectGenerationResult com o resultado final
         """
+        # Inicializa o logger estruturado e cria trace_id
+        agent_logger = get_logger()
+        
+        # Usa o trace_id do requirement ou cria um novo
+        trace_id = requirement.trace_id if hasattr(requirement, 'trace_id') and requirement.trace_id else agent_logger.create_trace_id()
+        
+        # Registra início do trace
+        agent_logger.log_trace_start(
+            trace_id=trace_id,
+            metadata={
+                "requirement_id": requirement.id,
+                "description": requirement.description[:200] if requirement.description else "",
+                "output_directory": requirement.project_config.output_directory
+            }
+        )
+        
         start_time = datetime.now()
         
         # Resultado final
         result = ProjectGenerationResult()
-        result.add_log(f"Iniciando geração - Requisito: {requirement.id}")
+        result.trace_id = trace_id  # Armazena trace_id no resultado
+        result.add_log(f"Iniciando geracao - Requisito: {requirement.id} - trace_id: {trace_id}")
         
         logger.info("="*60)
-        logger.info("ORCHESTRATOR AGENT - Iniciando fluxo completo")
+        logger.info(f"ORCHESTRATOR AGENT - Iniciando fluxo completo - trace_id: {trace_id[:8]}...")
         logger.info("="*60)
         
         try:
@@ -138,8 +156,18 @@ class OrchestratorAgent:
             result.add_log("FASE 1: Executor Agent")
             
             executor_result = await self.executor_agent.execute(requirement)
+            result.add_log(f"Executor Agent - Status: {executor_result.status}")
             
-            result.add_log(f"Executor concluído - Status: {executor_result.status}")
+            # Log de comunicacao entre agentes
+            log_communication(
+                from_agent="OrchestratorAgent",
+                to_agent="ExecutorAgent",
+                trace_id=trace_id,
+                payload={"requirement_id": requirement.id},
+                status="success" if executor_result.success else "failure",
+                execution_time_ms=0
+            )
+            
             result.files_generated.extend(executor_result.files_created)
             
             if not executor_result.success:
@@ -164,7 +192,17 @@ class OrchestratorAgent:
                 executor_result
             )
             
-            result.add_log(f"Validação concluída - Status: {validation_result.status}")
+            # Log de comunicacao Executor -> Validator
+            log_communication(
+                from_agent="ExecutorAgent",
+                to_agent="ValidatorAgent",
+                trace_id=trace_id,
+                payload={"requirement_id": requirement.id},
+                status="success",
+                execution_time_ms=0
+            )
+            
+            result.add_log(f"Validacao concluida - Status: {validation_result.status}")
             result.add_log(f"Score: {validation_result.score}")
             
             if validation_result.needs_rollback:
@@ -215,24 +253,16 @@ class OrchestratorAgent:
                         logger.error(f"❌ Limite de tentativas de correção atingido ({max_attempts})")
                         result.add_log(f"Limite de correções atingido ({max_attempts})")
                 
-                # Se não conseguiu aprovar após correções, faz rollback
+                # Se não conseguiu aprovar após correções, mantém os arquivos para debug
                 if not validation_approved:
-                    logger.warning("Fix Agent não conseguiu corrigir. Executando Rollback...")
-                    result.add_log("FASE 3b: Rollback Agent (após falhas do Fix)")
-                    
-                    rollback_result = await self.rollback_agent.execute(
-                        requirement,
-                        executor_result
-                    )
-                    
-                    result.add_log(f"Rollback concluído: {rollback_result.status}")
-                    result.rollback_performed = True
+                    logger.warning("Fix Agent não conseguiu corrigir. Arquivos mantidos para debug.")
+                    result.add_log("FASE 3b: Validação falhou - Arquivos mantidos para debug")
                     
                     result.success = False
                     result.error_message = (
                         f"Validação reprovada (score final: {validation_result.score}). "
-                        f"Foram realizadas {fix_attempt} tentativas de correção. "
-                        "Rollback realizado automaticamente."
+                        f"Foram realizadas {fix_attempt} tentativa(s) de correção. "
+                        "Os arquivos gerados foram mantidos para debug."
                     )
                     return result
             
@@ -247,7 +277,17 @@ class OrchestratorAgent:
                 executor_result
             )
             
-            result.add_log(f"Docker Test concluído - Status: {docker_test_result.status}")
+            # Log de comunicacao Validator -> DockerTestAgent
+            log_communication(
+                from_agent="ValidatorAgent",
+                to_agent="DockerTestAgent",
+                trace_id=trace_id,
+                payload={"requirement_id": requirement.id},
+                status="success" if docker_test_result.success else "failure",
+                execution_time_ms=0
+            )
+            
+            result.add_log(f"Docker Test concluido - Status: {docker_test_result.status}")
             
             if docker_test_result.success:
                 result.add_log("Docker validation: SUCCESS")

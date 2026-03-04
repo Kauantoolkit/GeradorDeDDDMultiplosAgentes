@@ -191,6 +191,7 @@ class Requirement:
     Suporta tanto entrada textual quanto estruturada DDD.
     """
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    trace_id: str = field(default_factory=lambda: str(uuid.uuid4()))  # ID único da execução
     description: str = ""
     project_config: ProjectConfig = field(default_factory=ProjectConfig)
     microservices: list[MicroserviceSpec] = field(default_factory=list)
@@ -297,6 +298,7 @@ class ValidationResult:
     Resultado da validação realizada pelo Validator Agent.
     """
     requirement_id: str
+    trace_id: str = ""  # ID único da execução para correlação de logs
     status: ValidationStatus = ValidationStatus.PENDING
     approved_items: list[str] = field(default_factory=list)
     rejected_items: list[str] = field(default_factory=list)
@@ -358,6 +360,7 @@ class ProjectGenerationResult:
     Resultado final da geração do projeto.
     """
     success: bool = False
+    trace_id: str = ""  # ID único da execução para correlação de logs
     project_path: str = ""
     services: list[str] = field(default_factory=list)
     files_generated: list[str] = field(default_factory=list)
