@@ -187,8 +187,8 @@ class DockerTestAgent:
         project_network_name = "project-network"
         
         # Início da construção da estrutura Docker Compose como dict
+        # NOTA: Não usamos mais 'version' pois está obsoleto nas versões recentes do Docker Compose
         compose = {
-            "version": "3.8",
             "services": {},
             "networks": {project_network_name: {"driver": "bridge"}},
             "volumes": {}
@@ -198,26 +198,30 @@ class DockerTestAgent:
         
         # Processa cada serviço
         for idx, service_name in enumerate(services):
+            # CORREÇÃO CRÍTICA: Normalizar nome do serviço (hífen -> sublinhado)
+            # Os diretórios são criados com sublinhado (order_service), não hífen (order-service)
+            normalized_service_name = service_name.replace('-', '_')
+            
             # Porta dinâmica baseada no índice (evita conflitos)
             service_port = base_service_port + idx
             db_port = base_db_port + idx + 1  # Offset para evitar conflito com porta padrão
             
-            logger.info(f"  - {service_name}: porta={service_port}, db_port={db_port}")
+            logger.info(f"  - {normalized_service_name}: porta={service_port}, db_port={db_port}")
             
-            # Define container do serviço principal
-            service_container_name = service_name
-            db_container_name = f"db-{service_name}"
+            # Define container do serviço principal usando nome normalizado
+            service_container_name = normalized_service_name
+            db_container_name = f"db-{normalized_service_name}"
             
-            # Configuração do serviço - GENERIC: usa rede dinâmica
+            # Configuração do serviço - CORRIGIDO: usa nome normalizado para o context
             compose["services"][service_container_name] = {
                 "build": {
-                    "context": f"./services/{service_name}",
+                    "context": f"./services/{normalized_service_name}",
                     "dockerfile": "Dockerfile"
                 },
                 "ports": [f"{service_port}:8000"],
                 "environment": [
-                    f"DATABASE_URL=postgresql://postgres:postgres@{db_container_name}:5432/{service_name}",
-                    f"SERVICE_NAME={service_name}"
+                    f"DATABASE_URL=postgresql://postgres:postgres@{db_container_name}:5432/{normalized_service_name}",
+                    f"SERVICE_NAME={normalized_service_name}"
                 ],
                 "depends_on": [db_container_name],
                 "networks": [project_network_name]
@@ -227,18 +231,18 @@ class DockerTestAgent:
             if service_name in services_needing_db:
                 # Configuração do banco de dados
                 compose["services"][db_container_name] = {
-                    "image": "postgres",  # CORRIGIDO: era "postgresql"
+                    "image": "postgres",
                     "environment": [
                         "POSTGRES_PASSWORD=postgres",
-                        f"POSTGRES_DB={service_name}"
+                        f"POSTGRES_DB={normalized_service_name}"
                     ],
                     "ports": [f"{db_port}:5432"],
-                    "volumes": [f"pgdata-{service_name}:/var/lib/postgresql/data"],
+                    "volumes": [f"pgdata-{normalized_service_name}:/var/lib/postgresql/data"],
                     "networks": [project_network_name]
                 }
                 
                 # Define volume para persistência do banco
-                compose["volumes"][f"pgdata-{service_name}"] = None
+                compose["volumes"][f"pgdata-{normalized_service_name}"] = None
         
         logger.info(f"Estrutura Docker Compose pronta: {len(compose['services'])} serviços/contêineres")
         

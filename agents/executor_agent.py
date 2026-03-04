@@ -1546,9 +1546,8 @@ CMD ["python", "main.py"]
 '''
     
     def _generate_docker_compose(self, service_name: str, database: str) -> str:
-        return f'''version: '3.8'
-
-services:
+        # NOTA: Não usamos mais 'version' pois está obsoleto nas versões recentes do Docker Compose
+        return f'''services:
   {service_name}:
     build: .
     ports:
@@ -1649,9 +1648,7 @@ python main.py
         
         # docker-compose principal se houver múltiplos serviços
         if len(microservices) > 1:
-            files["docker-compose.yml"] = '''version: '3.8'
-
-services:
+            files["docker-compose.yml"] = '''services:
   # Add your microservices here
 '''
         
