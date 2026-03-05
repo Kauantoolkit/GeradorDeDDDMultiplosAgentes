@@ -52,6 +52,28 @@ def test_generated_docker_compose_pins_postgres_version():
     assert "image: postgres:16" in compose_content
 
 
+def test_generation_guards_add_missing_uvicorn_dependency():
+    agent = ExecutorAgent(DummyProvider())
+
+    guarded = agent._apply_generation_guards(
+        "services/user_service/requirements.txt",
+        "fastapi\nsqlalchemy\n",
+    )
+
+    assert "uvicorn>=0.24.0" in guarded
+
+
+def test_generation_guards_fix_invalid_docker_cmd_quotes():
+    agent = ExecutorAgent(DummyProvider())
+
+    raw = """FROM python:3.9-slim
+CMD ['uvicorn', 'main:app', '--host', '0.0.0.0', '--port', '8000']
+"""
+    guarded = agent._apply_generation_guards("services/user_service/Dockerfile", raw)
+
+    assert "CMD [\"uvicorn\", \"main:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"]" in guarded
+
+
 def test_generate_domain_and_layers_avoid_circular_import_patterns():
     agent = ExecutorAgent(DummyProvider())
 
