@@ -1,130 +1,146 @@
 # Agentes Code Generator
 
-Sistema de automação com agentes AI para geração de microserviços DDD.
+Sistema de automação com agentes de IA para geração de microserviços com abordagem DDD.
 
-## 🚀 Novidade: Frontend React com WebSocket
+## 🌿 Estado atual das branches
 
-Agora você pode usar uma interface visual para acompanhar a execução dos agentes em tempo real!
+- **`tentando-implementar-em-um-front`**: branch principal de uso/desenvolvimento no momento, com backend + frontend integrados (tempo real via WebSocket).
+- **`main`**: branch antiga/legada, mantida como referência histórica.
+
+> Para executar e evoluir o sistema atual, use a branch `tentando-implementar-em-um-front`.
+
+## 🧭 Visão geral do sistema atual
+
+O projeto hoje funciona em dois canais:
+
+1. **Fluxo Web (recomendado)**
+   - Frontend React envia requisitos para a API.
+   - Backend FastAPI dispara a execução em background.
+   - Atualizações dos agentes são transmitidas em tempo real por WebSocket.
+
+2. **Fluxo CLI (modo original)**
+   - Execução direta via `main.py` no terminal.
+   - Mantém o mesmo núcleo de orquestração dos agentes.
+
+## 🔁 Fluxo dos agentes (estado atual)
+
+O ciclo executado pelo orquestrador segue este fluxo:
+
+1. **Executor Agent**: gera os arquivos/estrutura inicial do projeto.
+2. **Validator Agent**: valida arquitetura, aderência aos requisitos e consistência.
+3. **Docker Test Agent**: tenta validar execução/saúde da solução gerada.
+4. **Fix Agent (loop)**: quando reprovado, aplica correções e retorna para validação/testes.
+5. **Resultado final**:
+   - **Aprovado**: geração concluída com sucesso.
+   - **Reprovado após limite de tentativas**: geração finalizada com falha e logs para diagnóstico.
+
+## 🧩 Interface frontend (React)
+
+A interface atual inclui:
+
+- Formulário de requisitos do projeto.
+- Seleção de modelo Ollama, framework, banco e diretório de saída.
+- Timeline dos agentes em tempo real.
+- Painel de eventos (debug rápido).
+- Resultado final de sucesso/erro com informações de rastreio (`task_id` / `trace_id`).
+
+## 🔌 Backend/API e comunicação
+
+### Endpoints principais
+
+- `GET /` → metadados da API.
+- `GET /health` → healthcheck.
+- `POST /api/generate` → inicia uma geração assíncrona.
+- `GET /api/tasks` e `GET /api/tasks/{task_id}` → endpoints de status (estrutura básica).
+- `WS /ws/{client_id}` → canal de atualização em tempo real.
+
+### Eventos enviados no WebSocket
+
+- `connected`
+- `agent_status`
+- `agent_log`
+- `generation_success`
+- `generation_error`
 
 ## 📋 Requisitos
 
 - Python 3.11+
 - Node.js 18+
-- Ollama instalado e configurado
+- Ollama instalado e disponível no host
 
 ## 🛠️ Instalação
 
-### 1. Backend (API)
+### 1) Backend
 
-```
-bash
-# Instale as dependências Python
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Frontend (React + Vite)
+### 2) Frontend
 
-```
-bash
+```bash
 cd frontend
 npm install
 ```
 
-## ▶️ Execução
+## ▶️ Execução (modo web)
 
-### Terminal 1 - Backend API
+### Terminal 1 - API FastAPI
 
-```
-bash
+```bash
 # Windows
 start_api.bat
 
-# Ou manualmente
+# Manual
 python -m uvicorn api.server:app --reload --port 8000
 ```
 
-### Terminal 2 - Frontend
+### Terminal 2 - Frontend React
 
-```
-bash
+```bash
 # Windows
 start_frontend.bat
 
-# Ou manualmente
+# Manual
 cd frontend
 npm run dev
 ```
 
-### Acesse o Frontend
+Acesse: **http://localhost:5173**
 
-Abra seu navegador em: **http://localhost:5173**
+## 💻 Execução via terminal (modo original)
 
-## 🔌 Conexões
-
-- **API REST**: http://localhost:8000
-- **WebSocket**: ws://localhost:8000/ws/{client_id}
-- **Frontend**: http://localhost:5173
-- **Documentação API**: http://localhost:8000/docs
-
-## 📊 Funcionalidades do Frontend
-
-1. **Formulário de Requisitos**: Interface para inserir os requisitos do projeto
-2. **Timeline em Tempo Real**: Acompanhe cada agente sendo executado
-3. **Status Visual**: Cores indicam status (pendente, executando, sucesso, erro)
-4. **Score de Validação**: Veja o score de cada validação
-5. **Resultado Final**: Display claro de sucesso ou erro
-
-## 🏗️ Arquitetura
-
-```
-agentesCodeGenerator/
-├── api/
-│   ├── __init__.py
-│   └── server.py          # FastAPI + WebSocket server
-├── frontend/              # React + Vite
-│   ├── src/
-│   │   ├── components/    # Componentes React
-│   │   ├── hooks/         # Custom hooks (WebSocket)
-│   │   ├── App.jsx        # App principal
-│   │   └── index.css      # Estilos
-│   └── package.json
-├── agents/                # Agentes AI
-├── domain/                # Entidades DDD
-├── infrastructure/        # Infraestrutura
-└── README.md
-```
-
-## 💻 Uso via Terminal (Original)
-
-```
-bash
-# Modo interativo
+```bash
+# Interativo
 python main.py --interactive
 
-# Com requisitos direto
+# Requisitos diretos
 python main.py --requirements "Criar um sistema de e-commerce"
 ```
 
-## 🔧 Configurações
+## ⚙️ Configurações suportadas no fluxo web
 
-### Modelo Ollama
+### Modelos Ollama
 
-Edite o arquivo `api/server.py` ou use o formulário do frontend para selecionar o modelo.
-
-Modelos disponíveis:
 - llama3.2
 - llama3.1
 - llama3
 - mistral
 - codellama
 
-### Banco de Dados
+### Frameworks
 
-Configure no formulário:
-- PostgreSQL
-- MySQL
-- MongoDB
-- SQLite
+- python-fastapi
+- python-flask
+- nodejs-express
+- nodejs-nestjs
+
+### Bancos de dados
+
+- postgresql
+- mysql
+- mongodb
+- sqlite
 
 ## 📝 Licença
 
