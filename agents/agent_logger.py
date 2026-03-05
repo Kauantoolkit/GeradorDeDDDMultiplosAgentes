@@ -85,10 +85,10 @@ class AgentLogger:
         print(f"[AgentLogger] Inicializado - Arquivo: {self.log_file}")
     
     def _setup_logger(self):
-        """Configura o logger para persistência em arquivo."""
-        # Remove handlers existentes do loguru
-        logger.remove()
-        
+        """Configura o logger para persistência em arquivo sem reset global."""
+        # IMPORTANTE: não removemos handlers globais do loguru para não afetar
+        # configuração de logging já aplicada por outros componentes.
+
         # Adiciona handler para arquivo JSON
         logger.add(
             str(self.log_file),

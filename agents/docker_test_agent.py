@@ -16,7 +16,6 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-import yaml
 from loguru import logger
 
 from domain.entities import (
@@ -93,12 +92,25 @@ class DockerTestAgent:
             )
             
             # Gera script de validação
-            validate_script_path = await self._generate_validation_script(services)
+            validate_script_path = await self._generate_validation_script(
+                services,
+                requirement.project_config.output_directory
+            )
             
             # Tenta executar a validação Docker
-            docker_result = await self._run_docker_validation(services)
+            docker_result = await self._run_docker_validation(
+                services,
+                requirement.project_config.output_directory
+            )
             
-            result.status = ExecutionStatus.SUCCESS
+            result.status = ExecutionStatus.SUCCESS if docker_result.get("success") else ExecutionStatus.FAILED
+            if not docker_result.get("success"):
+                result.error_message = (
+                    docker_result.get("error")
+                    or docker_result.get("build_error")
+                    or docker_result.get("up_error")
+                    or "Validação Docker falhou"
+                )
             result.output = json.dumps({
                 "docker_compose_path": docker_compose_path,
                 "validate_script_path": validate_script_path,
@@ -247,7 +259,7 @@ class DockerTestAgent:
         logger.info(f"Estrutura Docker Compose pronta: {len(compose['services'])} serviços/contêineres")
         
         # Gera YAML a partir da estrutura dict
-        docker_compose_content = yaml.safe_dump(compose, sort_keys=False, allow_unicode=True)
+        docker_compose_content = self._to_compose_yaml(compose)
         
         # Escreve o arquivo
         output_dir = requirement.project_config.output_directory
@@ -261,7 +273,44 @@ class DockerTestAgent:
         logger.info(f"docker-compose.yml gerado em: {docker_compose_path}")
         return docker_compose_path
     
-    async def _generate_validation_script(self, services: list[str]) -> str:
+
+    def _to_compose_yaml(self, compose: dict) -> str:
+        """Serializa a estrutura do docker compose para YAML sem dependências externas."""
+
+        def _scalar(value):
+            if value is None:
+                return ""
+            text = str(value)
+            if text == "" or any(ch in text for ch in [":", "#", "{", "}", "[", "]"]):
+                return f'"{text}"'
+            return text
+
+        def _dump(obj, indent=0):
+            sp = "  " * indent
+            lines = []
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if isinstance(v, (dict, list)):
+                        lines.append(f"{sp}{k}:")
+                        lines.extend(_dump(v, indent + 1))
+                    elif v is None:
+                        lines.append(f"{sp}{k}:")
+                    else:
+                        lines.append(f"{sp}{k}: {_scalar(v)}")
+            elif isinstance(obj, list):
+                for item in obj:
+                    if isinstance(item, (dict, list)):
+                        lines.append(f"{sp}-")
+                        lines.extend(_dump(item, indent + 1))
+                    else:
+                        lines.append(f"{sp}- {_scalar(item)}")
+            else:
+                lines.append(f"{sp}{_scalar(obj)}")
+            return lines
+
+        return "\n".join(_dump(compose)) + "\n"
+
+    async def _generate_validation_script(self, services: list[str], output_dir: str) -> str:
         """
         Gera o script de validação validate_dockers.bat.
         
@@ -375,7 +424,7 @@ echo.
 """
         
         # Salva o script
-        script_path = os.path.join("generated", "validate_dockers.bat")
+        script_path = os.path.join(output_dir, "validate_dockers.bat")
         
         os.makedirs(os.path.dirname(script_path), exist_ok=True)
         
@@ -385,7 +434,7 @@ echo.
         logger.info(f"Script de validacao gerado em: {script_path}")
         return script_path
     
-    async def _run_docker_validation(self, services: list[str]) -> dict:
+    async def _run_docker_validation(self, services: list[str], output_dir: str) -> dict:
         """
         Executa a validação real dos containers Docker.
         
@@ -430,7 +479,7 @@ echo.
                 ["docker-compose", "build"],
                 capture_output=True,
                 text=True,
-                cwd="generated",
+                cwd=output_dir,
                 timeout=300
             )
             
@@ -445,7 +494,7 @@ echo.
                 ["docker-compose", "up", "-d"],
                 capture_output=True,
                 text=True,
-                cwd="generated",
+                cwd=output_dir,
                 timeout=120
             )
             
@@ -462,7 +511,7 @@ echo.
                 ["docker-compose", "ps"],
                 capture_output=True,
                 text=True,
-                cwd="generated",
+                cwd=output_dir,
                 timeout=30
             )
             result["containers_status"] = ps_result.stdout

@@ -49,6 +49,7 @@ Fluxo de Execução:
 """
 
 import asyncio
+import json
 from datetime import datetime
 from loguru import logger
 
@@ -59,6 +60,7 @@ from domain.entities import (
     ProjectGenerationResult,
     ProjectConfig,
     Requirement,
+    ValidationResult,
     ValidationStatus
 )
 from infrastructure.llm_provider import OllamaProvider
@@ -169,6 +171,7 @@ class OrchestratorAgent:
             )
             
             result.files_generated.extend(executor_result.files_created)
+            requirement.execution_result = executor_result
             
             if not executor_result.success:
                 # Executor falhou, já sabemos o resultado
@@ -181,126 +184,95 @@ class OrchestratorAgent:
             
             logger.info(f"✅ Executor Agent concluído - {len(executor_result.files_created)} arquivos")
             
-            # ==========================================
-            # FASE 2: VALIDATOR AGENT
-            # ==========================================
-            logger.info("\n📋 FASE 2: Executando Validator Agent...")
-            result.add_log("FASE 2: Validator Agent")
-            
-            validation_result = await self.validator_agent.validate(
-                requirement, 
-                executor_result
-            )
-            
-            # Log de comunicacao Executor -> Validator
-            log_communication(
-                from_agent="ExecutorAgent",
-                to_agent="ValidatorAgent",
-                trace_id=trace_id,
-                payload={"requirement_id": requirement.id},
-                status="success",
-                execution_time_ms=0
-            )
-            
-            result.add_log(f"Validacao concluida - Status: {validation_result.status}")
-            result.add_log(f"Score: {validation_result.score}")
-            
-            if validation_result.needs_rollback:
-                # ==========================================
-                # FASE 3: FIX AGENT (loop de correção)
-                # ==========================================
-                logger.warning(f"❌ Validação reprovada: {validation_result.feedback}")
-                result.add_log(f"VALIDAÇÃO REPROVADA: {validation_result.feedback}")
-                
-                # Loop de correção com Fix Agent
-                fix_attempt = 0
-                max_attempts = self.max_fix_attempts
-                validation_approved = False
-                
-                while fix_attempt < max_attempts:
-                    fix_attempt += 1
-                    
-                    logger.info(f"\n📋 FASE 3: Fix Agent - Tentativa {fix_attempt}/{max_attempts}")
-                    result.add_log(f"FASE 3: Fix Agent - Tentativa {fix_attempt}/{max_attempts}")
-                    
-                    # Executa correção
-                    fix_result = await self.fix_agent.execute(
-                        requirement,
-                        validation_result,
-                        fix_attempt
-                    )
-                    
-                    result.add_log(f"Fix concluído: {fix_result.status}")
-                    
-                    # Revalida após correção
-                    logger.info("Revalidando após correção...")
-                    validation_result = await self.validator_agent.validate(
-                        requirement,
-                        executor_result
-                    )
-                    
-                    result.add_log(f"Re-validação - Status: {validation_result.status}, Score: {validation_result.score}")
-                    
-                    if not validation_result.needs_rollback:
-                        validation_approved = True
-                        logger.info(f"✅ Validação APROVADA após {fix_attempt} tentativa(s) de correção!")
-                        result.add_log(f"Validação aprovada após {fix_attempt} correção(ões)")
-                        break
-                    
-                    logger.warning(f"❌ Ainda precisa de correção - Tentativa {fix_attempt}/{max_attempts}")
-                    
-                    if fix_attempt >= max_attempts:
-                        logger.error(f"❌ Limite de tentativas de correção atingido ({max_attempts})")
-                        result.add_log(f"Limite de correções atingido ({max_attempts})")
-                
-                # Se não conseguiu aprovar após correções, mantém os arquivos para debug
-                if not validation_approved:
-                    logger.warning("Fix Agent não conseguiu corrigir. Arquivos mantidos para debug.")
-                    result.add_log("FASE 3b: Validação falhou - Arquivos mantidos para debug")
-                    
+            fix_attempt = 0
+            max_attempts = self.max_fix_attempts
+            final_validation = None
+
+            while True:
+                cycle_label = "ciclo inicial" if fix_attempt == 0 else f"ciclo pós-correção {fix_attempt}"
+                logger.info(f"\n📋 FASE 2: Validator Agent ({cycle_label})")
+                result.add_log(f"FASE 2: Validator Agent ({cycle_label})")
+
+                validation_result = await self.validator_agent.validate(
+                    requirement,
+                    executor_result
+                )
+
+                log_communication(
+                    from_agent="ExecutorAgent",
+                    to_agent="ValidatorAgent",
+                    trace_id=trace_id,
+                    payload={"requirement_id": requirement.id, "cycle": cycle_label},
+                    status="success",
+                    execution_time_ms=0
+                )
+
+                result.add_log(f"Validação concluída - Status: {validation_result.status} | Score: {validation_result.score}")
+
+                logger.info(f"\n📋 FASE 3: Docker Test Agent ({cycle_label})")
+                result.add_log(f"FASE 3: Docker Test Agent ({cycle_label})")
+
+                docker_test_result = await self.docker_test_agent.execute(
+                    requirement,
+                    executor_result
+                )
+
+                log_communication(
+                    from_agent="ValidatorAgent",
+                    to_agent="DockerTestAgent",
+                    trace_id=trace_id,
+                    payload={"requirement_id": requirement.id, "cycle": cycle_label},
+                    status="success" if docker_test_result.success else "failure",
+                    execution_time_ms=0
+                )
+
+                docker_ok, docker_issues = self._analyze_docker_result(docker_test_result)
+                if docker_ok:
+                    result.add_log("Docker test: APROVADO")
+                else:
+                    result.add_log(f"Docker test: REPROVADO - {', '.join(docker_issues)}")
+
+                combined_issues = self._collect_flow_issues(validation_result, docker_issues)
+                if not combined_issues:
+                    final_validation = validation_result
+                    break
+
+                logger.warning(f"❌ Fluxo reprovado no {cycle_label}. Problemas: {combined_issues}")
+                result.add_log(f"Fluxo reprovado ({cycle_label}) - problemas: {' | '.join(combined_issues)}")
+
+                if fix_attempt >= max_attempts:
+                    logger.error(f"❌ Limite de tentativas de correção atingido ({max_attempts})")
+                    result.add_log(f"Limite de correções atingido ({max_attempts})")
                     result.success = False
                     result.error_message = (
-                        f"Validação reprovada (score final: {validation_result.score}). "
-                        f"Foram realizadas {fix_attempt} tentativa(s) de correção. "
-                        "Os arquivos gerados foram mantidos para debug."
+                        f"Fluxo reprovado após {fix_attempt} tentativa(s) de correção. "
+                        f"Últimos problemas: {'; '.join(combined_issues)}. "
+                        "Arquivos mantidos para debug."
                     )
                     return result
-            
-            # ==========================================
-            # FASE 4: DOCKER TEST AGENT (opcional)
-            # ==========================================
-            logger.info("\n📋 FASE 4: Executando Docker Test Agent...")
-            result.add_log("FASE 4: Docker Test Agent")
-            
-            docker_test_result = await self.docker_test_agent.execute(
-                requirement, 
-                executor_result
-            )
-            
-            # Log de comunicacao Validator -> DockerTestAgent
-            log_communication(
-                from_agent="ValidatorAgent",
-                to_agent="DockerTestAgent",
-                trace_id=trace_id,
-                payload={"requirement_id": requirement.id},
-                status="success" if docker_test_result.success else "failure",
-                execution_time_ms=0
-            )
-            
-            result.add_log(f"Docker Test concluido - Status: {docker_test_result.status}")
-            
-            if docker_test_result.success:
-                result.add_log("Docker validation: SUCCESS")
-                logger.info("✅ Docker Test Agent concluído com sucesso")
-            else:
-                result.add_log(f"Docker Test warning: {docker_test_result.error_message}")
-                logger.warning(f"⚠️ Docker Test Agent: {docker_test_result.error_message}")
+
+                fix_attempt += 1
+                logger.info(f"\n📋 FASE 4: Fix Agent - Tentativa {fix_attempt}/{max_attempts}")
+                result.add_log(f"FASE 4: Fix Agent - Tentativa {fix_attempt}/{max_attempts}")
+
+                fix_input = self._build_fix_validation_payload(validation_result, docker_issues)
+                fix_result = await self.fix_agent.execute(
+                    requirement,
+                    fix_input,
+                    fix_attempt
+                )
+
+                result.add_log(f"Fix concluído: {fix_result.status} | Arquivos modificados: {len(fix_result.files_modified)}")
+                if not fix_result.success:
+                    result.success = False
+                    result.error_message = f"Fix Agent falhou na tentativa {fix_attempt}: {fix_result.error_message}"
+                    return result
             
             # ==========================================
             # SUCESSO
             # ==========================================
-            logger.info("✅ Validação APROVADA!")
-            result.add_log("FASE 5: Validação APROVADA")
+            logger.info("✅ Fluxo gerar→validar→testar aprovado!")
+            result.add_log("FASE 5: Fluxo APROVADO")
             
             result.success = True
             result.project_path = requirement.project_config.output_directory
@@ -320,6 +292,8 @@ class OrchestratorAgent:
                     pass
             
             result.add_log(f"Projeto gerado com sucesso em: {result.project_path}")
+            if final_validation:
+                result.add_log(f"Score final de validação: {final_validation.score}")
             
             elapsed = (datetime.now() - start_time).total_seconds()
             result.add_log(f"Tempo total: {elapsed:.2f}s")
@@ -337,6 +311,91 @@ class OrchestratorAgent:
             result.add_log(f"ERRO FATAL: {str(e)}")
             
             return result
+
+    def _analyze_docker_result(self, docker_test_result: ExecutionResult) -> tuple[bool, list[str]]:
+        """Extrai status real do teste Docker e retorna lista de problemas."""
+        issues = []
+
+        if not docker_test_result.success:
+            return False, [docker_test_result.error_message or "Docker Test Agent falhou"]
+
+        try:
+            payload = json.loads(docker_test_result.output) if docker_test_result.output else {}
+            docker_validation = payload.get("docker_validation", {})
+
+            if not docker_validation.get("success", False):
+                if not docker_validation.get("docker_available", True):
+                    issues.append("Docker indisponível no ambiente")
+
+                for error_key in ["build_error", "up_error", "error"]:
+                    if docker_validation.get(error_key):
+                        issues.append(f"Docker {error_key}: {docker_validation[error_key]}")
+
+                health_checks = docker_validation.get("health_checks", {})
+                for service, status_data in health_checks.items():
+                    if status_data.get("status") != "up":
+                        issues.append(f"Health check falhou para {service} (status={status_data.get('status')})")
+
+                if not issues:
+                    issues.append("Validação Docker retornou falha sem detalhes")
+
+        except Exception as exc:
+            issues.append(f"Falha ao interpretar resultado do Docker Test Agent: {exc}")
+
+        return len(issues) == 0, issues
+
+    def _collect_flow_issues(self, validation_result: ValidationResult, docker_issues: list[str]) -> list[str]:
+        """Consolida problemas de validação e teste em uma única lista."""
+        issues = []
+
+        if validation_result.needs_rollback:
+            if validation_result.feedback:
+                issues.append(f"Validação: {validation_result.feedback}")
+            issues.extend([f"Validação issue: {issue}" for issue in validation_result.issues])
+            issues.extend([f"Validação rejeitado: {item}" for item in validation_result.rejected_items])
+            issues.extend([f"Validação faltando: {item}" for item in validation_result.missing_items])
+
+        issues.extend([f"Teste: {issue}" for issue in docker_issues])
+
+        # Remove duplicatas mantendo ordem
+        unique_issues = []
+        for issue in issues:
+            if issue and issue not in unique_issues:
+                unique_issues.append(issue)
+
+        return unique_issues
+
+    def _build_fix_validation_payload(
+        self,
+        validation_result: ValidationResult,
+        docker_issues: list[str]
+    ) -> ValidationResult:
+        """Monta payload de validação para o FixAgent incluindo falhas de teste."""
+        merged = ValidationResult(
+            requirement_id=validation_result.requirement_id,
+            trace_id=validation_result.trace_id,
+            status=validation_result.status,
+            approved_items=list(validation_result.approved_items),
+            rejected_items=list(validation_result.rejected_items),
+            missing_items=list(validation_result.missing_items),
+            issues=list(validation_result.issues),
+            score=validation_result.score,
+            feedback=validation_result.feedback,
+            validated_at=validation_result.validated_at,
+        )
+
+        for issue in docker_issues:
+            merged.issues.append(f"Docker/Teste: {issue}")
+            merged.rejected_items.append(f"Teste Docker: {issue}")
+
+        if docker_issues and merged.status != ValidationStatus.REJECTED:
+            merged.status = ValidationStatus.REJECTED
+            if merged.feedback:
+                merged.feedback = f"{merged.feedback} | Falhas de teste: {'; '.join(docker_issues)}"
+            else:
+                merged.feedback = f"Falhas de teste: {'; '.join(docker_issues)}"
+
+        return merged
     
     async def execute_with_retry(
         self, 
