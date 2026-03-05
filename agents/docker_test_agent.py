@@ -52,7 +52,27 @@ class DockerTestAgent:
         self.llm_provider = llm_provider
         self.name = "Docker Test Agent"
         self._reserved_ports: set[int] = set()
+        self._base_service_port = self._resolve_base_service_port()
         logger.info(f"{self.name} inicializado")
+
+    def _resolve_base_service_port(self) -> int:
+        """Resolve porta base via ambiente com fallback seguro para evitar colisões locais."""
+        raw_value = os.getenv("DOCKER_TEST_BASE_SERVICE_PORT", "18001").strip()
+        try:
+            base_port = int(raw_value)
+        except ValueError:
+            logger.warning(
+                f"DOCKER_TEST_BASE_SERVICE_PORT invalida ({raw_value}). Usando fallback 18001."
+            )
+            return 18001
+
+        if base_port < 1024 or base_port > 65535:
+            logger.warning(
+                f"DOCKER_TEST_BASE_SERVICE_PORT fora da faixa ({base_port}). Usando fallback 18001."
+            )
+            return 18001
+
+        return base_port
 
     def _find_available_port(self, start_port: int) -> int:
         """Retorna a primeira porta TCP livre a partir de ``start_port``."""
@@ -220,8 +240,8 @@ class DockerTestAgent:
         # Reset de cache de portas para esta execução
         self._reserved_ports.clear()
         
-        # Porta inicial para serviços
-        base_service_port = 8001
+        # Porta inicial para serviços (alta por padrão para reduzir colisões com serviços locais)
+        base_service_port = self._base_service_port
         
         # Define se cada serviço precisa de banco (extensível)
         # Por padrão, todos os serviços têm banco PostgreSQL
@@ -353,8 +373,9 @@ class DockerTestAgent:
         logger.info("Gerando script de validação...")
         
         # Verificações de saúde resolvendo a porta publicada real via docker-compose port
+        normalized_services = [self._normalize_service_name(service) for service in services]
         health_checks = []
-        for service in services:
+        for service in normalized_services:
             health_checks.append(f"""
 echo.
 echo ============================================
@@ -549,7 +570,8 @@ echo.
             result["containers_status"] = ps_result.stdout
             
             # Resolve portas publicadas reais para cada serviço antes do health check
-            for service in services:
+            normalized_services = [self._normalize_service_name(service) for service in services]
+            for service in normalized_services:
                 resolved_port = None
                 try:
                     port_result = subprocess.run(
