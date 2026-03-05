@@ -29,7 +29,28 @@ class FileManager:
             base_path: Caminho base para operações
         """
         self.base_path = Path(base_path)
+        self._base_name = self.base_path.name
         logger.info(f"FileManager inicializado em: {self.base_path}")
+
+    def _normalize_relative_path(self, file_path: str) -> Path:
+        """
+        Normaliza caminhos vindos do LLM para evitar duplicação de diretórios.
+
+        Exemplos corrigidos automaticamente:
+        - generated/services/x.py -> services/x.py (quando base_path == generated)
+        - ./services/x.py -> services/x.py
+        - /services/x.py -> services/x.py
+        """
+        normalized = file_path.replace('\\', '/').strip()
+        normalized = normalized.lstrip('./').lstrip('/')
+
+        parts = [part for part in normalized.split('/') if part and part != '.']
+
+        # Remove prefixo duplicado quando o LLM devolve caminho já incluindo base_path
+        if self._base_name and parts and parts[0] == self._base_name:
+            parts = parts[1:]
+
+        return Path(*parts) if parts else Path(file_path)
     
     def create_file(self, file_path: str, content: str) -> bool:
         """
@@ -43,7 +64,8 @@ class FileManager:
             True se criado com sucesso, False caso contrário
         """
         try:
-            full_path = self.base_path / file_path
+            safe_path = self._normalize_relative_path(file_path)
+            full_path = self.base_path / safe_path
             
             # Cria diretórios pais se não existirem
             full_path.parent.mkdir(parents=True, exist_ok=True)
@@ -51,7 +73,7 @@ class FileManager:
             # Escreve o conteúdo
             full_path.write_text(content, encoding='utf-8')
             
-            logger.info(f"Arquivo criado: {file_path}")
+            logger.info(f"Arquivo criado: {safe_path}")
             return True
             
         except Exception as e:
@@ -69,7 +91,7 @@ class FileManager:
             Conteúdo do arquivo ou None se erro
         """
         try:
-            full_path = self.base_path / file_path
+            full_path = self.base_path / self._normalize_relative_path(file_path)
             return full_path.read_text(encoding='utf-8')
         except Exception as e:
             logger.error(f"Erro ao ler arquivo {file_path}: {e}")
@@ -86,7 +108,7 @@ class FileManager:
             True se deletado com sucesso, False caso contrário
         """
         try:
-            full_path = self.base_path / file_path
+            full_path = self.base_path / self._normalize_relative_path(file_path)
             
             if full_path.exists():
                 full_path.unlink()
