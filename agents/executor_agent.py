@@ -543,17 +543,17 @@ class ExecutorAgent:
         """
         created_files = []
         
-        # Extrai os microserviços
+        # Extrai os microserviços (modo legado)
         microservices = data.get("microservices", [])
         
         # Gera arquivos da estrutura DDD para cada microserviço
         for microservice in microservices:
             service_name = microservice.get("name", "service")
-            domain = microservice.get("domain", "domain")
+            domain = microservice.get("domain", service_name)
             
             # Cria estrutura DDD
             ddd_structure = self._generate_ddd_structure(
-                service_name, 
+                service_name,
                 domain,
                 microservice,
                 config
@@ -563,15 +563,25 @@ class ExecutorAgent:
                 if file_manager.create_file(file_path, content):
                     created_files.append(file_path)
         
-        # Cria arquivos adicionales definidos pelo LLM
+        # Modo DDD estratégico: bounded_contexts já trazem arquivos prontos
+        bounded_contexts = data.get("bounded_contexts", [])
+        for context in bounded_contexts:
+            context_name = context.get("name", "unknown")
+            for file_data in context.get("files", []):
+                path = file_data.get("path")
+                content = file_data.get("content", "")
+                if path and file_manager.create_file(path, content):
+                    created_files.append(path)
+            logger.info(f"Bounded context processado: {context_name}")
+        
+        # Cria arquivos adicionais definidos pelo LLM
         extra_files = data.get("files", [])
         for file_data in extra_files:
             path = file_data.get("path")
             content = file_data.get("content", "")
             
-            if path:
-                if file_manager.create_file(path, content):
-                    created_files.append(path)
+            if path and file_manager.create_file(path, content):
+                created_files.append(path)
         
         # Cria arquivos raiz do projeto
         root_files = self._generate_root_files(config, microservices)
