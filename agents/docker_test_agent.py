@@ -12,6 +12,7 @@ Este agente é responsável por:
 import asyncio
 import json
 import os
+import socket
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -49,7 +50,30 @@ class DockerTestAgent:
         """
         self.llm_provider = llm_provider
         self.name = "Docker Test Agent"
+        self._reserved_ports: set[int] = set()
         logger.info(f"{self.name} inicializado")
+
+    def _find_available_port(self, start_port: int) -> int:
+        """Retorna a primeira porta TCP livre a partir de ``start_port``."""
+        port = start_port
+
+        while port <= 65535:
+            if port in self._reserved_ports:
+                port += 1
+                continue
+
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                try:
+                    sock.bind(("0.0.0.0", port))
+                except OSError:
+                    port += 1
+                    continue
+
+            self._reserved_ports.add(port)
+            return port
+
+        raise RuntimeError("Não foi possível encontrar porta livre para o docker-compose")
     
     async def execute(self, requirement: Requirement, execution_result: ExecutionResult) -> ExecutionResult:
         """
@@ -185,6 +209,9 @@ class DockerTestAgent:
             Caminho do arquivo gerado
         """
         logger.info("Gerando docker-compose.yml unificado...")
+
+        # Reset de cache de portas para esta execução
+        self._reserved_ports.clear()
         
         # Porta inicial para serviços
         base_service_port = 8001
@@ -214,9 +241,9 @@ class DockerTestAgent:
             # Os diretórios são criados com sublinhado (order_service), não hífen (order-service)
             normalized_service_name = service_name.replace('-', '_')
             
-            # Porta dinâmica baseada no índice (evita conflitos)
-            service_port = base_service_port + idx
-            db_port = base_db_port + idx + 1  # Offset para evitar conflito com porta padrão
+            # Porta dinâmica com detecção de disponibilidade (evita conflitos reais no host)
+            service_port = self._find_available_port(base_service_port + idx)
+            db_port = self._find_available_port(base_db_port + idx + 1)  # Offset para evitar 5432 padrão
             
             logger.info(f"  - {normalized_service_name}: porta={service_port}, db_port={db_port}")
             
