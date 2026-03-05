@@ -2,12 +2,12 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AgentCard from './AgentCard';
 
-function Timeline({ agents, isActive }) {
+function Timeline({ agents, isActive, eventLogs = [] }) {
   // Define a ordem dos agentes na timeline
   const agentOrder = ['system', 'orchestrator', 'executor', 'validator', 'fix', 'docker_test', 'rollback'];
-  
+
   // Filtra apenas agentes que receberam alguma mensagem
-  const activeAgents = agentOrder.filter(agent => 
+  const activeAgents = agentOrder.filter(agent =>
     agents[agent] && (agents[agent].status !== 'pending' || isActive)
   );
 
@@ -37,7 +37,7 @@ function Timeline({ agents, isActive }) {
           </span>
         )}
       </div>
-      
+
       <div className="timeline">
         <AnimatePresence>
           {activeAgents.map((agent) => (
@@ -48,10 +48,34 @@ function Timeline({ agents, isActive }) {
               message={agents[agent].message}
               score={agents[agent].score}
               details={agents[agent].details}
+              lastUpdateAt={agents[agent].lastUpdateAt}
             />
           ))}
         </AnimatePresence>
       </div>
+
+      {eventLogs.length > 0 && (
+        <div className="event-log-panel">
+          <h3>Últimos eventos (debug rápido)</h3>
+          <ul>
+            {eventLogs.slice(0, 8).map((event) => (
+              <li key={event.id}>
+                <span className="event-log-time">{new Date(event.at).toLocaleTimeString()}</span>
+                <span className="event-log-kind">{event.kind}</span>
+                <span className="event-log-message">
+                  {event.content?.message || event.content?.status || 'evento sem mensagem'}
+                </span>
+                {event.content?.error_code && (
+                  <span className="event-log-error">code={event.content.error_code}</span>
+                )}
+                {event.content?.error_id && (
+                  <span className="event-log-error">id={event.content.error_id}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

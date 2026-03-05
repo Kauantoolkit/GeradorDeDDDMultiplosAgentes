@@ -13,6 +13,7 @@ Uso:
 import asyncio
 import json
 import sys
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any
@@ -99,6 +100,37 @@ class ConnectionManager:
 
 # Instância global do gerenciador
 manager = ConnectionManager()
+
+
+def build_error_payload(
+    *,
+    code: str,
+    message: str,
+    task_id: str | None = None,
+    exception: Exception | None = None,
+    hints: list[str] | None = None,
+    context: dict | None = None,
+) -> dict:
+    """Cria payload padronizado para erros enviados ao frontend e logs."""
+    error_id = str(uuid.uuid4())[:8]
+
+    payload = {
+        "error_id": error_id,
+        "error_code": code,
+        "message": message,
+        "hints": hints or [],
+        "context": context or {}
+    }
+
+    if task_id:
+        payload["task_id"] = task_id
+
+    if exception:
+        payload["error"] = str(exception)
+        payload["exception_type"] = type(exception).__name__
+        payload["stack_trace"] = traceback.format_exc(limit=8)
+
+    return payload
 
 
 # ==================== FASTAPI APP ====================
@@ -253,8 +285,23 @@ async def generate_project(request: dict):
         }
         
     except Exception as e:
-        logger.exception("Erro ao iniciar geração")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_payload = build_error_payload(
+            code="GENERATION_START_FAILED",
+            message="Falha ao iniciar geração.",
+            exception=e,
+            hints=[
+                "Verifique se a API backend está saudável em /health.",
+                "Confira se o JSON enviado possui os campos esperados.",
+                "Revise o log logs/api_server.log para stack trace completo."
+            ],
+            context={
+                "request_keys": sorted(list(request.keys())) if isinstance(request, dict) else [],
+            }
+        )
+        logger.exception(
+            f"[error_id={error_payload['error_id']}] Erro ao iniciar geração | payload={error_payload}"
+        )
+        raise HTTPException(status_code=500, detail=error_payload)
 
 
 @app.get("/api/tasks")
@@ -301,10 +348,18 @@ async def execute_generation(
         await manager.broadcast(message)
 
     try:
+        logger.info(
+            f"[task_id={task_id}] Iniciando execução | model={model} framework={framework} database={database} output={output_dir}"
+        )
+
         await send_update("agent_status", {
             "agent": "system",
             "status": "starting",
-            "message": "Inicializando sistema de agentes..."
+            "message": "Inicializando sistema de agentes...",
+            "diagnostics": {
+                "task_id": task_id,
+                "phase": "bootstrap"
+            }
         })
 
         config = ProjectConfig(
@@ -318,23 +373,47 @@ async def execute_generation(
         await send_update("agent_status", {
             "agent": "system",
             "status": "running",
-            "message": "Verificando Ollama..."
+            "message": "Verificando Ollama...",
+            "diagnostics": {
+                "task_id": task_id,
+                "phase": "ollama_preflight"
+            }
         })
 
         if not check_ollama_installation():
-            error_msg = "Ollama não está instalado no sistema. Por favor, instale o Ollama em: https://ollama.com"
-            logger.error(error_msg)
+            error_payload = build_error_payload(
+                code="OLLAMA_NOT_INSTALLED",
+                message="Ollama não está instalado no sistema.",
+                task_id=task_id,
+                hints=[
+                    "Instale o Ollama em https://ollama.com.",
+                    "Após instalar, execute `ollama list` no terminal para confirmar.",
+                    "Reinicie a API após a instalação."
+                ],
+                context={"model": model}
+            )
+            logger.error(f"[task_id={task_id}] [error_id={error_payload['error_id']}] {error_payload['message']}")
             await send_update("generation_error", {
-                "message": error_msg,
+                **error_payload,
                 "error": "ollama_not_installed"
             })
             return
 
         if not ensure_ollama_running():
-            error_msg = "Não foi possível iniciar o Ollama. Verifique se o Ollama está instalado e rodando."
-            logger.error(error_msg)
+            error_payload = build_error_payload(
+                code="OLLAMA_START_FAILED",
+                message="Não foi possível iniciar o Ollama.",
+                task_id=task_id,
+                hints=[
+                    "Confirme se o serviço Ollama está em execução.",
+                    "Teste manualmente com `ollama list` no terminal.",
+                    "Verifique bloqueios de firewall/antivírus no host."
+                ],
+                context={"model": model}
+            )
+            logger.error(f"[task_id={task_id}] [error_id={error_payload['error_id']}] {error_payload['message']}")
             await send_update("generation_error", {
-                "message": error_msg,
+                **error_payload,
                 "error": "ollama_not_running"
             })
             return
@@ -350,7 +429,11 @@ async def execute_generation(
         await send_update("agent_status", {
             "agent": "orchestrator",
             "status": "running",
-            "message": "Executando fluxo unificado: gerar → validar → testar → corrigir"
+            "message": "Executando fluxo unificado: gerar → validar → testar → corrigir",
+            "diagnostics": {
+                "task_id": task_id,
+                "phase": "orchestrator_execution"
+            }
         })
 
         result = await orchestrator.execute(requirement)
@@ -368,20 +451,60 @@ async def execute_generation(
                 "project_path": result.project_path,
                 "files_count": len(result.files_generated),
                 "services": result.services,
-                "trace_id": result.trace_id
+                "trace_id": result.trace_id,
+                "logs": result.execution_logs[-20:],
+                "diagnostics": {
+                    "task_id": task_id,
+                    "model": model,
+                    "framework": framework,
+                    "database": database
+                }
             })
         else:
+            error_payload = build_error_payload(
+                code="ORCHESTRATOR_REJECTED_FLOW",
+                message=result.error_message or "Fluxo de geração reprovado",
+                task_id=task_id,
+                hints=[
+                    "Confira os últimos logs da timeline para identificar em qual agente falhou.",
+                    "Use trace_id para correlacionar logs estruturados de agentes.",
+                    "Revise os arquivos gerados para entender o motivo da reprovação."
+                ],
+                context={
+                    "trace_id": result.trace_id,
+                    "project_path": result.project_path,
+                    "services": result.services
+                }
+            )
             await send_update("generation_error", {
-                "message": result.error_message or "Fluxo de geração reprovado",
+                **error_payload,
                 "trace_id": result.trace_id,
-                "logs": result.execution_logs[-20:]
+                "logs": result.execution_logs[-30:]
             })
 
     except Exception as e:
-        logger.exception(f"Erro na execução: {e}")
+        error_payload = build_error_payload(
+            code="UNHANDLED_EXECUTION_EXCEPTION",
+            message="Erro fatal na execução da geração.",
+            task_id=task_id,
+            exception=e,
+            hints=[
+                "Verifique o stack trace retornado no frontend.",
+                "Abra logs/api_server.log para mais contexto.",
+                "Reexecute com requisitos mínimos para isolar o problema."
+            ],
+            context={
+                "model": model,
+                "framework": framework,
+                "database": database,
+                "output_dir": output_dir
+            }
+        )
+        logger.exception(
+            f"[task_id={task_id}] [error_id={error_payload['error_id']}] Erro na execução | payload={error_payload}"
+        )
         await send_update("generation_error", {
-            "message": f"Erro fatal: {str(e)}",
-            "error": str(e)
+            **error_payload
         })
 
 

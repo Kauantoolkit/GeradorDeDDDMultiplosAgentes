@@ -21,7 +21,7 @@ const AGENT_NAMES = {
   docker_test: 'Docker Test'
 };
 
-function AgentCard({ agent, status, message, score, details }) {
+function AgentCard({ agent, status, message, score, details, lastUpdateAt }) {
   const isActive = status === 'starting' || status === 'running';
   const isCompleted = status === 'completed';
   const isFailed = status === 'failed';
@@ -36,7 +36,7 @@ function AgentCard({ agent, status, message, score, details }) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className={`agent-card ${getCardClass()}`}
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -45,7 +45,7 @@ function AgentCard({ agent, status, message, score, details }) {
       <div className="agent-icon">
         {AGENT_ICONS[agent] || '🤖'}
       </div>
-      
+
       <div className="agent-content">
         <div className="agent-header">
           <span className="agent-name">{AGENT_NAMES[agent] || agent}</span>
@@ -54,15 +54,19 @@ function AgentCard({ agent, status, message, score, details }) {
             {status}
           </span>
         </div>
-        
+
         <p className="agent-message">{message}</p>
-        
+
+        {lastUpdateAt && (
+          <p className="agent-timestamp">Última atualização: {new Date(lastUpdateAt).toLocaleTimeString()}</p>
+        )}
+
         {score !== undefined && (
           <div className="agent-details">
             <div className="score-display">
               <span>Score:</span>
               <div className="score-bar">
-                <div 
+                <div
                   className={`score-fill ${score < 0.5 ? 'low' : score < 0.8 ? 'medium' : ''}`}
                   style={{ width: `${score * 100}%` }}
                 />
@@ -71,7 +75,7 @@ function AgentCard({ agent, status, message, score, details }) {
             </div>
           </div>
         )}
-        
+
         {details && (
           <div className="agent-details">
             {details.files && (
@@ -82,6 +86,12 @@ function AgentCard({ agent, status, message, score, details }) {
             )}
             {details.error && (
               <p style={{ color: 'var(--danger)' }}>Erro: {details.error}</p>
+            )}
+            {details.diagnostics?.phase && (
+              <p>Fase: {details.diagnostics.phase}</p>
+            )}
+            {details.diagnostics?.task_id && (
+              <p>Task: {details.diagnostics.task_id}</p>
             )}
           </div>
         )}

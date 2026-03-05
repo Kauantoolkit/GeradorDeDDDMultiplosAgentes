@@ -526,3 +526,73 @@ body {
     padding: 1.5rem;
   }
 }
+
+.agent-timestamp {
+  font-size: 0.75rem;
+  color: var(--gray-light);
+  margin-top: 0.4rem;
+}
+
+.event-log-panel {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.event-log-panel h3 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.event-log-panel ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.event-log-panel li {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem;
+}
+
+.event-log-time {
+  color: var(--gray-light);
+}
+
+.event-log-kind {
+  color: var(--primary-light);
+  font-weight: 600;
+}
+
+.event-log-error {
+  color: var(--warning);
+  grid-column: 1 / -1;
+}
+
+.result-debug-block {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--background);
+}
+
+.result-debug-block pre {
+  margin-top: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+}
+
+.result-debug-block ul {
+  margin-left: 1rem;
+  margin-top: 0.5rem;
+}
