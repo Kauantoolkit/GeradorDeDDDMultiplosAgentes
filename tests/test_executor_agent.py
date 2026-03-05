@@ -50,3 +50,35 @@ def test_generated_docker_compose_pins_postgres_version():
     compose_content = agent._generate_docker_compose("orders", "postgresql")
 
     assert "image: postgres:16" in compose_content
+
+
+def test_generate_domain_and_layers_avoid_circular_import_patterns():
+    agent = ExecutorAgent(DummyProvider())
+
+    structure = agent._generate_ddd_structure(
+        service_name="orders",
+        domain="orders",
+        microservice={"entities": ["Order"]},
+        config=SimpleNamespace(database="postgresql", include_docker=False, include_tests=False),
+    )
+
+    domain_init = structure["services/orders/domain/__init__.py"]
+    aggregates = structure["services/orders/domain/orders_aggregates.py"]
+    use_cases = structure["services/orders/application/use_cases.py"]
+
+    assert "from domain import" not in domain_init
+    assert "from . import Order" not in aggregates
+    assert "from .orders_entities import Order" in aggregates
+    assert "from domain.orders_entities import Order" in use_cases
+
+
+def test_sanitize_generated_content_fixes_known_circular_imports():
+    agent = ExecutorAgent(DummyProvider())
+
+    raw = """from domain import Order, Product, User
+from . import User
+"""
+    fixed = agent._sanitize_generated_content("services/users/domain/__init__.py", raw)
+
+    assert "from domain import" not in fixed
+    assert "from .users_entities import User" in fixed
