@@ -63,7 +63,6 @@ class DockerTestAgent:
                 continue
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                 try:
                     sock.bind(("0.0.0.0", port))
                 except OSError:
@@ -215,7 +214,6 @@ class DockerTestAgent:
         
         # Porta inicial para serviços
         base_service_port = 8001
-        base_db_port = 5432
         
         # Define se cada serviço precisa de banco (extensível)
         # Por padrão, todos os serviços têm banco PostgreSQL
@@ -243,9 +241,8 @@ class DockerTestAgent:
             
             # Porta dinâmica com detecção de disponibilidade (evita conflitos reais no host)
             service_port = self._find_available_port(base_service_port + idx)
-            db_port = self._find_available_port(base_db_port + idx + 1)  # Offset para evitar 5432 padrão
-            
-            logger.info(f"  - {normalized_service_name}: porta={service_port}, db_port={db_port}")
+
+            logger.info(f"  - {normalized_service_name}: porta={service_port}")
             
             # Define container do serviço principal usando nome normalizado
             service_container_name = normalized_service_name
@@ -275,7 +272,6 @@ class DockerTestAgent:
                         "POSTGRES_PASSWORD=postgres",
                         f"POSTGRES_DB={normalized_service_name}"
                     ],
-                    "ports": [f"{db_port}:5432"],
                     "volumes": [f"pgdata-{normalized_service_name}:/var/lib/postgresql/data"],
                     "networks": [project_network_name]
                 }
@@ -349,19 +345,21 @@ class DockerTestAgent:
         """
         logger.info("Gerando script de validação...")
         
-        # GENERIC: Portas devem ser dinâmicas baseadas no índice do serviço
-        base_port = 8001
-        
-        # Gera verificações de saúde para cada serviço com portas dinâmicas
+        # Verificações de saúde resolvendo a porta publicada real via docker-compose port
         health_checks = []
-        for idx, service in enumerate(services):
-            port = base_port + idx
+        for service in services:
             health_checks.append(f"""
 echo.
 echo ============================================
-echo  Verificando {service} (porta {port})
+echo  Verificando {service}
 echo ============================================
-curl -s http://localhost:{port}/health || echo "WARNING: {service} nao responde em http://localhost:{port}/health"
+for /f "tokens=*" %%p in ('docker-compose port {service} 8000 2^>nul') do set SERVICE_PORT=%%p
+if not defined SERVICE_PORT (
+    echo WARNING: nao foi possivel resolver porta do servico {service}
+) else (
+    curl -s http://!SERVICE_PORT!/health || echo "WARNING: {service} nao responde em http://!SERVICE_PORT!/health"
+)
+set SERVICE_PORT=
 """)
         
         health_check_section = "".join(health_checks)
@@ -543,26 +541,47 @@ echo.
             )
             result["containers_status"] = ps_result.stdout
             
-            # GENERIC: Portas dinâmicas baseadas no índice do serviço
-            base_port = 8001
-            
-            for idx, service in enumerate(services):
-                port = base_port + idx
+            # Resolve portas publicadas reais para cada serviço antes do health check
+            for service in services:
+                resolved_port = None
+                try:
+                    port_result = subprocess.run(
+                        ["docker-compose", "port", service, "8000"],
+                        capture_output=True,
+                        text=True,
+                        cwd=output_dir,
+                        timeout=10
+                    )
+                    if port_result.returncode == 0:
+                        published = port_result.stdout.strip()
+                        if ":" in published:
+                            resolved_port = int(published.rsplit(":", 1)[-1])
+                except Exception:
+                    resolved_port = None
+
+                if resolved_port is None:
+                    result["health_checks"][service] = {
+                        "port": None,
+                        "status": "error",
+                        "response": "Nao foi possivel resolver porta publicada com docker-compose port"
+                    }
+                    continue
+
                 try:
                     check = subprocess.run(
-                        ["curl", "-s", f"http://localhost:{port}/health"],
+                        ["curl", "-s", f"http://localhost:{resolved_port}/health"],
                         capture_output=True,
                         text=True,
                         timeout=5
                     )
                     result["health_checks"][service] = {
-                        "port": port,
+                        "port": resolved_port,
                         "status": "up" if check.returncode == 0 else "down",
                         "response": check.stdout[:200] if check.stdout else ""
                     }
                 except Exception as e:
                     result["health_checks"][service] = {
-                        "port": port,
+                        "port": resolved_port,
                         "status": "error",
                         "error": str(e)
                     }
