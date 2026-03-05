@@ -12,6 +12,7 @@ Este agente é responsável por:
 import asyncio
 import json
 import os
+import re
 import socket
 import subprocess
 from datetime import datetime
@@ -73,6 +74,13 @@ class DockerTestAgent:
             return port
 
         raise RuntimeError("Não foi possível encontrar porta livre para o docker-compose")
+
+    def _normalize_service_name(self, service_name: str) -> str:
+        """Normaliza nome de serviço para uso seguro em Docker/Compose."""
+        normalized = service_name.strip().replace('-', '_').lower()
+        normalized = re.sub(r"[^a-z0-9_]", "_", normalized)
+        normalized = re.sub(r"_+", "_", normalized).strip("_")
+        return normalized or "service"
     
     async def execute(self, requirement: Requirement, execution_result: ExecutionResult) -> ExecutionResult:
         """
@@ -235,9 +243,8 @@ class DockerTestAgent:
         
         # Processa cada serviço
         for idx, service_name in enumerate(services):
-            # CORREÇÃO CRÍTICA: Normalizar nome do serviço (hífen -> sublinhado)
-            # Os diretórios são criados com sublinhado (order_service), não hífen (order-service)
-            normalized_service_name = service_name.replace('-', '_')
+            # CORREÇÃO CRÍTICA: nome Docker deve ser lowercase para evitar tag inválida
+            normalized_service_name = self._normalize_service_name(service_name)
             
             # Porta dinâmica com detecção de disponibilidade (evita conflitos reais no host)
             service_port = self._find_available_port(base_service_port + idx)
