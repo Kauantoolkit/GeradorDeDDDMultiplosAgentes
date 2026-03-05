@@ -560,7 +560,8 @@ class ExecutorAgent:
             )
             
             for file_path, content in ddd_structure.items():
-                if file_manager.create_file(file_path, content):
+                guarded_content = self._apply_generation_guards(file_path, content)
+                if file_manager.create_file(file_path, guarded_content):
                     created_files.append(file_path)
         
         # Modo DDD estratégico: bounded_contexts já trazem arquivos prontos
@@ -569,7 +570,7 @@ class ExecutorAgent:
             context_name = context.get("name", "unknown")
             for file_data in context.get("files", []):
                 path = file_data.get("path")
-                content = self._sanitize_generated_content(path, file_data.get("content", ""))
+                content = self._apply_generation_guards(path, file_data.get("content", ""))
                 if path and file_manager.create_file(path, content):
                     created_files.append(path)
             logger.info(f"Bounded context processado: {context_name}")
@@ -578,7 +579,7 @@ class ExecutorAgent:
         extra_files = data.get("files", [])
         for file_data in extra_files:
             path = file_data.get("path")
-            content = self._sanitize_generated_content(path, file_data.get("content", ""))
+            content = self._apply_generation_guards(path, file_data.get("content", ""))
             
             if path and file_manager.create_file(path, content):
                 created_files.append(path)
@@ -586,7 +587,8 @@ class ExecutorAgent:
         # Cria arquivos raiz do projeto
         root_files = self._generate_root_files(config, microservices)
         for file_path, content in root_files.items():
-            if file_manager.create_file(file_path, content):
+            guarded_content = self._apply_generation_guards(file_path, content)
+            if file_manager.create_file(file_path, guarded_content):
                 created_files.append(file_path)
         
         # VALIDAÇÃO: Verificar arquivos gerados para detectar problemas
@@ -610,6 +612,63 @@ class ExecutorAgent:
         fixed = fixed.replace('from . import Order', 'from .orders_entities import Order')
 
         fixed = re.sub(r'from\s+\.\s+import\s+([A-Z][A-Za-z0-9_]*)', r'from .\1_entities import \1', fixed)
+
+        return fixed
+
+    def _apply_generation_guards(self, file_path: str, content: str) -> str:
+        """Aplica correções preventivas em arquivos críticos gerados por LLM."""
+        if not file_path or not content:
+            return content
+
+        fixed = self._sanitize_generated_content(file_path, content)
+
+        if file_path.endswith("requirements.txt"):
+            fixed = self._ensure_runtime_dependencies(fixed)
+
+        if file_path.endswith("Dockerfile"):
+            fixed = self._normalize_docker_cmd_syntax(fixed)
+
+        return fixed
+
+    def _ensure_runtime_dependencies(self, content: str) -> str:
+        """Garante dependências mínimas para subir APIs FastAPI em Docker."""
+        required = [
+            "fastapi>=0.104.0",
+            "uvicorn>=0.24.0",
+            "pydantic>=2.5.0",
+            "sqlalchemy>=2.0.0",
+            "asyncpg>=0.29.0",
+            "python-dotenv>=1.0.0",
+        ]
+
+        lines = [line.strip() for line in content.splitlines() if line.strip()]
+        existing_pkgs = {
+            re.split(r"[<>=~!]", line, maxsplit=1)[0].strip().lower()
+            for line in lines
+            if not line.startswith("#")
+        }
+
+        merged = list(content.rstrip("\n").splitlines())
+        if merged and merged[-1].strip():
+            merged.append("")
+
+        for dep in required:
+            dep_name = re.split(r"[<>=~!]", dep, maxsplit=1)[0].lower()
+            if dep_name not in existing_pkgs:
+                merged.append(dep)
+
+        return "\n".join(merged).rstrip() + "\n"
+
+    def _normalize_docker_cmd_syntax(self, content: str) -> str:
+        """Corrige CMD inválido em Dockerfile quando gerado com aspas simples."""
+        fixed = content
+
+        invalid_cmd_pattern = r"CMD\s*\['uvicorn',\s*'main:app',\s*'--host',\s*'0\.0\.0\.0',\s*'--port',\s*'8000'\]"
+        fixed = re.sub(
+            invalid_cmd_pattern,
+            'CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]',
+            fixed,
+        )
 
         return fixed
 
@@ -649,6 +708,18 @@ class ExecutorAgent:
                     # Verifica se o arquivo tem pelo menos uma função ou classe definida
                     if 'def ' not in content and 'class ' not in content:
                         logger.warning(f"Arquivo Python sem definições: {file_path}")
+
+                if file_path.endswith('requirements.txt'):
+                    required_runtime = ['fastapi', 'uvicorn']
+                    requirements_lower = content.lower()
+                    for dependency in required_runtime:
+                        if dependency not in requirements_lower:
+                            logger.error(f"Dependência obrigatória ausente ({dependency}) em: {file_path}")
+                            issues_found = True
+
+                if file_path.endswith('Dockerfile') and "CMD ['" in content:
+                    logger.error(f"Sintaxe CMD inválida (aspas simples) em: {file_path}")
+                    issues_found = True
                         
             except Exception as e:
                 logger.warning(f"Erro ao validar {file_path}: {e}")
