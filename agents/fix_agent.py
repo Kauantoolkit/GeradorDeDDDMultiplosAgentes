@@ -372,7 +372,7 @@ class FixAgent:
                         elif file_path and action == "modify":
                             # Lê arquivo existente
                             existing_content = file_manager.read_file(file_path)
-                            if existing_content:
+                            if existing_content is not None:
                                 # Apply basic fixes (append or modify)
                                 if fix.get("append"):
                                     new_content = existing_content + "\n" + (content or "")

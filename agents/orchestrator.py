@@ -60,6 +60,7 @@ from domain.entities import (
     ProjectGenerationResult,
     ProjectConfig,
     Requirement,
+    ValidationResult,
     ValidationStatus
 )
 from infrastructure.llm_provider import OllamaProvider

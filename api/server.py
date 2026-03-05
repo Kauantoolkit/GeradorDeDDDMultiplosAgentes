@@ -206,7 +206,7 @@ async def health_check():
 
 
 @app.post("/api/generate")
-async def generate_project(request: dict, websocket: WebSocket = None):
+async def generate_project(request: dict):
     """
     Inicia a geração de um novo projeto.
     
@@ -289,7 +289,7 @@ async def execute_generation(
     """
     Executa o fluxo de agentes e envia atualizações via WebSocket.
     """
-    
+
     async def send_update(event_type: str, data: dict):
         """Envia atualização para o cliente."""
         message = {
@@ -299,36 +299,28 @@ async def execute_generation(
             **data
         }
         await manager.broadcast(message)
-    
+
     try:
-        # Status: Inicializando
         await send_update("agent_status", {
             "agent": "system",
             "status": "starting",
             "message": "Inicializando sistema de agentes..."
         })
-        
-        # Configuração
+
         config = ProjectConfig(
             output_directory=output_dir,
             model=model,
             framework=framework,
             database=database
         )
-        
-        requirement = Requirement(
-            description=requirements,
-            project_config=config
-        )
-        
-        # Verifica Ollama
+        requirement = Requirement(description=requirements, project_config=config)
+
         await send_update("agent_status", {
             "agent": "system",
             "status": "running",
             "message": "Verificando Ollama..."
         })
-        
-        # Primeiro verifica se o Ollama está instalado
+
         if not check_ollama_installation():
             error_msg = "Ollama não está instalado no sistema. Por favor, instale o Ollama em: https://ollama.com"
             logger.error(error_msg)
@@ -337,8 +329,7 @@ async def execute_generation(
                 "error": "ollama_not_installed"
             })
             return
-        
-        # Tenta iniciar o Ollama
+
         if not ensure_ollama_running():
             error_msg = "Não foi possível iniciar o Ollama. Verifique se o Ollama está instalado e rodando."
             logger.error(error_msg)
@@ -347,169 +338,45 @@ async def execute_generation(
                 "error": "ollama_not_running"
             })
             return
-        
-        # Inicializa provedor
+
         await send_update("agent_status", {
             "agent": "system",
             "status": "running",
             "message": f"Inicializando modelo: {model}"
         })
         llm_provider = OllamaProvider(model=model)
-        
-        # Inicializa orquestrador
+        orchestrator = OrchestratorAgent(llm_provider=llm_provider)
+
         await send_update("agent_status", {
             "agent": "orchestrator",
-            "status": "starting",
-            "message": "Iniciando orquestrador de agentes"
+            "status": "running",
+            "message": "Executando fluxo unificado: gerar → validar → testar → corrigir"
         })
-        
-        orchestrator = OrchestratorAgent(llm_provider=llm_provider)
-        
-        # ========== FASE 1: EXECUTOR ==========
-        await send_update("agent_status", {
-            "agent": "executor",
-            "status": "starting",
-            "message": "Executor Agent - Analisando requisitos e gerando código"
-        })
-        
-        executor_result = await orchestrator.executor_agent.execute(requirement)
-        
-        if executor_result.success:
-            await send_update("agent_status", {
-                "agent": "executor",
-                "status": "completed",
-                "message": f"Executor Agent - {len(executor_result.files_created)} arquivos gerados",
-                "files": executor_result.files_created
+
+        result = await orchestrator.execute(requirement)
+
+        for log_line in result.execution_logs[-50:]:
+            await send_update("agent_log", {
+                "agent": "orchestrator",
+                "status": "running",
+                "message": log_line
+            })
+
+        if result.success:
+            await send_update("generation_success", {
+                "message": "Projeto gerado com sucesso!",
+                "project_path": result.project_path,
+                "files_count": len(result.files_generated),
+                "services": result.services,
+                "trace_id": result.trace_id
             })
         else:
-            await send_update("agent_status", {
-                "agent": "executor",
-                "status": "failed",
-                "message": f"Executor Agent falhou: {executor_result.error_message}",
-                "error": executor_result.error_message
-            })
             await send_update("generation_error", {
-                "message": "Geração falhou na fase do Executor Agent",
-                "error": executor_result.error_message
+                "message": result.error_message or "Fluxo de geração reprovado",
+                "trace_id": result.trace_id,
+                "logs": result.execution_logs[-20:]
             })
-            return
-        
-        # ========== FASE 2: VALIDATOR ==========
-        await send_update("agent_status", {
-            "agent": "validator",
-            "status": "starting",
-            "message": "Validator Agent - Validando código gerado"
-        })
-        
-        validation_result = await orchestrator.validator_agent.validate(
-            requirement,
-            executor_result
-        )
-        
-        await send_update("agent_status", {
-            "agent": "validator",
-            "status": "completed",
-            "message": f"Validator Agent - Score: {validation_result.score:.2%}",
-            "score": validation_result.score,
-            "feedback": validation_result.feedback
-        })
-        
-        # Se reprovado, entra em loop de correção
-        if validation_result.needs_rollback:
-            await send_update("agent_status", {
-                "agent": "validator",
-                "status": "rejected",
-                "message": f"Validação reprovada: {validation_result.feedback}"
-            })
-            
-            # Loop de correção
-            for attempt in range(1, orchestrator.max_fix_attempts + 1):
-                await send_update("agent_status", {
-                    "agent": "fix",
-                    "status": "starting",
-                    "message": f"Fix Agent - Tentativa {attempt}/{orchestrator.max_fix_attempts}"
-                })
-                
-                fix_result = await orchestrator.fix_agent.execute(
-                    requirement,
-                    validation_result,
-                    attempt
-                )
-                
-                await send_update("agent_status", {
-                    "agent": "fix",
-                    "status": "completed",
-                    "message": f"Fix Agent - Tentativa {attempt} concluída"
-                })
-                
-                # Revalida
-                validation_result = await orchestrator.validator_agent.validate(
-                    requirement,
-                    executor_result
-                )
-                
-                await send_update("agent_status", {
-                    "agent": "validator",
-                    "status": "completed",
-                    "message": f"Re-validação - Score: {validation_result.score:.2%}",
-                    "score": validation_result.score
-                })
-                
-                if not validation_result.needs_rollback:
-                    break
-            
-            # Se ainda reprovado
-            if validation_result.needs_rollback:
-                await send_update("agent_status", {
-                    "agent": "rollback",
-                    "status": "starting",
-                    "message": "Executando rollback..."
-                })
-                
-                rollback_result = await orchestrator.rollback_agent.execute(
-                    requirement,
-                    executor_result
-                )
-                
-                await send_update("generation_error", {
-                    "message": "Validação reprovada após múltiplas tentativas. Rollback realizado.",
-                    "score": validation_result.score
-                })
-                return
-        
-        # ========== FASE 3: DOCKER TEST ==========
-        await send_update("agent_status", {
-            "agent": "docker_test",
-            "status": "starting",
-            "message": "Docker Test Agent - Validando containers"
-        })
-        
-        docker_result = await orchestrator.docker_test_agent.execute(
-            requirement,
-            executor_result
-        )
-        
-        if docker_result.success:
-            await send_update("agent_status", {
-                "agent": "docker_test",
-                "status": "completed",
-                "message": "Docker Test - Sucesso"
-            })
-        else:
-            await send_update("agent_status", {
-                "agent": "docker_test",
-                "status": "warning",
-                "message": f"Docker Test warning: {docker_result.error_message}"
-            })
-        
-        # ========== SUCESSO ==========
-        await send_update("generation_success", {
-            "message": "Projeto gerado com sucesso!",
-            "project_path": output_dir,
-            "files_count": len(executor_result.files_created),
-            "services": executor_result.files_created[:5] if executor_result.files_created else []
-        })
-        
+
     except Exception as e:
         logger.exception(f"Erro na execução: {e}")
         await send_update("generation_error", {

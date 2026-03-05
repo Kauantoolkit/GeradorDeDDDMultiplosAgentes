@@ -60,10 +60,10 @@ class ErrorLogger:
         logger.info(f"{self.name} inicializado - Arquivo: {self.log_file}")
     
     def _setup_logger(self):
-        """Configura o logger para arquivo."""
-        # Remove handlers existentes
-        logger.remove()
-        
+        """Configura o logger para arquivo sem resetar handlers globais."""
+        # IMPORTANTE: não removemos handlers globais do loguru aqui.
+        # Isso evita quebrar o logging de outros módulos (API, orchestrator etc.).
+
         # Adiciona handler para arquivo
         logger.add(
             self.log_file,
