@@ -569,7 +569,7 @@ class ExecutorAgent:
             context_name = context.get("name", "unknown")
             for file_data in context.get("files", []):
                 path = file_data.get("path")
-                content = file_data.get("content", "")
+                content = self._sanitize_generated_content(path, file_data.get("content", ""))
                 if path and file_manager.create_file(path, content):
                     created_files.append(path)
             logger.info(f"Bounded context processado: {context_name}")
@@ -578,7 +578,7 @@ class ExecutorAgent:
         extra_files = data.get("files", [])
         for file_data in extra_files:
             path = file_data.get("path")
-            content = file_data.get("content", "")
+            content = self._sanitize_generated_content(path, file_data.get("content", ""))
             
             if path and file_manager.create_file(path, content):
                 created_files.append(path)
@@ -595,6 +595,24 @@ class ExecutorAgent:
         logger.info(f"Criados {len(created_files)} arquivos")
         return created_files
     
+    def _sanitize_generated_content(self, file_path: str, content: str) -> str:
+        """Corrige padrões críticos conhecidos em código gerado pelo LLM."""
+        if not file_path.endswith('.py') or not content:
+            return content
+
+        fixed = content
+
+        if file_path.endswith('domain/__init__.py'):
+            fixed = re.sub(r'^from\s+domain\s+import\s+.+$', '# Corrigido: evitar import circular em domain/__init__.py', fixed, flags=re.MULTILINE)
+
+        fixed = fixed.replace('from . import User', 'from .users_entities import User')
+        fixed = fixed.replace('from . import Product', 'from .products_entities import Product')
+        fixed = fixed.replace('from . import Order', 'from .orders_entities import Order')
+
+        fixed = re.sub(r'from\s+\.\s+import\s+([A-Z][A-Za-z0-9_]*)', r'from .\1_entities import \1', fixed)
+
+        return fixed
+
     def _validate_generated_files(self, created_files: list, file_manager: FileManager) -> None:
         """
         Valida os arquivos gerados para detectar problemas comuns.
@@ -678,9 +696,9 @@ class ExecutorAgent:
         
         # Domain Layer - CORRIGIDO: Usar normalized_domain
         files[f"{base_path}/domain/__init__.py"] = f"""# {normalized_service_name} - Domain Layer
-from .{normalized_domain}_entities import *
-from .{normalized_domain}_value_objects import *
-from .{normalized_domain}_aggregates import *
+from .{normalized_domain}_entities import {entities[0] if entities else "Entity"}, {entities[0] if entities else "Entity"}Repository
+from .{normalized_domain}_value_objects import Address, Email, Money
+from .{normalized_domain}_aggregates import {normalized_domain.capitalize()}Aggregate
 """
         
         # Entities
@@ -697,7 +715,7 @@ from .{normalized_domain}_aggregates import *
         files[f"{base_path}/application/__init__.py"] = self._generate_application_init(normalized_service_name)
         files[f"{base_path}/application/use_cases.py"] = self._generate_use_cases(normalized_domain, entities)
         files[f"{base_path}/application/dtos.py"] = self._generate_dtos(entities)
-        files[f"{base_path}/application/mappers.py"] = self._generate_mappers(entities)
+        files[f"{base_path}/application/mappers.py"] = self._generate_mappers(normalized_domain, entities)
         
         # Infrastructure Layer
         files[f"{base_path}/infrastructure/__init__.py"] = self._generate_infrastructure_init()
@@ -854,7 +872,7 @@ Agregado é um cluster de entidades e value objects com raiz (root entity).
 """
 
 from uuid import UUID
-from . import {entity_name}
+from .{domain}_entities import {entity_name}
 
 
 class {domain.capitalize()}Aggregate:
@@ -905,7 +923,7 @@ Casos de uso para o domínio {domain}.
 """
 
 from uuid import UUID
-from domain import {entity_name}
+from domain.{domain}_entities import {entity_name}
 
 
 class Create{entity_name}UseCase:
@@ -1052,7 +1070,7 @@ class Update{entity_name}DTO:
                 "update_fields": "nome: str | None = None"
             }
     
-    def _generate_mappers(self, entities: list) -> str:
+    def _generate_mappers(self, domain: str, entities: list) -> str:
         entity_name = entities[0] if entities else "Entity"
         return f'''"""
 Mappers - Application Layer
@@ -1061,7 +1079,7 @@ Mapeamento entre entidades e DTOs.
 """
 
 from application.dtos import {entity_name}DTO, Create{entity_name}DTO
-from domain.{entity_name.lower()} import {entity_name}
+from domain.{domain}_entities import {entity_name}
 
 
 class {entity_name}Mapper:
@@ -1110,7 +1128,7 @@ import asyncpg
 import os
 from uuid import UUID
 from typing import Optional
-from domain.{entity_name.lower()} import {entity_name}, {entity_name}Repository
+from domain.{domain}_entities import {entity_name}, {entity_name}Repository
 from infrastructure.database import get_db
 
 
