@@ -29,3 +29,24 @@ def test_create_project_files_supports_bounded_contexts(tmp_path):
 
     assert "services/orders/main.py" in created
     assert (tmp_path / "services/orders/main.py").exists()
+
+
+def test_generated_main_and_routes_use_absolute_imports():
+    agent = ExecutorAgent(DummyProvider())
+
+    main_content = agent._generate_main("orders", SimpleNamespace())
+    routes_content = agent._generate_routes("orders", "orders", ["Order"])
+
+    assert "from api.routes import router" in main_content
+    assert "from .api.routes import router" not in main_content
+    assert "from application.use_cases import" in routes_content
+    assert "from infrastructure.repositories import" in routes_content
+    assert "from api.controllers import" in routes_content
+
+
+def test_generated_docker_compose_pins_postgres_version():
+    agent = ExecutorAgent(DummyProvider())
+
+    compose_content = agent._generate_docker_compose("orders", "postgresql")
+
+    assert "image: postgres:16" in compose_content

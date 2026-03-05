@@ -83,6 +83,8 @@ class IntegrityValidator:
         self._check_apirouter_in_routes()
         self._check_imports_with_hyphen()
         self._check_shadowing()
+        self._check_relative_imports_in_main()
+        self._check_unpinned_postgres_images()
         
         # Resultado
         result = {
@@ -296,6 +298,80 @@ class IntegrityValidator:
         if not any(e['type'] == 'shadowing' for e in self.errors):
             logger.debug("✅ Verificação de shadowing OK")
     
+
+    def _check_relative_imports_in_main(self) -> None:
+        """
+        Verifica imports relativos em main.py.
+
+        CRÍTICO: main.py é executado como script (`python main.py`) nos Dockerfiles
+        gerados, então imports relativos como `from .api.routes` quebram.
+        """
+        logger.debug("Verificando imports relativos em main.py...")
+
+        services_dir = os.path.join(self.project_path, 'services')
+        if not os.path.exists(services_dir):
+            return
+
+        for service_name in os.listdir(services_dir):
+            main_file = os.path.join(services_dir, service_name, 'main.py')
+            if not os.path.exists(main_file):
+                continue
+
+            try:
+                with open(main_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                rel_path = os.path.relpath(main_file, self.project_path)
+                if re.search(r'^from\s+\.[\w\.]+\s+import\s+', content, flags=re.MULTILINE):
+                    self.errors.append({
+                        'type': 'relative_import_in_main',
+                        'file': rel_path,
+                        'error': 'main.py usa import relativo e pode falhar com `python main.py`',
+                    })
+                    self.files_with_issues.append(rel_path)
+                    logger.error(f"❌ {rel_path}: import relativo em main.py")
+            except Exception as e:
+                logger.warning(f"Erro ao verificar imports relativos em {main_file}: {e}")
+
+    def _check_unpinned_postgres_images(self) -> None:
+        """Verifica uso de imagem `postgres` sem versão fixa no compose."""
+        logger.debug("Verificando pinagem de imagem PostgreSQL...")
+
+        compose_candidates = [os.path.join(self.project_path, 'docker-compose.yml')]
+
+        services_dir = os.path.join(self.project_path, 'services')
+        if os.path.exists(services_dir):
+            for service_name in os.listdir(services_dir):
+                compose_candidates.append(os.path.join(services_dir, service_name, 'docker-compose.yml'))
+
+        for compose_file in compose_candidates:
+            if not os.path.exists(compose_file):
+                continue
+
+            try:
+                with open(compose_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+
+                rel_path = os.path.relpath(compose_file, self.project_path)
+
+                if re.search(r'^\s*image:\s*postgres\s*$', content, flags=re.MULTILINE):
+                    self.warnings.append({
+                        'type': 'unpinned_postgres_image',
+                        'file': rel_path,
+                        'error': 'Compose usa `image: postgres` sem versão fixa; prefira `postgres:16`',
+                    })
+
+                if re.search(r'^\s*image:\s*postgresql\s*$', content, flags=re.MULTILINE):
+                    self.errors.append({
+                        'type': 'invalid_postgres_image',
+                        'file': rel_path,
+                        'error': 'Compose usa `image: postgresql` (inválida para Docker Hub oficial)',
+                    })
+                    self.files_with_issues.append(rel_path)
+                    logger.error(f"❌ {rel_path}: imagem de banco inválida (postgresql)")
+            except Exception as e:
+                logger.warning(f"Erro ao verificar imagem de banco em {compose_file}: {e}")
+
     def _extract_imported_names(self, content: str) -> set:
         """Extrai nomes de todas as funções/classes importadas."""
         imported = set()

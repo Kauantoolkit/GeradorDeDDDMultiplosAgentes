@@ -905,7 +905,7 @@ Casos de uso para o domínio {domain}.
 """
 
 from uuid import UUID
-from ..domain import {entity_name}
+from domain import {entity_name}
 
 
 class Create{entity_name}UseCase:
@@ -1060,8 +1060,8 @@ Mappers - Application Layer
 Mapeamento entre entidades e DTOs.
 """
 
-from .dtos import {entity_name}DTO, Create{entity_name}DTO
-from ..domain.{entity_name.lower()} import {entity_name}
+from application.dtos import {entity_name}DTO, Create{entity_name}DTO
+from domain.{entity_name.lower()} import {entity_name}
 
 
 class {entity_name}Mapper:
@@ -1110,8 +1110,8 @@ import asyncpg
 import os
 from uuid import UUID
 from typing import Optional
-from ..domain.{entity_name.lower()} import {entity_name}, {entity_name}Repository
-from .database import get_db
+from domain.{entity_name.lower()} import {entity_name}, {entity_name}Repository
+from infrastructure.database import get_db
 
 
 class {entity_name}RepositoryImpl({entity_name}Repository):
@@ -1293,16 +1293,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import UUID
 from typing import List
 
-from ..application.dtos import {entity_name}DTO, Create{entity_name}DTO, Update{entity_name}DTO
-from ..application.use_cases import (
+from application.dtos import {entity_name}DTO, Create{entity_name}DTO, Update{entity_name}DTO
+from application.use_cases import (
     Create{entity_name}UseCase,
     Get{entity_name}ByIdUseCase,
     Update{entity_name}UseCase,
     Delete{entity_name}UseCase,
 )
-from ..infrastructure.repositories import {entity_name}RepositoryImpl
-from .schemas import {entity_name}Schema, Create{entity_name}Schema
-from .controllers import get_{entity_name.lower()}_repository
+from infrastructure.repositories import {entity_name}RepositoryImpl
+from api.schemas import {entity_name}Schema, Create{entity_name}Schema
+from api.controllers import get_{entity_name.lower()}_repository
 
 
 router = APIRouter(prefix="/api/{service_name}", tags=["{service_name}"])
@@ -1376,7 +1376,7 @@ Controladores para {service_name}.
 """
 
 from fastapi import Depends
-from ..infrastructure.repositories import {entity_name}RepositoryImpl
+from infrastructure.repositories import {entity_name}RepositoryImpl
 
 
 def get_{entity_name.lower()}_repository() -> {entity_name}RepositoryImpl:
@@ -1491,7 +1491,7 @@ Ponto de entrada do microserviço {service_name}.
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .api.routes import router
+from api.routes import router
 
 
 app = FastAPI(
@@ -1554,9 +1554,19 @@ EXPOSE 8000
 
 CMD ["python", "main.py"]
 '''
+
+    def _resolve_database_image(self, database: str) -> str:
+        """Normaliza a imagem do banco para evitar tags incompatíveis."""
+        db = (database or "").strip().lower()
+
+        if db in {"postgres", "postgresql", "postgres:latest", "postgresql:latest", ""}:
+            return "postgres:16"
+
+        return database
     
     def _generate_docker_compose(self, service_name: str, database: str) -> str:
         # NOTA: Não usamos mais 'version' pois está obsoleto nas versões recentes do Docker Compose
+        db_image = self._resolve_database_image(database)
         return f'''services:
   {service_name}:
     build: .
@@ -1568,7 +1578,7 @@ CMD ["python", "main.py"]
       - db
 
   db:
-    image: {database}
+    image: {db_image}
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB={service_name}
