@@ -243,7 +243,7 @@ class DockerTestAgent:
             if service_name in services_needing_db:
                 # Configuração do banco de dados
                 compose["services"][db_container_name] = {
-                    "image": "postgres",
+                    "image": "postgres:16",
                     "environment": [
                         "POSTGRES_PASSWORD=postgres",
                         f"POSTGRES_DB={normalized_service_name}"

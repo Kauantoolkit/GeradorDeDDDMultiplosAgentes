@@ -17,7 +17,7 @@ ImportError: attempted relative import with no known parent package
 
 **Causa:** 
 - O arquivo `main.py` usa imports relativos: `from .api.routes import router`
-- O Docker executa `python main.py` diretamente sem treating it as a package
+- O Docker executa `python main.py` diretamente sem tratá-lo como pacote
 - O `main.py` precisa ser executado como módulo ou usar imports absolutos
 
 **Arquivos afetados:**
@@ -122,5 +122,5 @@ O projeto **não rodou** devido a dois problemas principais:
 1. **Erro de importação** - O código usa imports relativos mas é executado de forma incompatível
 2. **Conflito de versão PostgreSQL** - Dados de versões anteriores causando problemas na inicialização
 
-O foco foi mantidO em **documentar** os problemas conforme solicitado, sem refatorar o código.
+O foco foi mantido em **documentar** os problemas conforme solicitado, sem refatorar o código.
 
