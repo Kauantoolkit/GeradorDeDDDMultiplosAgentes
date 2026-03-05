@@ -23,3 +23,19 @@ def test_resolve_base_service_port_reads_env_override(monkeypatch):
     agent = DockerTestAgent()
 
     assert agent._base_service_port == 28001
+
+
+def test_dynamic_port_binding_enabled_by_default(monkeypatch):
+    monkeypatch.delenv("DOCKER_TEST_DYNAMIC_PORT_BINDING", raising=False)
+
+    agent = DockerTestAgent()
+
+    assert agent._use_dynamic_port_binding is True
+
+
+def test_dynamic_port_binding_can_be_disabled(monkeypatch):
+    monkeypatch.setenv("DOCKER_TEST_DYNAMIC_PORT_BINDING", "false")
+
+    agent = DockerTestAgent()
+
+    assert agent._use_dynamic_port_binding is False

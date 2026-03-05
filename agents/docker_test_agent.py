@@ -53,7 +53,13 @@ class DockerTestAgent:
         self.name = "Docker Test Agent"
         self._reserved_ports: set[int] = set()
         self._base_service_port = self._resolve_base_service_port()
+        self._use_dynamic_port_binding = self._resolve_dynamic_port_binding_flag()
         logger.info(f"{self.name} inicializado")
+
+    def _resolve_dynamic_port_binding_flag(self) -> bool:
+        """Define se o compose deve usar porta dinâmica no host para evitar colisões."""
+        raw_value = os.getenv("DOCKER_TEST_DYNAMIC_PORT_BINDING", "true").strip().lower()
+        return raw_value not in {"0", "false", "no", "off"}
 
     def _resolve_base_service_port(self) -> int:
         """Resolve porta base via ambiente com fallback seguro para evitar colisões locais."""
@@ -266,10 +272,15 @@ class DockerTestAgent:
             # CORREÇÃO CRÍTICA: nome Docker deve ser lowercase para evitar tag inválida
             normalized_service_name = self._normalize_service_name(service_name)
             
-            # Porta dinâmica com detecção de disponibilidade (evita conflitos reais no host)
-            service_port = self._find_available_port(base_service_port + idx)
-
-            logger.info(f"  - {normalized_service_name}: porta={service_port}")
+            # Porta publicada no host.
+            # Por padrão usa binding dinâmico (0:8000) para eliminar conflito entre execuções.
+            if self._use_dynamic_port_binding:
+                published_port = "0:8000"
+                logger.info(f"  - {normalized_service_name}: porta dinamica no host (0:8000)")
+            else:
+                service_port = self._find_available_port(base_service_port + idx)
+                published_port = f"{service_port}:8000"
+                logger.info(f"  - {normalized_service_name}: porta={service_port}")
             
             # Define container do serviço principal usando nome normalizado
             service_container_name = normalized_service_name
@@ -281,7 +292,7 @@ class DockerTestAgent:
                     "context": f"./services/{normalized_service_name}",
                     "dockerfile": "Dockerfile"
                 },
-                "ports": [f"{service_port}:8000"],
+                "ports": [published_port],
                 "environment": [
                     f"DATABASE_URL=postgresql://postgres:postgres@{db_container_name}:5432/{normalized_service_name}",
                     f"SERVICE_NAME={normalized_service_name}"
