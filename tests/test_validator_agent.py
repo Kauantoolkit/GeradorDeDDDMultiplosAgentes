@@ -121,3 +121,32 @@ def test_validator_uses_live_file_snapshot_in_prompt(tmp_path):
 
     assert "conteudo_antigo" not in provider.prompt
     assert "class UserSchema" in provider.prompt
+
+
+def test_validator_snapshot_includes_project_files_beyond_files_created(tmp_path):
+    service_dir = tmp_path / "services" / "order_service"
+    (service_dir / "domain").mkdir(parents=True)
+    (service_dir / "domain" / "order_entities.py").write_text(
+        "class Order:\n    pass\n",
+        encoding="utf-8",
+    )
+    (service_dir / "application").mkdir(parents=True)
+    (service_dir / "application" / "use_cases.py").write_text(
+        "def create_order():\n    return True\n",
+        encoding="utf-8",
+    )
+
+    requirement = _make_requirement(tmp_path)
+    execution = ExecutionResult(
+        agent_type=AgentType.EXECUTOR,
+        status=ExecutionStatus.SUCCESS,
+        output="saida_desatualizada",
+        files_created=["services/order_service/domain/order_entities.py"],
+    )
+
+    import asyncio
+    provider = CapturingApprovingProvider()
+    asyncio.run(ValidatorAgent(provider).validate(requirement, execution))
+
+    assert "saida_desatualizada" not in provider.prompt
+    assert "def create_order" in provider.prompt
