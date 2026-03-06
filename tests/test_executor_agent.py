@@ -104,3 +104,23 @@ from . import User
 
     assert "from domain import" not in fixed
     assert "from .users_entities import User" in fixed
+
+
+def test_normalize_llm_data_converts_list_to_microservices():
+    agent = ExecutorAgent(DummyProvider())
+
+    normalized = agent._normalize_llm_data([{"name": "orders"}])
+
+    assert normalized["microservices"] == [{"name": "orders"}]
+    assert normalized["files"] == []
+    assert normalized["bounded_contexts"] == []
+
+
+def test_normalize_llm_data_rejects_invalid_types():
+    agent = ExecutorAgent(DummyProvider())
+
+    try:
+        agent._normalize_llm_data("invalid")
+        assert False, "Expected ValueError for invalid type"
+    except ValueError as exc:
+        assert "Formato inválido" in str(exc)

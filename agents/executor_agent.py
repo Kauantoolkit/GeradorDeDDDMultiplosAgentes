@@ -169,7 +169,8 @@ class ExecutorAgent:
             logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
             
             # Parseia o JSON retornado
-            generated_data = self._parse_llm_output(llm_output)
+            parsed_data = self._parse_llm_output(llm_output)
+            generated_data = self._normalize_llm_data(parsed_data)
             
             if not generated_data:
                 raise ValueError("Não foi possível parsear a resposta do LLM")
@@ -201,7 +202,38 @@ class ExecutorAgent:
             
             return result
     
-    def _parse_llm_output(self, llm_output: str) -> dict | None:
+    def _normalize_llm_data(self, data: Any) -> dict[str, Any]:
+        """
+        Normaliza a estrutura retornada pelo LLM para o formato esperado.
+
+        Regras:
+        - list -> {"microservices": list}
+        - dict -> garante chaves obrigatórias
+        - outros tipos -> erro explícito
+        """
+        logger.info(f"Tipo de estrutura retornada pelo LLM: {type(data).__name__}")
+
+        if isinstance(data, list):
+            logger.warning(
+                "Formato de resposta inesperado (list). Aplicando normalização automática para {'microservices': [...]}"
+            )
+            data = {"microservices": data}
+
+        if not isinstance(data, dict):
+            logger.error(
+                f"Formato inválido retornado pelo LLM: {type(data).__name__}. Esperado: dict ou list"
+            )
+            raise ValueError(
+                f"Formato inválido retornado pelo LLM: {type(data).__name__}. Esperado JSON object ou array"
+            )
+
+        normalized = dict(data)
+        for required_key in ("microservices", "files", "bounded_contexts"):
+            normalized.setdefault(required_key, [])
+
+        return normalized
+
+    def _parse_llm_output(self, llm_output: str) -> Any | None:
         """
         Parseia a saída do LLM em JSON.
 
@@ -541,6 +573,14 @@ class ExecutorAgent:
         Returns:
             Lista de arquivos criados
         """
+        if not isinstance(data, dict):
+            logger.error(
+                f"Dados inválidos em _create_project_files: esperado dict, recebido {type(data).__name__}"
+            )
+            raise ValueError(
+                f"Dados inválidos para criação de arquivos: {type(data).__name__}"
+            )
+
         created_files = []
         
         # Extrai os microserviços (modo legado)
