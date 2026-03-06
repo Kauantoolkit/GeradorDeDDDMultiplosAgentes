@@ -16,6 +16,7 @@ de uma nova validação.
 
 import json
 import re
+import ast
 from datetime import datetime
 from typing import Any
 from loguru import logger
@@ -389,6 +390,10 @@ class FixAgent:
                         else:
                             new_content = content or existing_content
 
+                        if not self._is_content_valid_for_file(file_path, new_content):
+                            logger.warning(f"  Ignorado (conteúdo inválido): {file_path}")
+                            continue
+
                         if file_manager.create_file(file_path, new_content):
                             files_modified.append(file_path)
                             logger.info(f"  Modificado: {file_path}")
@@ -397,6 +402,18 @@ class FixAgent:
             logger.error(f"Erro ao usar LLM para correção: {e}")
         
         return files_modified
+
+    def _is_content_valid_for_file(self, file_path: str, content: str) -> bool:
+        """Valida conteúdo básico para evitar que o Fix Agent quebre arquivos existentes."""
+        if not file_path.endswith(".py"):
+            return True
+
+        try:
+            ast.parse(content)
+            return True
+        except SyntaxError as exc:
+            logger.warning(f"Conteúdo Python inválido para {file_path}: {exc}")
+            return False
 
     def _parse_fix_json(self, llm_output: str) -> dict | None:
         """Extrai JSON de correções do LLM com tolerância a ruído."""
@@ -444,7 +461,7 @@ class FixAgent:
         files_modified = []
         
         # Lista arquivos existentes
-        all_files = file_manager.list_files(project_path)
+        all_files = file_manager.list_files(".")
         
         # Para cada padrão a corrigir
         for pattern in fix_plan.get("patterns_to_fix", []):

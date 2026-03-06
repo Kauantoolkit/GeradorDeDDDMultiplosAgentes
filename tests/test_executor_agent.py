@@ -124,3 +124,24 @@ def test_normalize_llm_data_rejects_invalid_types():
         assert False, "Expected ValueError for invalid type"
     except ValueError as exc:
         assert "Formato inválido" in str(exc)
+
+
+def test_create_project_files_ignores_extra_files_outside_allowed_scope(tmp_path):
+    agent = ExecutorAgent(DummyProvider())
+    fm = FileManager(str(tmp_path))
+    config = SimpleNamespace(framework="fastapi", database="postgresql", include_docker=False, include_tests=False)
+
+    data = {
+        "microservices": [],
+        "files": [
+            {"path": "microservico-de-pedidos/application/use_cases.py", "content": "def broken(:\n    pass"},
+            {"path": "services/orders/main.py", "content": "app = 'ok'"},
+        ],
+        "bounded_contexts": [],
+    }
+
+    created = agent._create_project_files(fm, data, config)
+
+    assert "services/orders/main.py" in created
+    assert "microservico-de-pedidos/application/use_cases.py" not in created
+    assert not (tmp_path / "microservico-de-pedidos/application/use_cases.py").exists()
