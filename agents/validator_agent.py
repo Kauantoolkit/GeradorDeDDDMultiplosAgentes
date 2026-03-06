@@ -12,6 +12,7 @@ Este agente é responsável por:
 """
 
 import json
+import re
 from datetime import datetime
 from loguru import logger
 
@@ -126,6 +127,9 @@ class ValidatorAgent:
             else:
                 # Se não conseguiu parsear, faz validação manual
                 result = self._manual_validation(requirement, execution_result)
+
+            # Aplica guardrails determinísticos para evitar aprovações indevidas
+            self._apply_guardrails(requirement, execution_result, result)
             
             return result
             
@@ -232,8 +236,173 @@ class ValidatorAgent:
             logger.warning(f"❌ Validação manual REPROVADA - Score: {result.score}")
         
         result.feedback = "\n".join(checks)
-        
+
         return result
+
+    def _apply_guardrails(
+        self,
+        requirement: Requirement,
+        execution_result: ExecutionResult,
+        result: ValidationResult,
+    ) -> None:
+        """Aplica validações determinísticas e força reprovação quando necessário."""
+        issues = self._run_guardrail_checks(requirement, execution_result)
+        if not issues:
+            return
+
+        for issue in issues:
+            if issue not in result.issues:
+                result.issues.append(issue)
+            if issue not in result.rejected_items:
+                result.rejected_items.append(issue)
+
+        result.score = min(result.score, 0.4)
+        result.reject(
+            "Guardrails de qualidade detectaram inconsistências críticas: "
+            + "; ".join(issues)
+        )
+        logger.warning(f"❌ Guardrails reprovaram validação: {issues}")
+
+    def _run_guardrail_checks(
+        self,
+        requirement: Requirement,
+        execution_result: ExecutionResult,
+    ) -> list[str]:
+        """Executa verificações objetivas para reduzir falsos positivos na validação."""
+        issues: list[str] = []
+        project_path = requirement.project_config.output_directory
+        file_manager = FileManager(project_path)
+
+        service_names = self._extract_service_names(execution_result.files_created)
+        for service_name in service_names:
+            entity_issue = self._check_service_entity_consistency(service_name, file_manager)
+            if entity_issue:
+                issues.append(entity_issue)
+
+            dependency_issue = self._check_service_email_dependency(service_name, file_manager)
+            if dependency_issue:
+                issues.append(dependency_issue)
+
+        frontend_issue = self._check_frontend_requirement(requirement, file_manager)
+        if frontend_issue:
+            issues.append(frontend_issue)
+
+        return issues
+
+    def _extract_service_names(self, files_created: list[str]) -> list[str]:
+        services = []
+        for file_path in files_created or []:
+            normalized = file_path.replace("\\", "/")
+            parts = normalized.split("/")
+            if "services" not in parts:
+                continue
+            try:
+                service_index = parts.index("services") + 1
+                service_name = parts[service_index]
+                if service_name and service_name not in services:
+                    services.append(service_name)
+            except (ValueError, IndexError):
+                continue
+        return services
+
+    def _check_service_entity_consistency(self, service_name: str, file_manager: FileManager) -> str | None:
+        entity_candidates = [
+            f"services/{service_name}/domain/{service_name}_entities.py",
+            f"services/{service_name}/domain/entities.py",
+        ]
+
+        entity_content = None
+        entity_file = None
+        for candidate in entity_candidates:
+            content = file_manager.read_file(candidate)
+            if content:
+                entity_content = content
+                entity_file = candidate
+                break
+
+        if not entity_content:
+            return None
+
+        expected_entities = self._expected_entities_for_service(service_name)
+        if not expected_entities:
+            return None
+
+        defined_classes = set(re.findall(r"class\s+(\w+)\s*[(:]", entity_content))
+        if any(entity in defined_classes for entity in expected_entities):
+            return None
+
+        return (
+            f"Serviço '{service_name}' sem entidade coerente em {entity_file}. "
+            f"Esperado uma das classes: {', '.join(expected_entities)}"
+        )
+
+    def _expected_entities_for_service(self, service_name: str) -> list[str]:
+        name = service_name.lower().replace("-", "_")
+        mapping = {
+            "user": ["User"],
+            "usuario": ["Usuario", "User"],
+            "product": ["Product", "Produto"],
+            "produto": ["Produto", "Product"],
+            "order": ["Order", "Pedido"],
+            "pedido": ["Pedido", "Order"],
+            "payment": ["Payment", "Pagamento"],
+            "pagamento": ["Pagamento", "Payment"],
+        }
+
+        expected = []
+        for token, entities in mapping.items():
+            if token in name:
+                expected.extend(entities)
+        return list(dict.fromkeys(expected))
+
+    def _check_service_email_dependency(self, service_name: str, file_manager: FileManager) -> str | None:
+        schema_candidates = [
+            f"services/{service_name}/api/schemas.py",
+            f"services/{service_name}/api/schema.py",
+        ]
+        schema_content = None
+        for candidate in schema_candidates:
+            schema_content = file_manager.read_file(candidate)
+            if schema_content:
+                break
+
+        if not schema_content or "EmailStr" not in schema_content:
+            return None
+
+        requirements_content = file_manager.read_file(f"services/{service_name}/requirements.txt") or ""
+        normalized = requirements_content.lower()
+        has_dependency = "email-validator" in normalized or "pydantic[email]" in normalized
+
+        if has_dependency:
+            return None
+
+        return (
+            f"Serviço '{service_name}' usa EmailStr em api/schemas.py sem dependência "
+            "'email-validator' ou 'pydantic[email]' no requirements.txt"
+        )
+
+    def _check_frontend_requirement(self, requirement: Requirement, file_manager: FileManager) -> str | None:
+        description = (requirement.description or "").lower()
+        frontend_keywords = [
+            "frontend", "react", "vue", "angular", "ui", "interface web", "tela", "spa"
+        ]
+        if not any(keyword in description for keyword in frontend_keywords):
+            return None
+
+        frontend_signals = [
+            "frontend/package.json",
+            "frontend/src/main.jsx",
+            "frontend/src/main.tsx",
+            "web/package.json",
+            "client/package.json",
+            "index.html",
+        ]
+
+        for signal in frontend_signals:
+            if file_manager.read_file(signal):
+                return None
+
+        return "Requisito menciona frontend, mas nenhum artefato de frontend foi gerado"
     
     async def validate_structure(
         self, 
