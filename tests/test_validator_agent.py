@@ -13,6 +13,19 @@ class ApprovingProvider:
         )
 
 
+class CapturingApprovingProvider:
+    def __init__(self):
+        self.prompt = ""
+
+    async def generate(self, *args, **kwargs):
+        self.prompt = kwargs.get("prompt", "")
+        return (
+            '{"status":"approved","score":0.95,'
+            '"approved_items":["ok"],"rejected_items":[],'
+            '"missing_items":[],"issues":[],"feedback":"ok"}'
+        )
+
+
 def _make_requirement(tmp_path: Path, description: str = "Gerar backend") -> Requirement:
     return Requirement(
         description=description,
@@ -84,3 +97,27 @@ def test_guardrail_rejects_missing_frontend_when_requested(tmp_path):
 
     assert result.status == ValidationStatus.REJECTED
     assert any("frontend" in issue.lower() for issue in result.issues)
+
+
+def test_validator_uses_live_file_snapshot_in_prompt(tmp_path):
+    service_dir = tmp_path / "services" / "user_service"
+    (service_dir / "api").mkdir(parents=True)
+    (service_dir / "api" / "schemas.py").write_text(
+        "class UserSchema:\n    pass\n",
+        encoding="utf-8",
+    )
+
+    requirement = _make_requirement(tmp_path)
+    execution = ExecutionResult(
+        agent_type=AgentType.EXECUTOR,
+        status=ExecutionStatus.SUCCESS,
+        output="conteudo_antigo",
+        files_created=["services/user_service/api/schemas.py"],
+    )
+
+    import asyncio
+    provider = CapturingApprovingProvider()
+    asyncio.run(ValidatorAgent(provider).validate(requirement, execution))
+
+    assert "conteudo_antigo" not in provider.prompt
+    assert "class UserSchema" in provider.prompt

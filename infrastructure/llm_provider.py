@@ -640,7 +640,12 @@ Gere APENAS o JSON, sem texto adicional.
 """
     
     @staticmethod
-    def build_fix_prompt(requirement: Any, validation_result: Any, execution_result: Any) -> str:
+    def build_fix_prompt(
+        requirement: Any,
+        validation_result: Any,
+        execution_result: Any,
+        file_context: str = "",
+    ) -> str:
         """
         Constrói o prompt para o Fix Agent - Versão melhorada.
         
@@ -681,6 +686,9 @@ PROBLEMAS IDENTIFICADOS PELO VALIDADOR:
 ARQUIVOS JÁ CRIADOS:
 {files_list}
 
+SNIPPETS DE ARQUIVOS RELEVANTES (para editar com precisão):
+{file_context or "(sem snippets disponíveis)"}
+
 CÓDIGO ATUAL:
 {execution_result.output[:6000]}
 
@@ -718,8 +726,10 @@ Retorne em formato JSON:
     "fixes": [
         {{
             "file_path": "services/nome_servico/domain/entities.py",
-            "action": "create" | "modify",
+            "action": "create" | "modify" | "patch",
             "content": "código completo do arquivo",
+            "search": "trecho antigo exato (somente para action=patch)",
+            "replace": "trecho novo (somente para action=patch)",
             "reason": "por que esta correção resolve o problema"
         }}
     ]

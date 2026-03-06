@@ -281,6 +281,11 @@ class OrchestratorAgent:
                     result.success = False
                     result.error_message = f"Fix Agent falhou na tentativa {fix_attempt}: {fix_result.error_message}"
                     return result
+
+                self._merge_fix_changes_into_execution_result(
+                    executor_result,
+                    fix_result.files_modified,
+                )
             
             # ==========================================
             # SUCESSO
@@ -420,6 +425,22 @@ class OrchestratorAgent:
                 merged.feedback = f"Falhas de teste: {'; '.join(docker_issues)}"
 
         return merged
+
+    def _merge_fix_changes_into_execution_result(
+        self,
+        executor_result: ExecutionResult,
+        files_modified: list[str],
+    ) -> None:
+        """Atualiza o resultado do Executor com arquivos tocados pelo Fix para revalidação consistente."""
+        if not files_modified:
+            return
+
+        existing = {path.replace('\\', '/') for path in (executor_result.files_created or [])}
+        for file_path in files_modified:
+            normalized = file_path.replace('\\', '/')
+            if normalized not in existing:
+                executor_result.files_created.append(normalized)
+                existing.add(normalized)
     
     async def execute_with_retry(
         self, 

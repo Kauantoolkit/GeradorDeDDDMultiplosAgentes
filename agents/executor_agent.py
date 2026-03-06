@@ -127,6 +127,7 @@ class ExecutorAgent:
         """
         self.llm_provider = llm_provider
         self.name = "Executor Agent"
+        self.max_generation_attempts = 3
         logger.info(f"{self.name} inicializado")
     
     async def execute(self, requirement: Requirement) -> ExecutionResult:
@@ -151,38 +152,52 @@ class ExecutorAgent:
             logger.info("EXECUTOR AGENT - Iniciando geração de código")
             logger.info("="*60)
             
-            # Constrói o prompt
-            prompt = PromptBuilder.build_executor_prompt(requirement)
-            logger.debug(f"Prompt construído ({len(prompt)} chars)")
-            
-            # Chama o LLM para gerar o código
-            logger.info("Chamando LLM para geração de código...")
-            llm_output = await self.llm_provider.generate(
-                prompt=prompt,
-                temperature=0.3,  # Menos criativo, mais preciso
-                max_tokens=8000
-            )
-            
-            result.output = llm_output
-            logger.info(f"Resposta do LLM recebida ({len(llm_output)} chars)")
-            
-            # Log the first part of the LLM output for debugging
-            logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
-            
-            # Parseia o JSON retornado
-            parsed_data = self._parse_llm_output(llm_output)
-            generated_data = self._normalize_llm_data(parsed_data)
-            
-            if not generated_data:
-                raise ValueError("Não foi possível parsear a resposta do LLM")
-            
-            # Cria os arquivos
             file_manager = FileManager(requirement.project_config.output_directory)
-            created_files = self._create_project_files(
-                file_manager, 
-                generated_data,
-                requirement.project_config
-            )
+            base_prompt = PromptBuilder.build_executor_prompt(requirement)
+            logger.debug(f"Prompt base construído ({len(base_prompt)} chars)")
+
+            created_files: list[str] = []
+            last_error: Exception | None = None
+
+            for attempt in range(1, self.max_generation_attempts + 1):
+                prompt = self._build_generation_retry_prompt(base_prompt, attempt, last_error)
+                logger.info(
+                    f"Chamando LLM para geração de código (tentativa {attempt}/{self.max_generation_attempts})..."
+                )
+
+                llm_output = await self.llm_provider.generate(
+                    prompt=prompt,
+                    temperature=0.3,
+                    max_tokens=8000
+                )
+
+                result.output = llm_output
+                logger.info(f"Resposta do LLM recebida ({len(llm_output)} chars)")
+                logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
+
+                try:
+                    parsed_data = self._parse_llm_output(llm_output)
+                    generated_data = self._normalize_llm_data(parsed_data)
+
+                    if not generated_data:
+                        raise ValueError("Não foi possível parsear a resposta do LLM")
+
+                    created_files = self._create_project_files(
+                        file_manager,
+                        generated_data,
+                        requirement.project_config
+                    )
+                    break
+                except Exception as attempt_error:
+                    last_error = attempt_error
+                    logger.warning(
+                        f"Tentativa {attempt}/{self.max_generation_attempts} falhou: {attempt_error}"
+                    )
+
+            if not created_files:
+                raise ValueError(
+                    f"Executor falhou após {self.max_generation_attempts} tentativas: {last_error}"
+                )
             
             result.files_created = created_files
             result.status = ExecutionStatus.SUCCESS
@@ -202,6 +217,27 @@ class ExecutorAgent:
             result.execution_time = (result.finished_at - start_time).total_seconds()
             
             return result
+
+    def _build_generation_retry_prompt(
+        self,
+        base_prompt: str,
+        attempt: int,
+        previous_error: Exception | None,
+    ) -> str:
+        """Monta prompt de retry para tornar o Executor mais adaptativo."""
+        if attempt <= 1:
+            return base_prompt
+
+        feedback = str(previous_error) if previous_error else "erro desconhecido"
+        return (
+            f"{base_prompt}\n\n"
+            "---\n"
+            f"TENTATIVA DE CORREÇÃO AUTOMÁTICA #{attempt}\n"
+            "A resposta anterior falhou ao ser aplicada.\n"
+            f"Erro observado: {feedback}\n"
+            "Ajuste a saída para JSON válido e completo, com caminhos permitidos e código funcional.\n"
+            "Retorne apenas JSON válido.\n"
+        )
     
     def _normalize_llm_data(self, data: Any) -> dict[str, Any]:
         """

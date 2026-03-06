@@ -1,12 +1,25 @@
 from types import SimpleNamespace
+import asyncio
 
 from agents.executor_agent import ExecutorAgent
 from infrastructure.file_manager import FileManager
+from domain.entities import Requirement, ProjectConfig
 
 
 class DummyProvider:
     async def generate(self, *args, **kwargs):
         return "{}"
+
+
+class RetryProvider:
+    def __init__(self):
+        self.calls = 0
+
+    async def generate(self, *args, **kwargs):
+        self.calls += 1
+        if self.calls == 1:
+            return "invalid json"
+        return '{"microservices": [{"name": "orders", "domain": "orders", "entities": ["Order"]}], "files": [], "bounded_contexts": []}'
 
 
 def test_create_project_files_supports_bounded_contexts(tmp_path):
@@ -173,3 +186,32 @@ def test_normalize_microservice_specs_deduplicates_after_normalization():
 
     assert len(normalized) == 1
     assert normalized[0]["name"] == "order_service"
+
+
+def test_executor_retries_after_invalid_llm_output(tmp_path):
+    provider = RetryProvider()
+    agent = ExecutorAgent(provider)
+    requirement = Requirement(
+        description="Gerar serviço de pedidos",
+        project_config=ProjectConfig(output_directory=str(tmp_path), include_docker=False, include_tests=False),
+    )
+
+    result = asyncio.run(agent.execute(requirement))
+
+    assert result.success is True
+    assert provider.calls == 2
+    assert any(path.endswith("services/orders/main.py") for path in result.files_created)
+
+
+def test_build_generation_retry_prompt_includes_previous_error():
+    agent = ExecutorAgent(DummyProvider())
+
+    prompt = agent._build_generation_retry_prompt(
+        "PROMPT_BASE",
+        attempt=2,
+        previous_error=ValueError("json inválido"),
+    )
+
+    assert "PROMPT_BASE" in prompt
+    assert "TENTATIVA DE CORREÇÃO AUTOMÁTICA #2" in prompt
+    assert "json inválido" in prompt

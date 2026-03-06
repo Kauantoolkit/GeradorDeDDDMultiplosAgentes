@@ -13,6 +13,7 @@ Este agente é responsável por:
 
 import json
 import re
+from dataclasses import replace
 from pathlib import Path
 from datetime import datetime
 from loguru import logger
@@ -86,10 +87,12 @@ class ValidatorAgent:
             return result
         
         try:
+            live_execution_result = self._build_live_execution_result(requirement, execution_result)
+
             # Constrói o prompt de validação
             prompt = PromptBuilder.build_validator_prompt(
                 requirement, 
-                execution_result
+                live_execution_result
             )
             
             # Chama o LLM para validar
@@ -130,7 +133,7 @@ class ValidatorAgent:
                 result = self._manual_validation(requirement, execution_result)
 
             # Aplica guardrails determinísticos para evitar aprovações indevidas
-            self._apply_guardrails(requirement, execution_result, result)
+            self._apply_guardrails(requirement, live_execution_result, result)
             
             return result
             
@@ -143,6 +146,39 @@ class ValidatorAgent:
             )
             result.reject(f"Erro na validação: {str(e)}")
             return result
+
+    def _build_live_execution_result(
+        self,
+        requirement: Requirement,
+        execution_result: ExecutionResult,
+    ) -> ExecutionResult:
+        """Atualiza o contexto textual de validação com o estado atual dos arquivos em disco."""
+        file_manager = FileManager(requirement.project_config.output_directory)
+
+        candidates: list[str] = []
+        seen: set[str] = set()
+        for path in execution_result.files_created or []:
+            normalized = path.replace("\\", "/")
+            if normalized not in seen:
+                candidates.append(normalized)
+                seen.add(normalized)
+
+        # Fallback para casos em que o resultado veio sem lista de arquivos
+        if not candidates:
+            candidates = file_manager.list_files(".")[:30]
+
+        snippets: list[str] = []
+        for file_path in candidates[:40]:
+            content = file_manager.read_file(file_path)
+            if content is None:
+                continue
+            snippets.append(f"### {file_path}\n{content[:1200]}")
+
+        if not snippets:
+            return execution_result
+
+        merged_output = "\n\n".join(snippets)
+        return replace(execution_result, output=merged_output)
     
     def _parse_validation_output(self, llm_output: str) -> dict | None:
         """

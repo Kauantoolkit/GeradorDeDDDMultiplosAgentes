@@ -130,19 +130,10 @@ class FixAgent:
                 issues_to_fix
             )
 
-            critical_tokens = [
-                "docker", "health check", "import", "route", "main.py",
-                "domain", "application", "infrastructure", "api", "frontend", "emailstr"
-            ]
-            requires_progress = any(
-                any(token in issue.lower() for token in critical_tokens)
-                for issue in issues_to_fix
-            )
-
-            if requires_progress and not files_modified:
+            if not files_modified:
                 result.status = ExecutionStatus.FAILED
                 result.error_message = (
-                    "FixAgent não aplicou alterações em problemas críticos; "
+                    "FixAgent não aplicou alterações; "
                     "encerrando tentativa sem progresso"
                 )
                 logger.error(result.error_message)
@@ -410,11 +401,15 @@ class FixAgent:
         files_modified = []
         
         try:
+            relevant_files = self._select_relevant_files(validation_result, execution_result)
+            context_snippets = self._build_file_context_snippets(file_manager, relevant_files)
+
             # Constrói prompt para correção usando o novo PromptBuilder
             prompt = PromptBuilder.build_fix_prompt(
                 requirement,
                 validation_result,
-                execution_result
+                execution_result,
+                file_context=context_snippets,
             )
             
             # Chama LLM
@@ -436,31 +431,124 @@ class FixAgent:
                 content = fix.get("content")
                 action = fix.get("action", "modify")
 
+                if file_path and action in {"modify", "create"} and self._looks_like_placeholder(content or ""):
+                    logger.warning(f"  Ignorado (placeholder): {file_path}")
+                    continue
+
                 if file_path and action == "create":
+                    if not self._is_content_valid_for_file(file_path, content or ""):
+                        logger.warning(f"  Ignorado (conteúdo inválido): {file_path}")
+                        continue
+
                     if file_manager.create_file(file_path, content or ""):
                         files_modified.append(file_path)
                         logger.info(f"  Criado: {file_path}")
 
                 elif file_path and action == "modify":
                     existing_content = file_manager.read_file(file_path)
-                    if existing_content is not None:
-                        if fix.get("append"):
-                            new_content = existing_content + "\n" + (content or "")
-                        else:
-                            new_content = content or existing_content
+                    if existing_content is None:
+                        logger.warning(f"  Arquivo para modificação não encontrado: {file_path}")
+                        continue
 
-                        if not self._is_content_valid_for_file(file_path, new_content):
-                            logger.warning(f"  Ignorado (conteúdo inválido): {file_path}")
-                            continue
+                    if fix.get("append"):
+                        new_content = existing_content + "\n" + (content or "")
+                    else:
+                        new_content = content or existing_content
 
-                        if file_manager.create_file(file_path, new_content):
-                            files_modified.append(file_path)
-                            logger.info(f"  Modificado: {file_path}")
+                    if new_content == existing_content:
+                        logger.info(f"  Sem alterações reais: {file_path}")
+                        continue
+
+                    if not self._is_content_valid_for_file(file_path, new_content):
+                        logger.warning(f"  Ignorado (conteúdo inválido): {file_path}")
+                        continue
+
+                    if file_manager.create_file(file_path, new_content):
+                        files_modified.append(file_path)
+                        logger.info(f"  Modificado: {file_path}")
+
+                elif file_path and action == "patch":
+                    existing_content = file_manager.read_file(file_path)
+                    if existing_content is None:
+                        logger.warning(f"  Arquivo para patch não encontrado: {file_path}")
+                        continue
+
+                    patched_content = self._apply_search_replace_patch(existing_content, fix)
+                    if patched_content is None or patched_content == existing_content:
+                        logger.warning(f"  Patch ignorado (sem alteração aplicável): {file_path}")
+                        continue
+
+                    if not self._is_content_valid_for_file(file_path, patched_content):
+                        logger.warning(f"  Ignorado (patch inválido): {file_path}")
+                        continue
+
+                    if file_manager.create_file(file_path, patched_content):
+                        files_modified.append(file_path)
+                        logger.info(f"  Patch aplicado: {file_path}")
         
         except Exception as e:
             logger.error(f"Erro ao usar LLM para correção: {e}")
         
         return files_modified
+
+    def _select_relevant_files(self, validation_result: ValidationResult, execution_result: Any) -> list[str]:
+        """Seleciona arquivos potencialmente relevantes com base nas issues de validação."""
+        files = getattr(execution_result, "files_created", []) or []
+        if not files:
+            return []
+
+        terms: set[str] = set()
+        for issue in validation_result.issues + validation_result.rejected_items + validation_result.missing_items:
+            for token in re.findall(r"[a-zA-Z_][a-zA-Z0-9_./-]*", issue.lower()):
+                if len(token) >= 4:
+                    terms.add(token)
+
+        ranked: list[tuple[int, str]] = []
+        for file_path in files:
+            normalized = file_path.lower().replace("\\", "/")
+            score = sum(1 for term in terms if term in normalized)
+            ranked.append((score, file_path))
+
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        top_matches = [path for score, path in ranked if score > 0][:10]
+        if top_matches:
+            return top_matches
+
+        return files[:8]
+
+    def _build_file_context_snippets(self, file_manager: FileManager, files: list[str]) -> str:
+        """Monta snippets curtos de arquivos para orientar o LLM sem estourar contexto."""
+        snippets: list[str] = []
+        for file_path in files[:10]:
+            content = file_manager.read_file(file_path)
+            if content is None:
+                continue
+
+            truncated = content[:1200]
+            snippets.append(f"### {file_path}\n```\n{truncated}\n```")
+
+        return "\n\n".join(snippets)
+
+    def _looks_like_placeholder(self, content: str) -> bool:
+        """Heurística simples para evitar gravar placeholders vazios."""
+        lowered = content.lower()
+        markers = [
+            "todo", "placeholder", "add your code", "implemente aqui",
+            "adicionar aqui", "to be implemented", "pass  #",
+        ]
+        return any(marker in lowered for marker in markers)
+
+    def _apply_search_replace_patch(self, existing_content: str, fix: dict) -> str | None:
+        """Aplica patch simples baseado em search/replace retornado pelo LLM."""
+        search = fix.get("search")
+        replace = fix.get("replace", "")
+        if not isinstance(search, str):
+            return None
+
+        if search not in existing_content:
+            return None
+
+        return existing_content.replace(search, replace)
 
     def _is_content_valid_for_file(self, file_path: str, content: str) -> bool:
         """Valida conteúdo básico para evitar que o Fix Agent quebre arquivos existentes."""

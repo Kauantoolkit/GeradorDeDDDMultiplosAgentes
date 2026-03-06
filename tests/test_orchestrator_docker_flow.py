@@ -34,3 +34,22 @@ def test_analyze_docker_result_flags_user_action_requirement():
     assert requires_action is True
     assert any("Ação manual necessária" in issue for issue in issues)
     assert any("Instale o Docker" in issue for issue in issues)
+
+
+def test_merge_fix_changes_updates_execution_result_files_created():
+    orchestrator = OrchestratorAgent(DummyProvider())
+
+    executor_result = ExecutionResult(
+        agent_type=AgentType.EXECUTOR,
+        status=ExecutionStatus.SUCCESS,
+        files_created=["services/orders/main.py"],
+    )
+
+    orchestrator._merge_fix_changes_into_execution_result(
+        executor_result,
+        ["services/orders/api/routes.py", "services/orders/main.py"],
+    )
+
+    assert "services/orders/main.py" in executor_result.files_created
+    assert "services/orders/api/routes.py" in executor_result.files_created
+    assert executor_result.files_created.count("services/orders/main.py") == 1
