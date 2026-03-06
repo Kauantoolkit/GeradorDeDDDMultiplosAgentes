@@ -629,8 +629,12 @@ class ExecutorAgent:
         extra_files = data.get("files", [])
         for file_data in extra_files:
             path = file_data.get("path")
+            if not self._is_allowed_extra_file_path(path):
+                logger.warning(f"Ignorando arquivo extra fora do escopo permitido: {path}")
+                continue
+
             content = self._apply_generation_guards(path, file_data.get("content", ""))
-            
+
             if path and file_manager.create_file(path, content):
                 register_created(path)
         
@@ -652,6 +656,32 @@ class ExecutorAgent:
         logger.info(f"Criados {len(created_files)} arquivos")
         return created_files
     
+    def _is_allowed_extra_file_path(self, file_path: str | None) -> bool:
+        """Restringe arquivos extras do LLM para evitar lixo fora da estrutura esperada."""
+        if not file_path or not isinstance(file_path, str):
+            return False
+
+        normalized = file_path.replace('\\', '/').strip().lstrip('./').lstrip('/')
+        if not normalized:
+            return False
+
+        allowed_prefixes = (
+            'services/',
+            'frontend/',
+        )
+        allowed_root_files = {
+            'README.md',
+            'docker-compose.yml',
+            '.env',
+            '.env.example',
+            '.gitignore',
+        }
+
+        if normalized in allowed_root_files:
+            return True
+
+        return normalized.startswith(allowed_prefixes)
+
     def _sanitize_generated_content(self, file_path: str, content: str) -> str:
         """Corrige padrões críticos conhecidos em código gerado pelo LLM."""
         if not file_path.endswith('.py') or not content:
