@@ -19,5 +19,5 @@ yarn-error.log*
 /generated/
 
 # Logs
-logs/
-*.log
+logs/debug
+#*.log
