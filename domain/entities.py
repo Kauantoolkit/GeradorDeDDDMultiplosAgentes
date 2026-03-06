@@ -311,6 +311,11 @@ class ValidationResult:
     @property
     def is_approved(self) -> bool:
         return self.status == ValidationStatus.APPROVED
+
+    @property
+    def approved(self) -> bool:
+        """Compatibilidade retroativa para chamadores legados."""
+        return self.is_approved
     
     @property
     def needs_rollback(self) -> bool:
