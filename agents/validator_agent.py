@@ -155,17 +155,11 @@ class ValidatorAgent:
         """Atualiza o contexto textual de validação com o estado atual dos arquivos em disco."""
         file_manager = FileManager(requirement.project_config.output_directory)
 
-        candidates: list[str] = []
-        seen: set[str] = set()
-        for path in execution_result.files_created or []:
-            normalized = path.replace("\\", "/")
-            if normalized not in seen:
-                candidates.append(normalized)
-                seen.add(normalized)
-
-        # Fallback para casos em que o resultado veio sem lista de arquivos
-        if not candidates:
-            candidates = file_manager.list_files(".")[:30]
+        all_project_files = file_manager.list_files(".")
+        candidates = self._build_validation_candidates(
+            execution_result.files_created or [],
+            all_project_files,
+        )
 
         snippets: list[str] = []
         for file_path in candidates[:40]:
@@ -179,6 +173,49 @@ class ValidatorAgent:
 
         merged_output = "\n\n".join(snippets)
         return replace(execution_result, output=merged_output)
+
+    def _build_validation_candidates(
+        self,
+        files_created: list[str],
+        project_files: list[str],
+    ) -> list[str]:
+        """Monta lista de arquivos para snapshot de validação priorizando arquivos alterados e cobertura DDD."""
+        seen: set[str] = set()
+        candidates: list[str] = []
+
+        def _add(path: str) -> None:
+            normalized = path.replace("\\", "/")
+            if normalized and normalized not in seen:
+                seen.add(normalized)
+                candidates.append(normalized)
+
+        for path in files_created:
+            _add(path)
+
+        # Sempre complementa com visão geral do projeto para evitar contexto parcial
+        priority_tokens = (
+            "/domain/",
+            "/application/",
+            "/infrastructure/",
+            "/api/",
+            "main.py",
+            "requirements.txt",
+            "docker-compose.yml",
+            "README",
+        )
+
+        prioritized = [
+            file_path for file_path in project_files
+            if any(token in file_path for token in priority_tokens)
+        ]
+
+        for file_path in prioritized[:60]:
+            _add(file_path)
+
+        for file_path in project_files[:80]:
+            _add(file_path)
+
+        return candidates
     
     def _parse_validation_output(self, llm_output: str) -> dict | None:
         """
