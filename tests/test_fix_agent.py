@@ -103,3 +103,41 @@ def test_fix_adds_email_validator_when_schema_uses_emailstr(tmp_path):
     assert "services/user_service/requirements.txt" in result.files_modified
     requirements = (service_dir / "requirements.txt").read_text(encoding="utf-8")
     assert "email-validator>=2.0.0" in requirements
+
+
+class PatchFixProvider:
+    async def generate(self, *args, **kwargs):
+        return '{"fixes":[{"file_path":"main.py","action":"patch","search":"return 1","replace":"return 2"}]}'
+
+
+class PlaceholderFixProvider:
+    async def generate(self, *args, **kwargs):
+        return '{"fixes":[{"file_path":"main.py","action":"modify","content":"# TODO: implementar"}]}'
+
+
+def test_fix_with_llm_applies_patch_action(tmp_path):
+    (tmp_path / "main.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
+
+    requirement = _make_requirement(tmp_path)
+    validation = _make_validation(requirement)
+
+    agent = FixAgent(PatchFixProvider())
+    result = asyncio.run(agent.execute(requirement, validation, attempt=1))
+
+    assert result.success is True
+    assert "main.py" in result.files_modified
+    assert (tmp_path / "main.py").read_text(encoding="utf-8") == "def ok():\n    return 2\n"
+
+
+def test_fix_with_llm_skips_placeholder_content(tmp_path):
+    (tmp_path / "main.py").write_text("def ok():\n    return 1\n", encoding="utf-8")
+
+    requirement = _make_requirement(tmp_path)
+    validation = _make_validation(requirement)
+
+    agent = FixAgent(PlaceholderFixProvider())
+    result = asyncio.run(agent.execute(requirement, validation, attempt=1))
+
+    assert result.success is False
+    assert result.files_modified == []
+    assert (tmp_path / "main.py").read_text(encoding="utf-8") == "def ok():\n    return 1\n"
