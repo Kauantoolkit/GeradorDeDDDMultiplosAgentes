@@ -512,10 +512,14 @@ echo.
         
         result = {
             "docker_available": False,
+            "docker_compose_available": False,
             "containers_running": [],
             "containers_failed": [],
             "health_checks": {},
-            "success": False
+            "success": False,
+            "requires_user_action": False,
+            "user_action_message": "",
+            "user_action_items": []
         }
         
         # Verifica se Docker está disponível
@@ -527,12 +531,51 @@ echo.
                 timeout=10
             )
             result["docker_available"] = check_docker.returncode == 0
+            if check_docker.returncode != 0:
+                stderr = (check_docker.stderr or "").strip()
+                if stderr:
+                    result["error"] = stderr
         except Exception as e:
             logger.warning(f"Docker nao disponivel: {e}")
+            result["requires_user_action"] = True
+            result["user_action_message"] = "Docker não está disponível no ambiente."
+            result["user_action_items"] = [
+                "Instale o Docker e garanta que o daemon esteja em execução.",
+                "Reexecute a geração após disponibilizar o Docker.",
+            ]
             return result
         
         if not result["docker_available"]:
             logger.warning("Docker nao esta instalado ou nao esta rodando")
+            result["requires_user_action"] = True
+            result["user_action_message"] = "Docker não está instalado ou o daemon não está ativo."
+            result["user_action_items"] = [
+                "Inicie o Docker Desktop/daemon local.",
+                "Verifique se o comando 'docker ps' funciona sem erro.",
+            ]
+            return result
+
+        try:
+            check_compose = subprocess.run(
+                ["docker-compose", "--version"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            result["docker_compose_available"] = check_compose.returncode == 0
+            if check_compose.returncode != 0:
+                result["error"] = (check_compose.stderr or "docker-compose indisponível").strip()
+        except Exception as e:
+            result["docker_compose_available"] = False
+            result["error"] = str(e)
+
+        if not result["docker_compose_available"]:
+            result["requires_user_action"] = True
+            result["user_action_message"] = "docker-compose não está disponível no ambiente."
+            result["user_action_items"] = [
+                "Instale docker-compose ou habilite o plugin 'docker compose'.",
+                "Reexecute a geração após disponibilizar o docker-compose.",
+            ]
             return result
         
         # Tenta fazer build e start
@@ -579,6 +622,9 @@ echo.
                 timeout=30
             )
             result["containers_status"] = ps_result.stdout
+            if ps_result.returncode != 0:
+                result["error"] = (ps_result.stderr or "Falha ao consultar status dos containers").strip()
+                return result
             
             # Resolve portas publicadas reais para cada serviço antes do health check
             normalized_services = [self._normalize_service_name(service) for service in services]
@@ -625,6 +671,18 @@ echo.
                         "status": "error",
                         "error": str(e)
                     }
+
+            failed_services = [
+                service for service, status_data in result["health_checks"].items()
+                if status_data.get("status") != "up"
+            ]
+
+            if failed_services:
+                result["containers_failed"] = failed_services
+                result["error"] = f"Health check falhou para: {', '.join(failed_services)}"
+                result["success"] = False
+                logger.warning(result["error"])
+                return result
             
             result["success"] = True
             logger.info("Validacao Docker concluida com sucesso")

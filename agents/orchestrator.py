@@ -226,11 +226,21 @@ class OrchestratorAgent:
                     execution_time_ms=0
                 )
 
-                docker_ok, docker_issues = self._analyze_docker_result(docker_test_result)
+                docker_ok, docker_issues, docker_requires_user_action = self._analyze_docker_result(docker_test_result)
                 if docker_ok:
                     result.add_log("Docker test: APROVADO")
                 else:
                     result.add_log(f"Docker test: REPROVADO - {', '.join(docker_issues)}")
+
+                if docker_requires_user_action:
+                    logger.warning("⚠️ Docker Test requer ação do usuário antes de continuar")
+                    result.add_log("Docker test bloqueado aguardando ação do usuário")
+                    result.success = False
+                    result.error_message = (
+                        "Validação bloqueada: é necessária ação manual para executar os testes Docker. "
+                        f"Detalhes: {'; '.join(docker_issues)}"
+                    )
+                    return result
 
                 combined_issues = self._collect_flow_issues(validation_result, docker_issues)
                 if not combined_issues:
@@ -312,18 +322,28 @@ class OrchestratorAgent:
             
             return result
 
-    def _analyze_docker_result(self, docker_test_result: ExecutionResult) -> tuple[bool, list[str]]:
-        """Extrai status real do teste Docker e retorna lista de problemas."""
+    def _analyze_docker_result(self, docker_test_result: ExecutionResult) -> tuple[bool, list[str], bool]:
+        """Extrai status real do teste Docker e retorna problemas e flag de ação manual."""
         issues = []
+        requires_user_action = False
 
-        if not docker_test_result.success:
-            return False, [docker_test_result.error_message or "Docker Test Agent falhou"]
+        if not docker_test_result.success and not docker_test_result.output:
+            return False, [docker_test_result.error_message or "Docker Test Agent falhou"], False
 
         try:
             payload = json.loads(docker_test_result.output) if docker_test_result.output else {}
             docker_validation = payload.get("docker_validation", {})
 
             if not docker_validation.get("success", False):
+                if docker_validation.get("requires_user_action", False):
+                    requires_user_action = True
+                    user_message = docker_validation.get("user_action_message")
+                    user_items = docker_validation.get("user_action_items", [])
+                    if user_message:
+                        issues.append(f"Ação manual necessária: {user_message}")
+                    for item in user_items:
+                        issues.append(f"Ação do usuário: {item}")
+
                 if not docker_validation.get("docker_available", True):
                     issues.append("Docker indisponível no ambiente")
 
@@ -342,7 +362,7 @@ class OrchestratorAgent:
         except Exception as exc:
             issues.append(f"Falha ao interpretar resultado do Docker Test Agent: {exc}")
 
-        return len(issues) == 0, issues
+        return len(issues) == 0, issues, requires_user_action
 
     def _collect_flow_issues(self, validation_result: ValidationResult, docker_issues: list[str]) -> list[str]:
         """Consolida problemas de validação e teste em uma única lista."""
