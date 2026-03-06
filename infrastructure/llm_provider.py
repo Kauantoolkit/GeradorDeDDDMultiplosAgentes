@@ -150,7 +150,7 @@ class OllamaProvider(LLMProvider):
     métodos para geração de código.
     """
     
-    def __init__(self, model: str = "llama3.2", base_url: str = "http://localhost:11434"):
+    def __init__(self, model: str = "qwen2.5-coder", base_url: str = "http://localhost:11434"):
         """
         Inicializa o provedor Ollama.
         

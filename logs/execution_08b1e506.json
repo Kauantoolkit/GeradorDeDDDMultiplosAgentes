@@ -1,0 +1,14 @@
+{
+  "trace_id": "08b1e506-750b-4c7b-be92-d904120509a2",
+  "started_at": "2026-03-06T21:38:44.619460+00:00",
+  "metadata": "{'requirements': 'crie um clone do ifood', 'model': 'llama3.2', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'agoravai'}",
+  "events": [
+    {
+      "timestamp": "2026-03-06T21:38:44.975042+00:00",
+      "trace_id": "0d278e00-883b-4557-bc97-44ec585912ef",
+      "message_id": "53be00db-5e43-4f88-8340-061f29426fb4",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': 'fcaf837f-e291-4b56-825d-0117f98230f5', 'description': 'crie um clone do ifood', 'output_directory': 'agoravai'}"
+    }
+  ]
+}

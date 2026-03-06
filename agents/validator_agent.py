@@ -9,6 +9,10 @@ Este agente é responsável por:
 - Verificar se todos os componentes estão presentes
 - Decidir se aprova ou reprova o código gerado
 - Se reprovar, acionar o Rollback Agent
+
+MUDANÇAS IMPLEMENTADAS:
+- Logging estruturado com trace_id
+- Busca flexível de arquivos para resolver inconsistências de caminhos entre agentes
 """
 
 import json
@@ -28,6 +32,15 @@ from domain.entities import (
 )
 from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
+
+# Import agent logger for structured logging
+from agents.agent_logger import (
+    get_logger,
+    log_execution,
+    log_error,
+    log_communication,
+    AgentExecutionContext
+)
 
 
 class ValidatorAgent:
@@ -163,7 +176,8 @@ class ValidatorAgent:
 
         snippets: list[str] = []
         for file_path in candidates[:40]:
-            content = file_manager.read_file(file_path)
+            # CORREÇÃO: Usa busca flexível para encontrar arquivos
+            content = file_manager.read_file_flexible(file_path)
             if content is None:
                 continue
             snippets.append(f"### {file_path}\n{content[:1200]}")
@@ -393,21 +407,56 @@ class ValidatorAgent:
         return services
 
     def _check_service_entity_consistency(self, service_name: str, file_manager: FileManager) -> str | None:
+        """
+        Verifies service has coherent entity file with multiple naming patterns.
+        
+        This method now supports multiple entity file naming conventions:
+        - {service_name}_entities.py (e.g., order_entities.py)
+        - {service_name}_domain_entities.py (e.g., order_domain_entities.py)
+        - entities.py (generic)
+        """
+        # Multiple candidate paths for entity files
+        # CORREÇÃO: Usar mesma lógica de nomenclatura do Executor Agent
+        # O Executor usa: domain.replace('-', '_').lower() para nomear arquivos
+        # Ex: se domain="order", cria order_entities.py
+        #     se domain="user", cria user_entities.py
+        domain_name = service_name.lower().replace("-", "_")
+        
+        # Tenta derivar domain a partir do service_name (remove sufixo _service se presente)
+        # "order_service" -> "order", "customer_service" -> "customer"
+        inferred_domain = domain_name
+        if domain_name.endswith("_service"):
+            inferred_domain = domain_name[:-8]  # Remove "_service"
+        
         entity_candidates = [
+            # Padrão usado pelo Executor (domain_entities.py) - PRIORIDADE 1
+            f"services/{service_name}/domain/{inferred_domain}_entities.py",
+            f"services/{service_name}/domain/{inferred_domain}_domain_entities.py",
+            # Padrões alternativos baseados no service_name
+            f"services/{service_name}/domain/{domain_name}_entities.py",
+            f"services/{service_name}/domain/{domain_name}_domain_entities.py",
             f"services/{service_name}/domain/{service_name}_entities.py",
             f"services/{service_name}/domain/entities.py",
+            # Legacy/root level
+            f"domain/{inferred_domain}_entities.py",
+            f"domain/{domain_name}_entities.py",
+            f"domain/entities.py",
         ]
 
         entity_content = None
         entity_file = None
+        
+        # CORREÇÃO: Usa busca flexível para encontrar o arquivo de entidade
         for candidate in entity_candidates:
-            content = file_manager.read_file(candidate)
+            content = file_manager.read_file_flexible(candidate)
             if content:
                 entity_content = content
                 entity_file = candidate
                 break
 
         if not entity_content:
+            # Log which paths were checked for debugging
+            logger.warning(f"No entity file found for service {service_name}. Checked: {entity_candidates}")
             return None
 
         expected_entities = self._expected_entities_for_service(service_name)
@@ -443,13 +492,14 @@ class ValidatorAgent:
         return list(dict.fromkeys(expected))
 
     def _check_service_email_dependency(self, service_name: str, file_manager: FileManager) -> str | None:
+        # CORREÇÃO: Usa busca flexível para encontrar schemas
         schema_candidates = [
             f"services/{service_name}/api/schemas.py",
             f"services/{service_name}/api/schema.py",
         ]
         schema_content = None
         for candidate in schema_candidates:
-            schema_content = file_manager.read_file(candidate)
+            schema_content = file_manager.read_file_flexible(candidate)
             if schema_content:
                 break
 
@@ -501,7 +551,17 @@ class ValidatorAgent:
         return "Requisito menciona frontend, mas nenhum artefato de frontend foi gerado"
 
     def _check_main_handler_contract(self, service_name: str, file_manager: FileManager) -> str | None:
-        main_content = file_manager.read_file(f"services/{service_name}/main.py")
+        # CORREÇÃO: Usa busca flexível para encontrar main.py
+        main_candidates = [
+            f"services/{service_name}/main.py",
+            f"main.py",
+        ]
+        main_content = None
+        for candidate in main_candidates:
+            main_content = file_manager.read_file_flexible(candidate)
+            if main_content:
+                break
+        
         if not main_content:
             return None
 
@@ -524,7 +584,17 @@ class ValidatorAgent:
         return None
 
     def _check_duplicate_routes(self, service_name: str, file_manager: FileManager) -> str | None:
-        main_content = file_manager.read_file(f"services/{service_name}/main.py")
+        # CORREÇÃO: Usa busca flexível para encontrar main.py
+        main_candidates = [
+            f"services/{service_name}/main.py",
+            f"main.py",
+        ]
+        main_content = None
+        for candidate in main_candidates:
+            main_content = file_manager.read_file_flexible(candidate)
+            if main_content:
+                break
+        
         if not main_content:
             return None
 
@@ -855,3 +925,4 @@ class ValidationRules:
         result['score'] = sum(checks) / len(checks)
         
         return result
+

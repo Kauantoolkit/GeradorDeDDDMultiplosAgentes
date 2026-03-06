@@ -31,6 +31,15 @@ from domain.entities import (
 from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
 
+# Import agent logger for structured logging
+from agents.agent_logger import (
+    get_logger,
+    log_execution,
+    log_error,
+    log_communication,
+    AgentExecutionContext
+)
+
 
 class DockerTestAgent:
     """
@@ -108,21 +117,40 @@ class DockerTestAgent:
         normalized = re.sub(r"_+", "_", normalized).strip("_")
         return normalized or "service"
     
-    async def execute(self, requirement: Requirement, execution_result: ExecutionResult) -> ExecutionResult:
+    async def execute(self, requirement: Requirement, execution_result: ExecutionResult, trace_id: str = None) -> ExecutionResult:
         """
         Executa a validação de Docker.
         
         Args:
             requirement: Requisitos do projeto
             execution_result: Resultado da execução do Executor
+            trace_id: ID único da execução (opcional)
             
         Returns:
             ExecutionResult com status da validação Docker
         """
         start_time = datetime.now()
         
+        # Get or create logger with trace_id
+        agent_logger = get_logger()
+        if trace_id is None:
+            trace_id = agent_logger.create_trace_id()
+        
+        # Create execution context for structured logging
+        context = AgentExecutionContext(
+            agent_name=self.name,
+            trace_id=trace_id,
+            input_data={
+                "requirement_id": requirement.id,
+                "output_directory": requirement.project_config.output_directory,
+                "files_created_count": len(execution_result.files_created) if execution_result.files_created else 0
+            }
+        )
+        context.start()
+        
         logger.info("="*60)
         logger.info("DOCKER TEST AGENT - Iniciando validação")
+        logger.info(f"trace_id: {trace_id[:8]}...")
         logger.info("="*60)
         
         result = ExecutionResult(
@@ -138,6 +166,9 @@ class DockerTestAgent:
                 logger.warning("Nenhum serviço identificado para validação Docker")
                 result.status = ExecutionStatus.FAILED
                 result.error_message = "Nenhum serviço identificado"
+                
+                # End context with failure
+                context.end(output_data={"error": "Nenhum serviço identificado"}, status="failure")
                 return result
             
             logger.info(f"Serviços identificados: {services}")
@@ -177,10 +208,24 @@ class DockerTestAgent:
             
             logger.info(f"✅ Docker Test Agent concluído em {(datetime.now() - start_time).total_seconds():.2f}s")
             
+            # End execution context with success
+            context.end(
+                output_data={
+                    "docker_compose_path": docker_compose_path,
+                    "validate_script_path": validate_script_path,
+                    "services": services,
+                    "docker_success": docker_result.get("success", False)
+                },
+                status="success" if result.success else "failure"
+            )
+            
         except Exception as e:
             logger.exception(f"Erro no {self.name}: {e}")
             result.status = ExecutionStatus.FAILED
             result.error_message = str(e)
+            
+            # End execution context with error
+            context.end_with_error(e, context={"error": str(e)})
         
         return result
     

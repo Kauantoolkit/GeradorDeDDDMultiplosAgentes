@@ -12,6 +12,10 @@ Este agente é responsável por:
 O Fix Agent é acionado automaticamente quando o Validator Agent
 reprova o código gerado, tentando corrigir os problemas antes
 de uma nova validação.
+
+MUDANÇAS IMPLEMENTADAS:
+- Logging estruturado com trace_id
+- Busca flexível de arquivos para resolver inconsistências de caminhos entre agentes
 """
 
 import json
@@ -32,6 +36,15 @@ from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
 
 from .error_logger import get_error_logger
+
+# Import agent logger for structured logging
+from agents.agent_logger import (
+    get_logger,
+    log_execution,
+    log_error,
+    log_communication,
+    AgentExecutionContext
+)
 
 
 class FixAgent:
@@ -69,7 +82,8 @@ class FixAgent:
         self,
         requirement: Requirement,
         validation_result: ValidationResult,
-        attempt: int = 1
+        attempt: int = 1,
+        trace_id: str = None
     ) -> ExecutionResult:
         """
         Executa a correção dos problemas identificados.
@@ -78,11 +92,31 @@ class FixAgent:
             requirement: Requisito original
             validation_result: Resultado da validação com problemas
             attempt: Número da tentativa de correção
+            trace_id: ID único da execução (opcional)
             
         Returns:
             ExecutionResult com status das correções
         """
         start_time = datetime.now()
+        
+        # Get or create logger with trace_id
+        agent_logger = get_logger()
+        if trace_id is None:
+            trace_id = agent_logger.create_trace_id()
+        
+        # Create execution context for structured logging
+        context = AgentExecutionContext(
+            agent_name=self.name,
+            trace_id=trace_id,
+            input_data={
+                "requirement_id": requirement.id,
+                "attempt": attempt,
+                "issues_count": len(validation_result.issues) if validation_result else 0,
+                "rejected_items": validation_result.rejected_items if validation_result else [],
+                "missing_items": validation_result.missing_items if validation_result else []
+            }
+        )
+        context.start()
         
         result = ExecutionResult(
             agent_type=AgentType.FIX,
@@ -158,6 +192,16 @@ class FixAgent:
             result.finished_at = datetime.now()
             result.execution_time = (result.finished_at - start_time).total_seconds()
             
+            # End execution context with success
+            context.end(
+                output_data={
+                    "files_modified": files_modified,
+                    "status": result.status.value,
+                    "execution_time": result.execution_time
+                },
+                status="success"
+            )
+            
             return result
             
         except Exception as e:
@@ -166,6 +210,9 @@ class FixAgent:
             result.error_message = str(e)
             result.finished_at = datetime.now()
             result.execution_time = (result.finished_at - start_time).total_seconds()
+            
+            # End execution context with error
+            context.end_with_error(e, context={"error": str(e)})
             
             # Registra o erro
             self.error_logger.log_fix_attempt(
@@ -351,7 +398,8 @@ class FixAgent:
                     service_names.add(service_dir.name)
 
         for service_name in sorted(service_names):
-            schema_content = file_manager.read_file(f"services/{service_name}/api/schemas.py")
+            # Usa busca flexível para encontrar schemas
+            schema_content = file_manager.read_file_flexible(f"services/{service_name}/api/schemas.py")
             if not schema_content or "EmailStr" not in schema_content:
                 continue
 
@@ -427,7 +475,11 @@ class FixAgent:
 
             fixes = fix_data.get("fixes", [])
             for fix in fixes:
+                # CORREÇÃO: Normalizar caminhos recebidos do LLM (hífen → underscore)
                 file_path = fix.get("file_path")
+                if file_path:
+                    file_path = file_path.replace('-', '_')
+                
                 content = fix.get("content")
                 action = fix.get("action", "modify")
 
@@ -445,10 +497,19 @@ class FixAgent:
                         logger.info(f"  Criado: {file_path}")
 
                 elif file_path and action == "modify":
-                    existing_content = file_manager.read_file(file_path)
+                    # CORREÇÃO: Usar read_file_flexible para encontrar o arquivo em múltiplos locais
+                    # Isso resolve problemas de caminhos inconsistentes entre Executor e FixAgent
+                    existing_content = file_manager.read_file_flexible(file_path)
                     if existing_content is None:
-                        logger.warning(f"  Arquivo para modificação não encontrado: {file_path}")
-                        continue
+                        logger.warning(f"  Arquivo para modificação não encontrado: {file_path} (tentando busca flexível)")
+                        # Tenta encontrar em todos os serviços como último recurso
+                        found_path = file_manager.find_file_with_flexible_search(file_path)
+                        if found_path:
+                            logger.info(f"  Encontrado arquivo em caminho alternativo: {found_path}")
+                            existing_content = file_manager.read_file(found_path)
+                            file_path = found_path  # Usa o caminho encontrado
+                        else:
+                            continue
 
                     if fix.get("append"):
                         new_content = existing_content + "\n" + (content or "")
@@ -468,10 +529,18 @@ class FixAgent:
                         logger.info(f"  Modificado: {file_path}")
 
                 elif file_path and action == "patch":
-                    existing_content = file_manager.read_file(file_path)
+                    # CORREÇÃO: Usar read_file_flexible para encontrar o arquivo
+                    existing_content = file_manager.read_file_flexible(file_path)
                     if existing_content is None:
                         logger.warning(f"  Arquivo para patch não encontrado: {file_path}")
-                        continue
+                        # Tenta encontrar em todos os serviços
+                        found_path = file_manager.find_file_with_flexible_search(file_path)
+                        if found_path:
+                            logger.info(f"  Encontrado arquivo em caminho alternativo: {found_path}")
+                            existing_content = file_manager.read_file(found_path)
+                            file_path = found_path
+                        else:
+                            continue
 
                     patched_content = self._apply_search_replace_patch(existing_content, fix)
                     if patched_content is None or patched_content == existing_content:
@@ -497,14 +566,33 @@ class FixAgent:
         if not files:
             return []
 
+        # CORREÇÃO: Normalizar nomes de arquivos (hífen → underscore)
+        # O LLM pode retornar "order-service" mas o projeto usa "order_service"
+        normalized_files = []
+        for f in files:
+            normalized = f.replace('-', '_')
+            normalized_files.append(normalized)
+        
+        # Usar arquivo original se existir, caso contrário usar normalizado
+        final_files = []
+        for orig, norm in zip(files, normalized_files):
+            if orig in files:
+                final_files.append(orig)
+            elif norm in files:
+                final_files.append(norm)
+            else:
+                final_files.append(orig)  # keep original as fallback
+
         terms: set[str] = set()
         for issue in validation_result.issues + validation_result.rejected_items + validation_result.missing_items:
             for token in re.findall(r"[a-zA-Z_][a-zA-Z0-9_./-]*", issue.lower()):
                 if len(token) >= 4:
                     terms.add(token)
+                    # Also add normalized version (hyphen to underscore)
+                    terms.add(token.replace('-', '_'))
 
         ranked: list[tuple[int, str]] = []
-        for file_path in files:
+        for file_path in final_files:
             normalized = file_path.lower().replace("\\", "/")
             score = sum(1 for term in terms if term in normalized)
             ranked.append((score, file_path))
@@ -514,13 +602,14 @@ class FixAgent:
         if top_matches:
             return top_matches
 
-        return files[:8]
+        return final_files[:8]
 
     def _build_file_context_snippets(self, file_manager: FileManager, files: list[str]) -> str:
         """Monta snippets curtos de arquivos para orientar o LLM sem estourar contexto."""
         snippets: list[str] = []
         for file_path in files[:10]:
-            content = file_manager.read_file(file_path)
+            # Usa busca flexível para encontrar arquivos
+            content = file_manager.read_file_flexible(file_path)
             if content is None:
                 continue
 
@@ -563,29 +652,60 @@ class FixAgent:
             return False
 
     def _parse_fix_json(self, llm_output: str) -> dict | None:
-        """Extrai JSON de correções do LLM com tolerância a ruído."""
+        """
+        Extrai JSON de correções do LLM com múltiplas estratégias de parsing.
+        
+        Improved to handle various LLM output formats and parsing failures.
+        """
         candidates: list[str] = []
 
+        # Strategy 1: Try markdown json block
         markdown_match = re.search(r"```json\s*(\{.*?\})\s*```", llm_output, re.DOTALL)
         if markdown_match:
             candidates.append(markdown_match.group(1))
 
+        # Strategy 2: Try to find JSON between braces
         start = llm_output.find('{')
         end = llm_output.rfind('}')
         if start >= 0 and end > start:
             candidates.append(llm_output[start:end + 1])
 
-        for candidate in list(candidates):
-            candidates.append(re.sub(r",\s*([}\]])", r"\1", candidate))
+        # Strategy 3: Try to find JSON array
+        array_start = llm_output.find('[')
+        array_end = llm_output.rfind(']')
+        if array_start >= 0 and array_end > array_start:
+            candidates.append(llm_output[array_start:array_end + 1])
 
+        # Clean up candidates - remove trailing commas and fix common issues
+        for candidate in list(candidates):
+            # Fix trailing commas
+            cleaned = re.sub(r",\s*([}\]])", r"\1", candidate)
+            # Remove single-line comments
+            cleaned = re.sub(r"//.*?(\n|$)", "\n", cleaned)
+            # Remove multi-line comments
+            cleaned = re.sub(r"/\*.*?\*/", "", cleaned, flags=re.DOTALL)
+            candidates.append(cleaned)
+
+        # Try to parse each candidate
         for candidate in candidates:
             try:
                 parsed = json.loads(candidate)
-                if isinstance(parsed, dict) and isinstance(parsed.get("fixes", []), list):
-                    return parsed
+                # Verify it's a valid fix structure
+                if isinstance(parsed, dict):
+                    if "fixes" in parsed and isinstance(parsed.get("fixes"), list):
+                        return parsed
+                    # If it's a dict but not with "fixes", wrap it
+                    return {"fixes": [parsed]}
+                elif isinstance(parsed, list):
+                    # If it's a list, wrap it
+                    return {"fixes": parsed}
             except json.JSONDecodeError:
                 continue
 
+        # Last resort: try to extract any JSON-like structure
+        logger.warning("Não foi possível parsear resposta do LLM para correção")
+        logger.debug(f"Output recebido: {llm_output[:500]}...")
+        
         return None
     
     def _fix_basic(
@@ -851,3 +971,4 @@ class FixManager:
             "total_attempts": attempt,
             "success": current_validation.status.value == "approved"
         }
+

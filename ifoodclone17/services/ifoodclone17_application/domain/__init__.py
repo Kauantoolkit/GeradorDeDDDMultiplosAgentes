@@ -1,4 +1,0 @@
-# ifoodclone17_application - Domain Layer
-from .ifoodclone17_application_entities import Orderservice, OrderserviceRepository
-from .ifoodclone17_application_value_objects import Address, Email, Money
-from .ifoodclone17_application_aggregates import Ifoodclone17_applicationAggregate

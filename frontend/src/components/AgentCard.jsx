@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const AGENT_ICONS = {
@@ -22,6 +22,7 @@ const AGENT_NAMES = {
 };
 
 function AgentCard({ agent, status, message, score, details, lastUpdateAt }) {
+  const [showDetails, setShowDetails] = useState(false);
   const isActive = status === 'starting' || status === 'running';
   const isCompleted = status === 'completed';
   const isFailed = status === 'failed';
@@ -34,6 +35,11 @@ function AgentCard({ agent, status, message, score, details, lastUpdateAt }) {
     if (isRejected) return 'rejected';
     return '';
   };
+
+  // Extract input/output from details
+  const inputData = details?.input;
+  const outputData = details?.output;
+  const hasIoData = inputData || outputData;
 
   return (
     <motion.div
@@ -73,6 +79,36 @@ function AgentCard({ agent, status, message, score, details, lastUpdateAt }) {
               </div>
               <span>{(score * 100).toFixed(0)}%</span>
             </div>
+          </div>
+        )}
+
+        {/* Input/Output Display */}
+        {hasIoData && (
+          <div className="agent-io">
+            <button 
+              className="io-toggle-btn"
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              {showDetails ? '▼ Ocultar' : '▶ Ver Detalhes I/O'}
+            </button>
+            
+            {showDetails && (
+              <div className="io-content">
+                {inputData && (
+                  <div className="io-section input-section">
+                    <h4>📥 INPUT (Recebido)</h4>
+                    <pre>{JSON.stringify(inputData, null, 2)}</pre>
+                  </div>
+                )}
+                
+                {outputData && (
+                  <div className="io-section output-section">
+                    <h4>📤 OUTPUT (Gerado)</h4>
+                    <pre>{JSON.stringify(outputData, null, 2)}</pre>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

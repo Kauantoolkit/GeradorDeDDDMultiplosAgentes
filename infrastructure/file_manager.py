@@ -264,3 +264,205 @@ class FileManager:
         _build_tree(full_path)
         
         return "\n".join(tree)
+
+    def find_file_with_patterns(self, base_dir: str, filename_patterns: list[str]) -> str | None:
+        """
+        Encontra um arquivo verificando múltiplos padrões de nome.
+        
+        Útil para encontrar arquivos de entidade que podem ter nomes diferentes
+        dependendo de como foram gerados pelo LLM.
+        
+        Args:
+            base_dir: Diretório base (ex: "services/order_service/domain")
+            filename_patterns: Lista de padrões de nome (ex: ["order_entities.py", "entities.py"])
+            
+        Returns:
+            Caminho do primeiro arquivo encontrado, ou None
+        """
+        for pattern in filename_patterns:
+            full_path = self.base_path / base_dir / pattern
+            if full_path.exists():
+                return f"{base_dir}/{pattern}"
+        
+        return None
+    
+    def find_entity_file(self, service_name: str) -> str | None:
+        """
+        Encontra o arquivo de entidade de um serviço tentando múltiplos padrões.
+
+        Args:
+            service_name: Nome do serviço (ex: "order_service")
+            
+        Returns:
+            Caminho do arquivo de entidade encontrado, ou None
+        """
+        # Normalizar nome do serviço
+        normalized_service = service_name.lower().replace('-', '_')
+        
+        # Tentar derivar domain a partir do service_name
+        domain = normalized_service
+        if normalized_service.endswith('_service'):
+            domain = normalized_service[:-8]  # Remove "_service"
+        
+        # Padrões de busca para arquivos de entidade
+        patterns = [
+            f"services/{service_name}/domain/{domain}_entities.py",
+            f"services/{service_name}/domain/{normalized_service}_entities.py",
+            f"services/{service_name}/domain/entities.py",
+            f"domain/{domain}_entities.py",
+            f"domain/entities.py",
+        ]
+        
+        for pattern in patterns:
+            full_path = self.base_path / pattern
+            if full_path.exists():
+                return pattern
+        
+        return None
+
+    def find_file_with_flexible_search(self, file_path: str) -> str | None:
+        """
+        Encontra um arquivo tentando múltiplos padrões de caminho.
+        
+        Problema: O LLM pode retornar caminhos inconsistentes entre agentes.
+        Exemplo: O Executor gera 'services/order_service/main.py' mas o FixAgent
+        tenta acessar 'order_service/main.py' ou 'services/order_service/domain/entities.py'
+        
+        Esta função tenta normalizar e encontrar o arquivo em múltiplos locais.
+
+        Args:
+            file_path: Caminho original retornado pelo LLM
+            
+        Returns:
+            Caminho válido do arquivo encontrado, ou None
+        """
+        # Primeiro, tenta o caminho original normalizado
+        normalized = file_path.replace('\\', '/').strip()
+        
+        # Tenta caminho original
+        if (self.base_path / normalized).exists():
+            return normalized
+        
+        # Tenta sem prefixo services/
+        if normalized.startswith('services/'):
+            without_services = normalized[9:]  # Remove 'services/'
+            if (self.base_path / without_services).exists():
+                return without_services
+        
+        # Tenta com prefixo services/
+        if not normalized.startswith('services/') and not normalized.startswith('frontend/'):
+            with_services = f"services/{normalized}"
+            if (self.base_path / with_services).exists():
+                return with_services
+        
+        # Tenta normalizar hífen para underscore
+        if '-' in normalized:
+            with_underscore = normalized.replace('-', '_')
+            if (self.base_path / with_underscore).exists():
+                return with_underscore
+        
+        # Tenta o inverso: underscore para hífen
+        if '_' in normalized:
+            with_hyphen = normalized.replace('_', '-')
+            if (self.base_path / with_hyphen).exists():
+                return with_hyphen
+        
+        # Tenta buscar em services/*/domain/
+        if '/domain/' in normalized or '/application/' in normalized or '/api/' in normalized:
+            return self._find_in_all_services(normalized)
+        
+        return None
+    
+    def _find_in_all_services(self, path_pattern: str) -> str | None:
+        """
+        Busca um arquivo em todos os serviços.
+        
+        Args:
+            path_pattern: Padrão do caminho (ex: 'domain/entities.py')
+            
+        Returns:
+            Caminho encontrado ou None
+        """
+        services_dir = self.base_path / 'services'
+        if not services_dir.exists():
+            return None
+        
+        # Extrai a parte do caminho após domain/application/api
+        parts = path_pattern.split('/')
+        try:
+            layer_idx = next(i for i, p in enumerate(parts) if p in ['domain', 'application', 'infrastructure', 'api'])
+            filename = '/'.join(parts[layer_idx:])
+        except StopValueError:
+            filename = path_pattern
+        
+        # Busca em todos os serviços
+        for service_dir in services_dir.iterdir():
+            if not service_dir.is_dir():
+                continue
+            
+            candidate = service_dir / filename
+            if candidate.exists():
+                return str(candidate.relative_to(self.base_path))
+            
+            # Tenta com _services removido
+            if service_dir.name.endswith('_service'):
+                alt_service_name = service_dir.name[:-8]
+                alt_candidate = services_dir / alt_service_name / filename
+                if alt_candidate.exists():
+                    return str(alt_candidate.relative_to(self.base_path))
+        
+        return None
+    
+    def read_file_flexible(self, file_path: str) -> str | None:
+        """
+        Lê um arquivo tentando múltiplos padrões de caminho.
+        
+        Args:
+            file_path: Caminho do arquivo
+            
+        Returns:
+            Conteúdo do arquivo ou None se não encontrado
+        """
+        # Primeiro tenta caminho direto
+        content = self.read_file(file_path)
+        if content is not None:
+            return content
+        
+        # Tenta com busca flexível
+        found_path = self.find_file_with_flexible_search(file_path)
+        if found_path:
+            return self.read_file(found_path)
+        
+        return None
+    
+    def normalize_path(self, file_path: str) -> str:
+        """
+        Normaliza um caminho para o formato padrão do projeto.
+        
+        Args:
+            file_path: Caminho a normalizar
+            
+        Returns:
+            Caminho normalizado
+        """
+        normalized = file_path.replace('\\', '/').strip()
+        
+        # Remove prefixos duplicados
+        parts = [p for p in normalized.split('/') if p and p != '.']
+        
+        # Remove base_name se estiver no início (evita duplicação)
+        if self._base_name and parts and parts[0] == self._base_name:
+            parts = parts[1:]
+        
+        # Garante que serviços têm o prefixo services/
+        if parts and not parts[0] in ['services', 'frontend', 'api', 'domain', 'infrastructure', 'application']:
+            # Verificar se é um nome de serviço válido
+            if len(parts) >= 2 and parts[0] == 'services':
+                pass  # Já tem prefixo
+            elif len(parts) >= 1:
+                # Assume que é um serviço se tem apenas 1-2 níveis
+                if len(parts) <= 2:
+                    parts.insert(0, 'services')
+        
+        return '/'.join(parts)
+

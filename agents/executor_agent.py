@@ -16,6 +16,7 @@ MUDANÇAS IMPLEMENTADAS:
 - Validação de integridade após geração
 - Geração na ordem correta DDD
 - Correção de templates com placeholders não substituídos
+- Logging estruturado com trace_id
 """
 
 import json
@@ -34,6 +35,15 @@ from domain.entities import (
 )
 from infrastructure.llm_provider import OllamaProvider, PromptBuilder
 from infrastructure.file_manager import FileManager
+
+# Import agent logger for structured logging
+from agents.agent_logger import (
+    get_logger,
+    log_execution,
+    log_error,
+    log_communication,
+    AgentExecutionContext
+)
 
 
 class PlaceholderReplacer:
@@ -130,12 +140,13 @@ class ExecutorAgent:
         self.max_generation_attempts = 3
         logger.info(f"{self.name} inicializado")
     
-    async def execute(self, requirement: Requirement) -> ExecutionResult:
+    async def execute(self, requirement: Requirement, trace_id: str = None) -> ExecutionResult:
         """
         Executa a geração de código.
         
         Args:
             requirement: Requisito do projeto
+            trace_id: ID único da execução (opcional)
             
         Returns:
             ExecutionResult com os arquivos gerados
@@ -147,9 +158,28 @@ class ExecutorAgent:
             started_at=start_time
         )
         
+        # Get or create logger with trace_id
+        agent_logger = get_logger()
+        if trace_id is None:
+            trace_id = agent_logger.create_trace_id()
+        
+        # Create execution context for structured logging
+        context = AgentExecutionContext(
+            agent_name=self.name,
+            trace_id=trace_id,
+            input_data={
+                "requirement": requirement.description[:500] if requirement.description else "",
+                "output_directory": requirement.project_config.output_directory,
+                "framework": requirement.project_config.framework,
+                "database": requirement.project_config.database
+            }
+        )
+        context.start()
+        
         try:
             logger.info("="*60)
             logger.info("EXECUTOR AGENT - Iniciando geração de código")
+            logger.info(f"trace_id: {trace_id[:8]}...")
             logger.info("="*60)
             
             file_manager = FileManager(requirement.project_config.output_directory)
@@ -207,6 +237,15 @@ class ExecutorAgent:
             logger.info(f"{self.name} - Concluído em {result.execution_time:.2f}s")
             logger.info(f"Arquivos criados: {len(created_files)}")
             
+            # End execution context with structured logging
+            context.end(
+                output_data={
+                    "files_created": len(created_files),
+                    "execution_time": result.execution_time
+                },
+                status="success"
+            )
+            
             return result
             
         except Exception as e:
@@ -215,6 +254,9 @@ class ExecutorAgent:
             result.error_message = str(e)
             result.finished_at = datetime.now()
             result.execution_time = (result.finished_at - start_time).total_seconds()
+            
+            # End execution context with error
+            context.end_with_error(e, context={"error": str(e)})
             
             return result
 
@@ -1042,17 +1084,23 @@ class ExecutorAgent:
         
         # Normalizar domain também
         normalized_domain = domain.replace('-', '_').lower()
+
+        # Domain Layer - CORRIGIDO: Usar normalized_domain e importar TODAS as entidades
+        # Gera lista de imports de entidades
+        entities_import = ", ".join([e for e in entities]) if entities else "Entity"
+        repository_imports = ", ".join([f"{e}Repository" for e in entities]) if entities else "EntityRepository"
         
-        # Domain Layer - CORRIGIDO: Usar normalized_domain
         files[f"{base_path}/domain/__init__.py"] = f"""# {normalized_service_name} - Domain Layer
-from .{normalized_domain}_entities import {entities[0] if entities else "Entity"}, {entities[0] if entities else "Entity"}Repository
+from .{normalized_domain}_entities import {entities_import}, {repository_imports}
 from .{normalized_domain}_value_objects import Address, Email, Money
 from .{normalized_domain}_aggregates import {normalized_domain.capitalize()}Aggregate
 """
-        
-        # Entities
+
+        # Entities - CORRIGIDO: Adicionar todas as entidades em um único arquivo
+        entities_content = ""
         for entity in entities:
-            files[f"{base_path}/domain/{normalized_domain}_entities.py"] = self._generate_entity(entity, normalized_domain)
+            entities_content += self._generate_entity(entity, normalized_domain) + "\n\n"
+        files[f"{base_path}/domain/{normalized_domain}_entities.py"] = entities_content
         
         # Value Objects - CORRIGIDO: Usar normalized_domain
         files[f"{base_path}/domain/{normalized_domain}_value_objects.py"] = self._generate_value_objects(normalized_domain)
@@ -1897,15 +1945,42 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 '''
     
-    def _generate_requirements(self) -> str:
-        return """# Requirements
-fastapi>=0.104.0
-uvicorn>=0.24.0
-pydantic>=2.5.0
-sqlalchemy>=2.0.0
-asyncpg>=0.29.0
-python-dotenv>=1.0.0
-"""
+    def _generate_requirements(self, entities: list = None) -> str:
+        """
+        Gera requirements.txt com dependências condicionais.
+        
+        Args:
+            entities: Lista de nomes de entidades para detectar dependências necessárias
+            
+        Returns:
+            Conteúdo do requirements.txt
+        """
+        # Dependências base (sempre necessárias)
+        base_requirements = [
+            "fastapi>=0.104.0",
+            "uvicorn>=0.24.0",
+            "pydantic>=2.5.0",
+            "sqlalchemy>=2.0.0",
+            "asyncpg>=0.29.0",
+            "python-dotenv>=1.0.0",
+        ]
+        
+        # Dependências condicionais baseadas nas entidades
+        conditional_requirements = []
+        
+        if entities:
+            entities_str = " ".join(entities).lower()
+            
+            # Se entidades usam email (User, Customer, etc.), adicionar dependências de email
+            email_entities = ['user', 'usuario', 'customer', 'cliente', 'person', 'pessoa']
+            if any(entity in entities_str for entity in email_entities):
+                conditional_requirements.append("pydantic[email]>=2.5.0")
+                conditional_requirements.append("email-validator>=2.0.0")
+        
+        # Combinar todas as dependências
+        all_requirements = base_requirements + conditional_requirements
+        
+        return "# Requirements\n" + "\n".join(all_requirements) + "\n"
     
     def _generate_dockerfile(self, service_name: str) -> str:
         return f'''FROM python:3.11-slim

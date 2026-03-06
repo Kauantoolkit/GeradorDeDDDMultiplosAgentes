@@ -346,6 +346,24 @@ async def execute_generation(
             **data
         }
         await manager.broadcast(message)
+    
+    # Usa o trace_id do task_id para o logger
+    from agents.agent_logger import get_or_create_logger, reset_logger
+    
+    # Reseta logger anterior e cria novo com trace_id específico
+    reset_logger()
+    agent_logger = get_or_create_logger(
+        trace_id=task_id,
+        metadata={
+            "requirements": requirements[:500],  # Limita tamanho
+            "model": model,
+            "framework": framework,
+            "database": database,
+            "output_dir": output_dir
+        }
+    )
+    
+    logger.info(f"[task_id={task_id}] Logger de execução inicializado: {agent_logger.execution_log_file}")
 
     try:
         logger.info(

@@ -59,22 +59,32 @@ class AgentLogger:
     - trace_id para correlação deexecuções
     - message_id para cada comunicação
     - Logging em JSON para fácil parsing
-    - Persistência em arquivo dedicado
+    - Persistência em arquivo dedicado por execução
+    - Arquivos únicos por execução para melhor debug
     """
     
-    def __init__(self, log_dir: str = "logs", log_file: str = "agent_execution.log"):
+    def __init__(self, log_dir: str = "logs", log_file: str = "agent_execution.log", trace_id: str = None):
         """
         Inicializa o AgentLogger.
         
         Args:
             log_dir: Diretório para salvar os logs
-            log_file: Nome do arquivo de log
+            log_file: Nome do arquivo de log (legacy)
+            trace_id: ID único da execução (se None, gera um novo)
         """
         self.log_dir = Path(log_dir)
-        self.log_file = self.log_dir / log_file
         
         # Garante que o diretório existe
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Gera trace_id se não fornecido
+        self.trace_id = trace_id or self.create_trace_id()
+        
+        # Cria arquivo de log específico por execução
+        self.execution_log_file = self.log_dir / f"execution_{self.trace_id[:8]}.json"
+        
+        # Mantém arquivo legado para compatibilidade
+        self.legacy_log_file = self.log_dir / log_file
         
         # Configura o logger
         self._setup_logger()
@@ -82,16 +92,19 @@ class AgentLogger:
         # Armazena traces ativos
         self._active_traces: dict[str, datetime] = {}
         
-        print(f"[AgentLogger] Inicializado - Arquivo: {self.log_file}")
+        # Armazena eventos da execução atual para json final
+        self._execution_events: list[dict] = []
+        
+        print(f"[AgentLogger] Inicializado - Arquivo: {self.execution_log_file}")
     
     def _setup_logger(self):
         """Configura o logger para persistência em arquivo sem reset global."""
         # IMPORTANTE: não removemos handlers globais do loguru para não afetar
         # configuração de logging já aplicada por outros componentes.
 
-        # Adiciona handler para arquivo JSON
+        # Adiciona handler para arquivo JSON legado
         logger.add(
-            str(self.log_file),
+            str(self.legacy_log_file),
             rotation="10 MB",
             retention="30 days",
             level="DEBUG",
@@ -105,6 +118,33 @@ class AgentLogger:
             level="INFO",
             format="{time:HH:mm:ss} | {level} | {message}"
         )
+    
+    @property
+    def log_file(self):
+        """Retorna o arquivo de log legado para compatibilidade."""
+        return self.legacy_log_file
+    
+    def _write_execution_start(self, trace_id: str, metadata: dict = None):
+        """
+        Escreve o arquivo JSON de início de execução.
+        
+        Args:
+            trace_id: ID da execução
+            metadata: Metadados da execução
+        """
+        execution_data = {
+            "trace_id": trace_id,
+            "started_at": datetime.now(timezone.utc).isoformat(),
+            "metadata": self._make_serializable(metadata) if metadata else {},
+            "events": []
+        }
+        
+        try:
+            with open(self.execution_log_file, 'w', encoding='utf-8') as f:
+                json.dump(execution_data, f, ensure_ascii=False, indent=2)
+            print(f"[AgentLogger] Arquivo de execução criado: {self.execution_log_file}")
+        except Exception as e:
+            print(f"[AgentLogger] Erro ao criar arquivo de execução: {e}")
     
     def _serialize_log(self, log_entry: dict) -> str:
         """
@@ -131,6 +171,34 @@ class AgentLogger:
                 f.write(log_line + '\n')
         except Exception as e:
             print(f"[AgentLogger] Erro ao escrever log: {e}")
+    
+    def _append_event_to_execution_file(self, log_entry: dict):
+        """
+        Adiciona um evento ao arquivo JSON de execução.
+        
+        Args:
+            log_entry: Dicionário com dados do evento
+        """
+        try:
+            if not self.execution_log_file.exists():
+                print(f"[AgentLogger] Arquivo de execução não existe: {self.execution_log_file}")
+                return
+            
+            # Lê o arquivo atual
+            with open(self.execution_log_file, 'r', encoding='utf-8') as f:
+                execution_data = json.load(f)
+            
+            # Adiciona o evento à lista
+            if 'events' not in execution_data:
+                execution_data['events'] = []
+            execution_data['events'].append(log_entry)
+            
+            # Escreve de volta
+            with open(self.execution_log_file, 'w', encoding='utf-8') as f:
+                json.dump(execution_data, f, ensure_ascii=False, indent=2)
+                
+        except Exception as e:
+            print(f"[AgentLogger] Erro ao adicionar evento ao arquivo de execução: {e}")
     
     def create_trace_id(self) -> str:
         """
@@ -196,8 +264,11 @@ class AgentLogger:
         if error:
             log_entry["error"] = error
         
-        # Escreve no arquivo
+        # Escreve no arquivo legado
         self._write_log(log_entry)
+        
+        # Também adiciona ao arquivo JSON de execução
+        self._append_event_to_execution_file(log_entry)
         
         # Também log no loguru para debug
         logger.info(
@@ -253,8 +324,11 @@ class AgentLogger:
             "status": "failure"
         }
         
-        # Escreve no arquivo
+        # Escreve no arquivo legado
         self._write_log(log_entry)
+        
+        # Também adiciona ao arquivo JSON de execução
+        self._append_event_to_execution_file(log_entry)
         
         # Também log no loguru
         logger.error(
@@ -303,8 +377,11 @@ class AgentLogger:
             "execution_time_ms": round(execution_time_ms, 2)
         }
         
-        # Escreve no arquivo
+        # Escreve no arquivo legado
         self._write_log(log_entry)
+        
+        # Também adiciona ao arquivo JSON de execução
+        self._append_event_to_execution_file(log_entry)
         
         # Log no loguru
         direction = f"{from_agent} → {to_agent}"
@@ -334,6 +411,7 @@ class AgentLogger:
         }
         
         self._write_log(log_entry)
+        self._append_event_to_execution_file(log_entry)
         self._active_traces[trace_id] = datetime.now(timezone.utc)
         
         logger.info(f"TRACE_START | trace_id={trace_id[:8]}...")
@@ -371,6 +449,7 @@ class AgentLogger:
         }
         
         self._write_log(log_entry)
+        self._append_event_to_execution_file(log_entry)
         
         if trace_id in self._active_traces:
             del self._active_traces[trace_id]
@@ -479,6 +558,39 @@ def get_logger() -> AgentLogger:
         _agent_logger_instance = AgentLogger()
     
     return _agent_logger_instance
+
+
+def get_or_create_logger(trace_id: str = None, metadata: dict = None) -> AgentLogger:
+    """
+    Retorna ou cria um AgentLogger com trace_id específico.
+    
+    Args:
+        trace_id: ID único da execução
+        metadata: Metadados da execução (requirements, model, etc)
+        
+    Returns:
+        Instância do AgentLogger
+    """
+    global _agent_logger_instance
+    
+    if trace_id is None:
+        trace_id = str(uuid.uuid4())
+    
+    _agent_logger_instance = AgentLogger(trace_id=trace_id)
+    
+    # Inicia o trace com metadados
+    _agent_logger_instance.log_trace_start(trace_id, metadata)
+    
+    # Escreve arquivo JSON de execução
+    _agent_logger_instance._write_execution_start(trace_id, metadata)
+    
+    return _agent_logger_instance
+
+
+def reset_logger():
+    """Reseta a instância global do logger."""
+    global _agent_logger_instance
+    _agent_logger_instance = None
 
 
 def create_trace(metadata: Optional[dict] = None) -> str:

@@ -55,11 +55,8 @@ function RequirementsForm({ onSubmit, isGenerating }) {
               onChange={(e) => setModel(e.target.value)}
               disabled={isGenerating}
             >
+              <option value="qwen2.5-coder">Qwen 2.5 Coder</option>
               <option value="llama3.2">Llama 3.2</option>
-              <option value="llama3.1">Llama 3.1</option>
-              <option value="llama3">Llama 3</option>
-              <option value="mistral">Mistral</option>
-              <option value="codellama">CodeLlama</option>
             </select>
           </div>
 

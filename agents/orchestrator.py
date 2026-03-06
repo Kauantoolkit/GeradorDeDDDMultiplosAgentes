@@ -72,7 +72,14 @@ from .rollback_agent import RollbackAgent
 from .docker_test_agent import DockerTestAgent
 from .fix_agent import FixAgent
 from .error_logger import get_error_logger
-from .agent_logger import get_logger, create_trace, log_communication
+from .agent_logger import (
+    get_logger, 
+    create_trace, 
+    log_communication,
+    log_execution,
+    log_error,
+    AgentExecutionContext
+)
 
 
 class OrchestratorAgent:
@@ -157,7 +164,7 @@ class OrchestratorAgent:
             logger.info("\n📋 FASE 1: Executando Executor Agent...")
             result.add_log("FASE 1: Executor Agent")
             
-            executor_result = await self.executor_agent.execute(requirement)
+            executor_result = await self.executor_agent.execute(requirement, trace_id=trace_id)
             result.add_log(f"Executor Agent - Status: {executor_result.status}")
             
             # Log de comunicacao entre agentes
@@ -216,7 +223,8 @@ class OrchestratorAgent:
 
                     docker_test_result = await self.docker_test_agent.execute(
                         requirement,
-                        executor_result
+                        executor_result,
+                        trace_id=trace_id
                     )
 
                     log_communication(
@@ -273,7 +281,8 @@ class OrchestratorAgent:
                 fix_result = await self.fix_agent.execute(
                     requirement,
                     fix_input,
-                    fix_attempt
+                    fix_attempt,
+                    trace_id=trace_id
                 )
 
                 result.add_log(f"Fix concluído: {fix_result.status} | Arquivos modificados: {len(fix_result.files_modified)}")
