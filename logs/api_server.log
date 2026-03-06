@@ -8831,3 +8831,389 @@ Traceback (most recent call last):
        └ ValidationResult(requirement_id='6c8e899b-19e9-4eea-88b2-c69a774af530', trace_id='', status=<ValidationStatus.REJECTED: 'reje...
 
 AttributeError: 'ValidationResult' object has no attribute 'approved'. Did you mean: 'approve'?
+2026-03-06 14:04:30.168 | INFO     | api.server:connect:69 - Cliente client_1772816670153_mewos88ua conectado. Total: 1
+2026-03-06 14:04:30.176 | INFO     | api.server:disconnect:77 - Cliente client_1772816670153_mewos88ua desconectado. Total: 0
+2026-03-06 14:04:30.196 | INFO     | api.server:connect:69 - Cliente client_1772816670153_mewos88ua conectado. Total: 1
+2026-03-06 14:04:45.953 | INFO     | api.server:execute_generation:351 - [task_id=00ffce38-c131-4160-b648-23c71b9ca575] Iniciando execução | model=llama3.2 framework=python-fastapi database=postgresql output=ifoodclone17
+2026-03-06 14:04:46.000 | INFO     | infrastructure.llm_provider:check_ollama_installation:71 - Ollama encontrado em: C:\Users\kauan\AppData\Local\Programs\Ollama\ollama.EXE
+2026-03-06 14:04:46.005 | INFO     | infrastructure.llm_provider:ensure_ollama_running:103 - Ollama já está rodando!
+2026-03-06 14:04:46.311 | INFO     | infrastructure.llm_provider:__init__:164 - OllamaProvider inicializado com modelo: llama3.2
+2026-03-06 14:04:46.312 | INFO     | agents.executor_agent:__init__:131 - Executor Agent inicializado
+2026-03-06 14:04:46.312 | INFO     | agents.validator_agent:__init__:54 - Validator Agent inicializado
+2026-03-06 14:04:46.312 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-03-06 14:04:46.312 | INFO     | agents.docker_test_agent:__init__:57 - Docker Test Agent inicializado
+2026-03-06 14:04:46.314 | INFO     | agents.error_logger:__init__:60 - Error Logger inicializado - Arquivo: logs\agent_errors.log
+2026-03-06 14:04:46.314 | INFO     | agents.fix_agent:__init__:66 - Fix Agent inicializado
+2026-03-06 14:04:46.314 | INFO     | agents.orchestrator:__init__:113 - Orchestrator Agent inicializado
+2026-03-06 14:04:46.314 | INFO     | agents.orchestrator:__init__:114 - Fluência: Executor → Validator → Fix Agent (max 3x) → Docker Test
+2026-03-06 14:04:46.318 | INFO     | agents.agent_logger:log_trace_start:339 - TRACE_START | trace_id=b632dfe2...
+2026-03-06 14:04:46.319 | INFO     | agents.orchestrator:execute:149 - ============================================================
+2026-03-06 14:04:46.319 | INFO     | agents.orchestrator:execute:150 - ORCHESTRATOR AGENT - Iniciando fluxo completo - trace_id: b632dfe2...
+2026-03-06 14:04:46.320 | INFO     | agents.orchestrator:execute:151 - ============================================================
+2026-03-06 14:04:46.320 | INFO     | agents.orchestrator:execute:157 - 
+📋 FASE 1: Executando Executor Agent...
+2026-03-06 14:04:46.320 | INFO     | agents.executor_agent:execute:151 - ============================================================
+2026-03-06 14:04:46.321 | INFO     | agents.executor_agent:execute:152 - EXECUTOR AGENT - Iniciando geração de código
+2026-03-06 14:04:46.322 | INFO     | agents.executor_agent:execute:153 - ============================================================
+2026-03-06 14:04:46.322 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:04:46.322 | DEBUG    | agents.executor_agent:execute:157 - Prompt base construído (3153 chars)
+2026-03-06 14:04:46.322 | INFO     | agents.executor_agent:execute:164 - Chamando LLM para geração de código (tentativa 1/3)...
+2026-03-06 14:04:46.323 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (3153 chars)
+2026-03-06 14:05:00.966 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (5302 chars)
+2026-03-06 14:05:00.967 | INFO     | agents.executor_agent:execute:175 - Resposta do LLM recebida (5302 chars)
+2026-03-06 14:05:00.967 | INFO     | agents.executor_agent:execute:176 - LLM Output preview (first 500 chars): {
+  "microservices": [
+    {
+      "name": "ifoodclone17",
+      "domain": "ifoodclone17",
+      "entities": ["Order", "Product", "User"],
+      "use_cases": ["CreateOrder", "UpdateProduct", "LoginUser"],
+      "ports": ["/api/orders", "/api/products", "/api/login"],
+      "dependencies": ["ifoodclone17.infrastructure"]
+    },
+    {
+      "name": "ifoodclone17.infrastructure",
+      "domain": "ifoodclone17.infrastructure",
+      "entities": ["Database"],
+      "use_cases": ["CreateDatabase", "Up
+2026-03-06 14:05:00.969 | INFO     | agents.executor_agent:_save_llm_output_for_debug:390 - LLM output salvo para debug: logs/debug\llm_output_20260306_140500.txt
+2026-03-06 14:05:00.970 | DEBUG    | agents.executor_agent:_parse_llm_output:290 - Tentativa 1 - Output limpo: {
+  "microservices": [
+    {
+      "name": "ifoodclone17",
+      "domain": "ifoodclone17",
+      "entities": ["Order", "Product", "User"],
+      "use_cases": ["CreateOrder", "UpdateProduct", "LoginUser"],
+      "ports": ["/api/orders", "/api/products", "/api/login"],
+      "dependencies": ["ifoodclone17.infrastructure"]
+    },
+    {
+      "name": "ifoodclone17.infrastructure",
+      "domain": "ifoodclone17.infrastructure",
+      "entities": ["Database"],
+      "use_cases": ["CreateDatabase", "Up...
+2026-03-06 14:05:00.970 | INFO     | agents.executor_agent:_normalize_llm_data:251 - Tipo de estrutura retornada pelo LLM: dict
+2026-03-06 14:05:00.972 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\domain\__init__.py
+2026-03-06 14:05:00.974 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\domain\ifoodclone17_entities.py
+2026-03-06 14:05:00.974 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\domain\ifoodclone17_value_objects.py
+2026-03-06 14:05:00.976 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\domain\ifoodclone17_aggregates.py
+2026-03-06 14:05:00.978 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\application\__init__.py
+2026-03-06 14:05:00.979 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\application\use_cases.py
+2026-03-06 14:05:00.981 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\application\dtos.py
+2026-03-06 14:05:00.982 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\application\mappers.py
+2026-03-06 14:05:00.982 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\infrastructure\__init__.py
+2026-03-06 14:05:00.983 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\infrastructure\repositories.py
+2026-03-06 14:05:00.986 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\infrastructure\database.py
+2026-03-06 14:05:00.987 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\api\__init__.py
+2026-03-06 14:05:00.988 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\api\routes.py
+2026-03-06 14:05:00.990 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\api\controllers.py
+2026-03-06 14:05:00.990 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\api\schemas.py
+2026-03-06 14:05:00.991 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\main.py
+2026-03-06 14:05:00.993 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\requirements.txt
+2026-03-06 14:05:00.994 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\Dockerfile
+2026-03-06 14:05:00.996 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\docker-compose.yml
+2026-03-06 14:05:00.997 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\tests\__init__.py
+2026-03-06 14:05:00.999 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\tests\test_ifoodclone17_entities.py
+2026-03-06 14:05:01.000 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\domain\__init__.py
+2026-03-06 14:05:01.001 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\domain\ifoodclone17_infrastructure_entities.py
+2026-03-06 14:05:01.002 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\domain\ifoodclone17_infrastructure_value_objects.py
+2026-03-06 14:05:01.003 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\domain\ifoodclone17_infrastructure_aggregates.py
+2026-03-06 14:05:01.005 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\application\__init__.py
+2026-03-06 14:05:01.007 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\application\use_cases.py
+2026-03-06 14:05:01.008 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\application\dtos.py
+2026-03-06 14:05:01.009 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\application\mappers.py
+2026-03-06 14:05:01.011 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\infrastructure\__init__.py
+2026-03-06 14:05:01.012 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\infrastructure\repositories.py
+2026-03-06 14:05:01.012 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\infrastructure\database.py
+2026-03-06 14:05:01.014 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\api\__init__.py
+2026-03-06 14:05:01.016 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\api\routes.py
+2026-03-06 14:05:01.017 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\api\controllers.py
+2026-03-06 14:05:01.018 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\api\schemas.py
+2026-03-06 14:05:01.019 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\main.py
+2026-03-06 14:05:01.021 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\requirements.txt
+2026-03-06 14:05:01.023 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\Dockerfile
+2026-03-06 14:05:01.024 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\docker-compose.yml
+2026-03-06 14:05:01.024 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\tests\__init__.py
+2026-03-06 14:05:01.025 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\tests\test_ifoodclone17_infrastructure_entities.py
+2026-03-06 14:05:01.028 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\domain\__init__.py
+2026-03-06 14:05:01.029 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\domain\ifoodclone17_application_entities.py
+2026-03-06 14:05:01.030 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\domain\ifoodclone17_application_value_objects.py
+2026-03-06 14:05:01.031 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\domain\ifoodclone17_application_aggregates.py
+2026-03-06 14:05:01.032 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\application\__init__.py
+2026-03-06 14:05:01.034 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\application\use_cases.py
+2026-03-06 14:05:01.034 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\application\dtos.py
+2026-03-06 14:05:01.036 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\application\mappers.py
+2026-03-06 14:05:01.038 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\infrastructure\__init__.py
+2026-03-06 14:05:01.039 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\infrastructure\repositories.py
+2026-03-06 14:05:01.040 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\infrastructure\database.py
+2026-03-06 14:05:01.042 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\api\__init__.py
+2026-03-06 14:05:01.043 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\api\routes.py
+2026-03-06 14:05:01.044 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\api\controllers.py
+2026-03-06 14:05:01.045 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\api\schemas.py
+2026-03-06 14:05:01.047 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\main.py
+2026-03-06 14:05:01.048 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\requirements.txt
+2026-03-06 14:05:01.049 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\Dockerfile
+2026-03-06 14:05:01.050 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\docker-compose.yml
+2026-03-06 14:05:01.051 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\tests\__init__.py
+2026-03-06 14:05:01.052 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\tests\test_ifoodclone17_application_entities.py
+2026-03-06 14:05:01.054 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\domain\__init__.py
+2026-03-06 14:05:01.055 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\domain\ifoodclone17_api_entities.py
+2026-03-06 14:05:01.056 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\domain\ifoodclone17_api_value_objects.py
+2026-03-06 14:05:01.057 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\domain\ifoodclone17_api_aggregates.py
+2026-03-06 14:05:01.059 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\application\__init__.py
+2026-03-06 14:05:01.060 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\application\use_cases.py
+2026-03-06 14:05:01.062 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\application\dtos.py
+2026-03-06 14:05:01.062 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\application\mappers.py
+2026-03-06 14:05:01.063 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\infrastructure\__init__.py
+2026-03-06 14:05:01.064 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\infrastructure\repositories.py
+2026-03-06 14:05:01.067 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\infrastructure\database.py
+2026-03-06 14:05:01.068 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\api\__init__.py
+2026-03-06 14:05:01.069 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\api\routes.py
+2026-03-06 14:05:01.070 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\api\controllers.py
+2026-03-06 14:05:01.072 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\api\schemas.py
+2026-03-06 14:05:01.074 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\main.py
+2026-03-06 14:05:01.074 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\requirements.txt
+2026-03-06 14:05:01.076 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\Dockerfile
+2026-03-06 14:05:01.077 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\docker-compose.yml
+2026-03-06 14:05:01.078 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\tests\__init__.py
+2026-03-06 14:05:01.079 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\tests\test_ifoodclone17_api_entities.py
+2026-03-06 14:05:01.079 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/main.py
+2026-03-06 14:05:01.080 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/services/OrderService.py
+2026-03-06 14:05:01.080 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/services/ProductService.py
+2026-03-06 14:05:01.080 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/services/UserService.py
+2026-03-06 14:05:01.082 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/infrastructure/Database.py
+2026-03-06 14:05:01.083 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/api/routes.py
+2026-03-06 14:05:01.083 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/api/controllers.py
+2026-03-06 14:05:01.084 | WARNING  | agents.executor_agent:_create_project_files:669 - Ignorando arquivo extra fora do escopo permitido: ifoodclone17/api/schemas.py
+2026-03-06 14:05:01.084 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: README.md
+2026-03-06 14:05:01.086 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\static\index.html
+2026-03-06 14:05:01.087 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: docker-compose.yml
+2026-03-06 14:05:01.087 | INFO     | agents.executor_agent:_validate_generated_files:869 - ============================================================
+2026-03-06 14:05:01.088 | INFO     | agents.executor_agent:_validate_generated_files:870 - VALIDAÇÃO - Verificando arquivos gerados...
+2026-03-06 14:05:01.097 | WARNING  | agents.executor_agent:_validate_generated_files:881 - Arquivo vazio: services/ifoodclone17/tests/__init__.py
+2026-03-06 14:05:01.106 | WARNING  | agents.executor_agent:_validate_generated_files:881 - Arquivo vazio: services/ifoodclone17_infrastructure/tests/__init__.py
+2026-03-06 14:05:01.114 | WARNING  | agents.executor_agent:_validate_generated_files:881 - Arquivo vazio: services/ifoodclone17_application/tests/__init__.py
+2026-03-06 14:05:01.125 | WARNING  | agents.executor_agent:_validate_generated_files:881 - Arquivo vazio: services/ifoodclone17_api/tests/__init__.py
+2026-03-06 14:05:01.127 | INFO     | agents.executor_agent:_validate_generated_files:957 - VALIDAÇÃO - Todos os arquivos passaram na verificação!
+2026-03-06 14:05:01.128 | INFO     | agents.executor_agent:_validate_generated_files:959 - ============================================================
+2026-03-06 14:05:01.129 | INFO     | agents.executor_agent:_create_project_files:692 - Criados 87 arquivos
+2026-03-06 14:05:01.130 | INFO     | agents.executor_agent:execute:207 - Executor Agent - Concluído em 14.81s
+2026-03-06 14:05:01.131 | INFO     | agents.executor_agent:execute:208 - Arquivos criados: 87
+2026-03-06 14:05:01.132 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | OrchestratorAgent → ExecutorAgent | trace_id=b632dfe2... | time=0ms | status=success
+2026-03-06 14:05:01.132 | INFO     | agents.orchestrator:execute:185 - ✅ Executor Agent concluído - 87 arquivos
+2026-03-06 14:05:01.133 | INFO     | agents.orchestrator:execute:193 - 
+📋 FASE 2: Validator Agent (ciclo inicial)
+2026-03-06 14:05:01.133 | INFO     | agents.validator_agent:validate:73 - ============================================================
+2026-03-06 14:05:01.134 | INFO     | agents.validator_agent:validate:74 - VALIDATOR AGENT - Iniciando validação
+2026-03-06 14:05:01.134 | INFO     | agents.validator_agent:validate:75 - ============================================================
+2026-03-06 14:05:01.134 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:01.172 | INFO     | agents.validator_agent:validate:99 - Chamando LLM para validação...
+2026-03-06 14:05:01.173 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (12934 chars)
+2026-03-06 14:05:04.684 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (968 chars)
+2026-03-06 14:05:04.684 | ERROR    | agents.validator_agent:_parse_validation_output:242 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 26 column 214 (char 968)
+2026-03-06 14:05:04.685 | INFO     | agents.validator_agent:_manual_validation:265 - Realizando validação manual...
+2026-03-06 14:05:04.685 | INFO     | agents.validator_agent:_manual_validation:307 - ✅ Validação manual APROVADA - Score: 1.0
+2026-03-06 14:05:04.686 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:04.691 | WARNING  | agents.validator_agent:_apply_guardrails:338 - ❌ Guardrails reprovaram validação: ["Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:04.693 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | ExecutorAgent → ValidatorAgent | trace_id=b632dfe2... | time=0ms | status=success
+2026-03-06 14:05:04.694 | WARNING  | agents.orchestrator:execute:254 - ❌ Fluxo reprovado no ciclo inicial. Problemas: ['Validação: Arquivos criados: OK\nCódigo gerado: OK\nTamanho do código: OK', "Validação issue: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação issue: Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação issue: Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação issue: Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Validação issue: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', "Validação issue: Guardrails de qualidade detectaram inconsistências críticas: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Requisito menciona frontend, mas nenhum artefato de frontend foi gerado", "Validação rejeitado: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação rejeitado: Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação rejeitado: Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Validação rejeitado: Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Validação rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:04.694 | INFO     | agents.orchestrator:execute:269 - 
+📋 FASE 4: Fix Agent - Tentativa 1/3
+2026-03-06 14:05:04.696 | INFO     | agents.fix_agent:execute:94 - ============================================================
+2026-03-06 14:05:04.696 | INFO     | agents.fix_agent:execute:95 - FIX AGENT - Tentativa 1
+2026-03-06 14:05:04.697 | INFO     | agents.fix_agent:execute:96 - ============================================================
+2026-03-06 14:05:04.697 | INFO     | agents.error_logger:log_validation_failure:110 - VALIDATION_FAILURE | Attempt 1 | Score: 0.4
+2026-03-06 14:05:04.698 | INFO     | agents.error_logger:log_validation_failure:111 -   Issues: ["Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', "Guardrails de qualidade detectaram inconsistências críticas: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Requisito menciona frontend, mas nenhum artefato de frontend foi gerado"]
+2026-03-06 14:05:04.699 | INFO     | agents.error_logger:log_validation_failure:112 -   Rejected: ["Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:04.699 | INFO     | agents.error_logger:log_validation_failure:113 -   Missing: []
+2026-03-06 14:05:04.709 | INFO     | agents.fix_agent:execute:114 - Problemas identificados: 11
+2026-03-06 14:05:04.709 | INFO     | agents.fix_agent:execute:116 -   - Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.710 | INFO     | agents.fix_agent:execute:116 -   - Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.711 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.711 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.712 | INFO     | agents.fix_agent:execute:116 -   - Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.712 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.712 | INFO     | agents.fix_agent:execute:116 -   - Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:04.713 | INFO     | agents.fix_agent:execute:116 -   - Guardrails de qualidade detectaram inconsistências críticas: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:04.713 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:04.714 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.714 | INFO     | agents.fix_agent:execute:116 -   - Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt
+2026-03-06 14:05:04.715 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:04.717 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/delivery/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\delivery\\api\\schemas.py'
+2026-03-06 14:05:04.719 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17\requirements.txt
+2026-03-06 14:05:04.719 | INFO     | agents.fix_agent:_fix_emailstr_dependencies:374 -   Modificado: services/ifoodclone17/requirements.txt (adicionada dependência email-validator)
+2026-03-06 14:05:04.722 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_api\requirements.txt
+2026-03-06 14:05:04.722 | INFO     | agents.fix_agent:_fix_emailstr_dependencies:374 -   Modificado: services/ifoodclone17_api/requirements.txt (adicionada dependência email-validator)
+2026-03-06 14:05:04.724 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_application\requirements.txt
+2026-03-06 14:05:04.724 | INFO     | agents.fix_agent:_fix_emailstr_dependencies:374 -   Modificado: services/ifoodclone17_application/requirements.txt (adicionada dependência email-validator)
+2026-03-06 14:05:04.727 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ifoodclone17_infrastructure\requirements.txt
+2026-03-06 14:05:04.727 | INFO     | agents.fix_agent:_fix_emailstr_dependencies:374 -   Modificado: services/ifoodclone17_infrastructure/requirements.txt (adicionada dependência email-validator)
+2026-03-06 14:05:04.727 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_ordens/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_ordens\\api\\schemas.py'
+2026-03-06 14:05:04.728 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_pedidos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_pedidos\\api\\schemas.py'
+2026-03-06 14:05:04.728 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_produtos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_produtos\\api\\schemas.py'
+2026-03-06 14:05:04.729 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_usuario/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_usuario\\api\\schemas.py'
+2026-03-06 14:05:04.729 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/order_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\order_service\\api\\schemas.py'
+2026-03-06 14:05:04.731 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/orders/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\orders\\api\\schemas.py'
+2026-03-06 14:05:04.731 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment\\api\\schemas.py'
+2026-03-06 14:05:04.732 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment_service\\api\\schemas.py'
+2026-03-06 14:05:04.732 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/product_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\product_service\\api\\schemas.py'
+2026-03-06 14:05:04.732 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/products/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\products\\api\\schemas.py'
+2026-03-06 14:05:04.733 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/shipping_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\shipping_service\\api\\schemas.py'
+2026-03-06 14:05:04.734 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/user_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\user_service\\api\\schemas.py'
+2026-03-06 14:05:04.734 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/users/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\users\\api\\schemas.py'
+2026-03-06 14:05:04.739 | INFO     | agents.fix_agent:_fix_with_llm:416 - Chamando LLM para gerar correções...
+2026-03-06 14:05:04.739 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (16244 chars)
+2026-03-06 14:05:27.380 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (8667 chars)
+2026-03-06 14:05:27.380 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo ifoodclone17/main.py: [Errno 2] No such file or directory: 'ifoodclone17\\main.py'
+2026-03-06 14:05:27.381 | WARNING  | agents.fix_agent:_fix_with_llm:450 -   Arquivo para modificação não encontrado: ifoodclone17/main.py
+2026-03-06 14:05:27.382 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\OrderService.py
+2026-03-06 14:05:27.382 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/OrderService.py
+2026-03-06 14:05:27.383 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ProductService.py
+2026-03-06 14:05:27.384 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/ProductService.py
+2026-03-06 14:05:27.386 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\UserService.py
+2026-03-06 14:05:27.386 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/UserService.py
+2026-03-06 14:05:27.388 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: infrastructure\Database.py
+2026-03-06 14:05:27.388 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/infrastructure/Database.py
+2026-03-06 14:05:27.389 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: api\routes.py
+2026-03-06 14:05:27.390 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/api/routes.py
+2026-03-06 14:05:27.391 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: api\controllers.py
+2026-03-06 14:05:27.391 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/api/controllers.py
+2026-03-06 14:05:27.392 | INFO     | agents.error_logger:log_fix_attempt:153 - FIX_ATTEMPT | Attempt 1 | ✅ SUCCESS
+2026-03-06 14:05:27.392 | INFO     | agents.error_logger:log_fix_attempt:154 -   Issues to fix: ["Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Rejeitado: Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Rejeitado: Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Rejeitado: Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', "Guardrails de qualidade detectaram inconsistências críticas: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_infrastructure' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_application' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt; Requisito menciona frontend, mas nenhum artefato de frontend foi gerado", 'Rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', "Rejeitado: Serviço 'ifoodclone17' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt", "Serviço 'ifoodclone17_api' usa EmailStr em api/schemas.py sem dependência 'email-validator' ou 'pydantic[email]' no requirements.txt"]
+2026-03-06 14:05:27.393 | INFO     | agents.error_logger:log_fix_attempt:155 -   Actions taken: ['Definir schemas e DTOs', 'Definir rotas de API']
+2026-03-06 14:05:27.393 | INFO     | agents.error_logger:log_fix_attempt:156 -   Files modified: ['services/ifoodclone17/requirements.txt', 'services/ifoodclone17_api/requirements.txt', 'services/ifoodclone17_application/requirements.txt', 'services/ifoodclone17_infrastructure/requirements.txt', 'ifoodclone17/services/OrderService.py', 'ifoodclone17/services/ProductService.py', 'ifoodclone17/services/UserService.py', 'ifoodclone17/infrastructure/Database.py', 'ifoodclone17/api/routes.py', 'ifoodclone17/api/controllers.py']
+2026-03-06 14:05:27.398 | INFO     | agents.fix_agent:execute:156 - Correções aplicadas: 10 arquivos modificados
+2026-03-06 14:05:27.398 | INFO     | agents.orchestrator:execute:193 - 
+📋 FASE 2: Validator Agent (ciclo pós-correção 1)
+2026-03-06 14:05:27.399 | INFO     | agents.validator_agent:validate:73 - ============================================================
+2026-03-06 14:05:27.399 | INFO     | agents.validator_agent:validate:74 - VALIDATOR AGENT - Iniciando validação
+2026-03-06 14:05:27.400 | INFO     | agents.validator_agent:validate:75 - ============================================================
+2026-03-06 14:05:27.400 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:27.437 | INFO     | agents.validator_agent:validate:99 - Chamando LLM para validação...
+2026-03-06 14:05:27.437 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (12934 chars)
+2026-03-06 14:05:30.609 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (841 chars)
+2026-03-06 14:05:30.609 | WARNING  | agents.validator_agent:validate:130 - ❌ Validação REPROVADA - Score: 0.0
+2026-03-06 14:05:30.609 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:30.615 | WARNING  | agents.validator_agent:_apply_guardrails:338 - ❌ Guardrails reprovaram validação: ['Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:30.615 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | ExecutorAgent → ValidatorAgent | trace_id=b632dfe2... | time=0ms | status=success
+2026-03-06 14:05:30.616 | WARNING  | agents.orchestrator:execute:254 - ❌ Fluxo reprovado no ciclo pós-correção 1. Problemas: ['Validação: A estrutura DDD é necessária, mas não está presente. O código é vazio e os arquivos principais não existem.', 'Validação issue: falta estrutura DDD', 'Validação issue: falta código real', 'Validação issue: falta arquivos principais', 'Validação issue: A estrutura DDD é necessária, mas não está presente. O código é vazio e os arquivos principais não existem.', 'Validação issue: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Validação issue: Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Validação rejeitado: domain/entities.py não tem classes Python reais', 'Validação rejeitado: application/use_cases.py não tem funções', 'Validação rejeitado: application/__init__.py não existe', 'Validação rejeitado: infrastructure/repositories.py não tem classes', 'Validação rejeitado: infrastructure/__init__.py não existe', 'Validação rejeitado: api/routes.py não existe', 'Validação rejeitado: api/__init__.py não existe', 'Validação rejeitado: main.py não existe', 'Validação rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Validação faltando: estrutura DDD completa', 'Validação faltando: código real', 'Validação faltando: arquivos principais existem']
+2026-03-06 14:05:30.617 | INFO     | agents.orchestrator:execute:269 - 
+📋 FASE 4: Fix Agent - Tentativa 2/3
+2026-03-06 14:05:30.617 | INFO     | agents.fix_agent:execute:94 - ============================================================
+2026-03-06 14:05:30.618 | INFO     | agents.fix_agent:execute:95 - FIX AGENT - Tentativa 2
+2026-03-06 14:05:30.618 | INFO     | agents.fix_agent:execute:96 - ============================================================
+2026-03-06 14:05:30.618 | INFO     | agents.error_logger:log_validation_failure:110 - VALIDATION_FAILURE | Attempt 2 | Score: 0.0
+2026-03-06 14:05:30.619 | INFO     | agents.error_logger:log_validation_failure:111 -   Issues: ['falta estrutura DDD', 'falta código real', 'falta arquivos principais', 'A estrutura DDD é necessária, mas não está presente. O código é vazio e os arquivos principais não existem.', 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:30.619 | INFO     | agents.error_logger:log_validation_failure:112 -   Rejected: ['domain/entities.py não tem classes Python reais', 'application/use_cases.py não tem funções', 'application/__init__.py não existe', 'infrastructure/repositories.py não tem classes', 'infrastructure/__init__.py não existe', 'api/routes.py não existe', 'api/__init__.py não existe', 'main.py não existe', 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:30.620 | INFO     | agents.error_logger:log_validation_failure:113 -   Missing: ['estrutura DDD completa', 'código real', 'arquivos principais existem']
+2026-03-06 14:05:30.624 | INFO     | agents.fix_agent:execute:114 - Problemas identificados: 18
+2026-03-06 14:05:30.625 | INFO     | agents.fix_agent:execute:116 -   - Faltando: estrutura DDD completa
+2026-03-06 14:05:30.625 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: main.py não existe
+2026-03-06 14:05:30.625 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: api/__init__.py não existe
+2026-03-06 14:05:30.625 | INFO     | agents.fix_agent:execute:116 -   - falta arquivos principais
+2026-03-06 14:05:30.627 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: infrastructure/repositories.py não tem classes
+2026-03-06 14:05:30.627 | INFO     | agents.fix_agent:execute:116 -   - falta estrutura DDD
+2026-03-06 14:05:30.627 | INFO     | agents.fix_agent:execute:116 -   - A estrutura DDD é necessária, mas não está presente. O código é vazio e os arquivos principais não existem.
+2026-03-06 14:05:30.628 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: api/routes.py não existe
+2026-03-06 14:05:30.628 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: infrastructure/__init__.py não existe
+2026-03-06 14:05:30.629 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: domain/entities.py não tem classes Python reais
+2026-03-06 14:05:30.629 | INFO     | agents.fix_agent:execute:116 -   - Faltando: código real
+2026-03-06 14:05:30.629 | INFO     | agents.fix_agent:execute:116 -   - Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:30.630 | INFO     | agents.fix_agent:execute:116 -   - Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:30.630 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: application/use_cases.py não tem funções
+2026-03-06 14:05:30.630 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: application/__init__.py não existe
+2026-03-06 14:05:30.630 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:30.631 | INFO     | agents.fix_agent:execute:116 -   - falta código real
+2026-03-06 14:05:30.631 | INFO     | agents.fix_agent:execute:116 -   - Faltando: arquivos principais existem
+2026-03-06 14:05:30.631 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:30.635 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/OrderService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\OrderService.py\\api\\schemas.py'
+2026-03-06 14:05:30.636 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/ProductService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\ProductService.py\\api\\schemas.py'
+2026-03-06 14:05:30.636 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/UserService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\UserService.py\\api\\schemas.py'
+2026-03-06 14:05:30.636 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/delivery/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\delivery\\api\\schemas.py'
+2026-03-06 14:05:30.639 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_ordens/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_ordens\\api\\schemas.py'
+2026-03-06 14:05:30.639 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_pedidos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_pedidos\\api\\schemas.py'
+2026-03-06 14:05:30.640 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_produtos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_produtos\\api\\schemas.py'
+2026-03-06 14:05:30.640 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_usuario/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_usuario\\api\\schemas.py'
+2026-03-06 14:05:30.640 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/order_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\order_service\\api\\schemas.py'
+2026-03-06 14:05:30.642 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/orders/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\orders\\api\\schemas.py'
+2026-03-06 14:05:30.642 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment\\api\\schemas.py'
+2026-03-06 14:05:30.643 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment_service\\api\\schemas.py'
+2026-03-06 14:05:30.643 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/product_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\product_service\\api\\schemas.py'
+2026-03-06 14:05:30.644 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/products/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\products\\api\\schemas.py'
+2026-03-06 14:05:30.644 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/shipping_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\shipping_service\\api\\schemas.py'
+2026-03-06 14:05:30.645 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/user_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\user_service\\api\\schemas.py'
+2026-03-06 14:05:30.645 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/users/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\users\\api\\schemas.py'
+2026-03-06 14:05:30.648 | INFO     | agents.fix_agent:_fix_with_llm:416 - Chamando LLM para gerar correções...
+2026-03-06 14:05:30.649 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (16645 chars)
+2026-03-06 14:05:45.662 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (5440 chars)
+2026-03-06 14:05:45.663 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\OrderService.py
+2026-03-06 14:05:45.663 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/OrderService.py
+2026-03-06 14:05:45.664 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\ProductService.py
+2026-03-06 14:05:45.665 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/ProductService.py
+2026-03-06 14:05:45.665 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\UserService.py
+2026-03-06 14:05:45.666 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/services/UserService.py
+2026-03-06 14:05:45.667 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: infrastructure\Database.py
+2026-03-06 14:05:45.668 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/infrastructure/Database.py
+2026-03-06 14:05:45.669 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: api\routes.py
+2026-03-06 14:05:45.669 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/api/routes.py
+2026-03-06 14:05:45.670 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: api\controllers.py
+2026-03-06 14:05:45.671 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/api/controllers.py
+2026-03-06 14:05:45.671 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: api\schemas.py
+2026-03-06 14:05:45.673 | INFO     | agents.fix_agent:_fix_with_llm:445 -   Criado: ifoodclone17/api/schemas.py
+2026-03-06 14:05:45.673 | INFO     | agents.error_logger:log_fix_attempt:153 - FIX_ATTEMPT | Attempt 2 | ✅ SUCCESS
+2026-03-06 14:05:45.674 | INFO     | agents.error_logger:log_fix_attempt:154 -   Issues to fix: ['Faltando: estrutura DDD completa', 'Rejeitado: main.py não existe', 'Rejeitado: api/__init__.py não existe', 'falta arquivos principais', 'Rejeitado: infrastructure/repositories.py não tem classes', 'falta estrutura DDD', 'A estrutura DDD é necessária, mas não está presente. O código é vazio e os arquivos principais não existem.', 'Rejeitado: api/routes.py não existe', 'Rejeitado: infrastructure/__init__.py não existe', 'Rejeitado: domain/entities.py não tem classes Python reais', 'Faltando: código real', 'Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Rejeitado: application/use_cases.py não tem funções', 'Rejeitado: application/__init__.py não existe', 'Rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'falta código real', 'Faltando: arquivos principais existem']
+2026-03-06 14:05:45.674 | INFO     | agents.error_logger:log_fix_attempt:155 -   Actions taken: ['Definir rotas de API']
+2026-03-06 14:05:45.674 | INFO     | agents.error_logger:log_fix_attempt:156 -   Files modified: ['ifoodclone17/services/OrderService.py', 'ifoodclone17/services/ProductService.py', 'ifoodclone17/services/UserService.py', 'ifoodclone17/infrastructure/Database.py', 'ifoodclone17/api/routes.py', 'ifoodclone17/api/controllers.py', 'ifoodclone17/api/schemas.py']
+2026-03-06 14:05:45.679 | INFO     | agents.fix_agent:execute:156 - Correções aplicadas: 7 arquivos modificados
+2026-03-06 14:05:45.679 | INFO     | agents.orchestrator:execute:193 - 
+📋 FASE 2: Validator Agent (ciclo pós-correção 2)
+2026-03-06 14:05:45.680 | INFO     | agents.validator_agent:validate:73 - ============================================================
+2026-03-06 14:05:45.680 | INFO     | agents.validator_agent:validate:74 - VALIDATOR AGENT - Iniciando validação
+2026-03-06 14:05:45.680 | INFO     | agents.validator_agent:validate:75 - ============================================================
+2026-03-06 14:05:45.681 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:45.716 | INFO     | agents.validator_agent:validate:99 - Chamando LLM para validação...
+2026-03-06 14:05:45.717 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (12934 chars)
+2026-03-06 14:05:48.873 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (877 chars)
+2026-03-06 14:05:48.874 | ERROR    | agents.validator_agent:_parse_validation_output:242 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 25 column 159 (char 877)
+2026-03-06 14:05:48.874 | INFO     | agents.validator_agent:_manual_validation:265 - Realizando validação manual...
+2026-03-06 14:05:48.874 | INFO     | agents.validator_agent:_manual_validation:307 - ✅ Validação manual APROVADA - Score: 1.0
+2026-03-06 14:05:48.874 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:48.880 | WARNING  | agents.validator_agent:_apply_guardrails:338 - ❌ Guardrails reprovaram validação: ['Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:48.880 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | ExecutorAgent → ValidatorAgent | trace_id=b632dfe2... | time=0ms | status=success
+2026-03-06 14:05:48.881 | WARNING  | agents.orchestrator:execute:254 - ❌ Fluxo reprovado no ciclo pós-correção 2. Problemas: ['Validação: Arquivos criados: OK\nCódigo gerado: OK\nTamanho do código: OK', 'Validação issue: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Validação issue: Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Validação rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:48.881 | INFO     | agents.orchestrator:execute:269 - 
+📋 FASE 4: Fix Agent - Tentativa 3/3
+2026-03-06 14:05:48.881 | INFO     | agents.fix_agent:execute:94 - ============================================================
+2026-03-06 14:05:48.883 | INFO     | agents.fix_agent:execute:95 - FIX AGENT - Tentativa 3
+2026-03-06 14:05:48.883 | INFO     | agents.fix_agent:execute:96 - ============================================================
+2026-03-06 14:05:48.883 | INFO     | agents.error_logger:log_validation_failure:110 - VALIDATION_FAILURE | Attempt 3 | Score: 0.4
+2026-03-06 14:05:48.884 | INFO     | agents.error_logger:log_validation_failure:111 -   Issues: ['Requisito menciona frontend, mas nenhum artefato de frontend foi gerado', 'Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:48.884 | INFO     | agents.error_logger:log_validation_failure:112 -   Rejected: ['Requisito menciona frontend, mas nenhum artefato de frontend foi gerado']
+2026-03-06 14:05:48.884 | INFO     | agents.error_logger:log_validation_failure:113 -   Missing: []
+2026-03-06 14:05:48.888 | INFO     | agents.fix_agent:execute:114 - Problemas identificados: 3
+2026-03-06 14:05:48.888 | INFO     | agents.fix_agent:execute:116 -   - Rejeitado: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:48.890 | INFO     | agents.fix_agent:execute:116 -   - Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:48.890 | INFO     | agents.fix_agent:execute:116 -   - Guardrails de qualidade detectaram inconsistências críticas: Requisito menciona frontend, mas nenhum artefato de frontend foi gerado
+2026-03-06 14:05:48.890 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone17
+2026-03-06 14:05:48.893 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/OrderService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\OrderService.py\\api\\schemas.py'
+2026-03-06 14:05:48.894 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/ProductService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\ProductService.py\\api\\schemas.py'
+2026-03-06 14:05:48.894 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/UserService.py/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\UserService.py\\api\\schemas.py'
+2026-03-06 14:05:48.895 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/delivery/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\delivery\\api\\schemas.py'
+2026-03-06 14:05:48.897 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_ordens/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_ordens\\api\\schemas.py'
+2026-03-06 14:05:48.898 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_pedidos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_pedidos\\api\\schemas.py'
+2026-03-06 14:05:48.899 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_produtos/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_produtos\\api\\schemas.py'
+2026-03-06 14:05:48.899 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/microservico_de_usuario/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\microservico_de_usuario\\api\\schemas.py'
+2026-03-06 14:05:48.899 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/order_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\order_service\\api\\schemas.py'
+2026-03-06 14:05:48.900 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/orders/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\orders\\api\\schemas.py'
+2026-03-06 14:05:48.900 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment\\api\\schemas.py'
+2026-03-06 14:05:48.901 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/payment_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\payment_service\\api\\schemas.py'
+2026-03-06 14:05:48.901 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/product_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\product_service\\api\\schemas.py'
+2026-03-06 14:05:48.903 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/products/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\products\\api\\schemas.py'
+2026-03-06 14:05:48.904 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/shipping_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\shipping_service\\api\\schemas.py'
+2026-03-06 14:05:48.904 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/user_service/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\user_service\\api\\schemas.py'
+2026-03-06 14:05:48.904 | ERROR    | infrastructure.file_manager:read_file:97 - Erro ao ler arquivo services/users/api/schemas.py: [Errno 2] No such file or directory: 'ifoodclone17\\services\\users\\api\\schemas.py'
+2026-03-06 14:05:48.906 | INFO     | agents.fix_agent:_fix_with_llm:416 - Chamando LLM para gerar correções...
+2026-03-06 14:05:48.907 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (15897 chars)
+2026-03-06 14:06:30.655 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (16530 chars)
+2026-03-06 14:06:30.655 | ERROR    | agents.fix_agent:execute:139 - FixAgent não aplicou alterações; encerrando tentativa sem progresso
+2026-03-06 14:06:54.185 | INFO     | api.server:disconnect:77 - Cliente client_1772816670153_mewos88ua desconectado. Total: 0
