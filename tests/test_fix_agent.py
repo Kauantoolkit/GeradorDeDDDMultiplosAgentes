@@ -72,3 +72,34 @@ def test_fix_basic_creates_docker_compose_when_missing(tmp_path):
     assert result.success is True
     assert "docker-compose.yml" in result.files_modified
     assert (tmp_path / "docker-compose.yml").exists()
+
+
+def test_fix_adds_email_validator_when_schema_uses_emailstr(tmp_path):
+    service_dir = tmp_path / "services" / "user_service"
+    (service_dir / "api").mkdir(parents=True)
+    (service_dir / "api" / "schemas.py").write_text(
+        "from pydantic import BaseModel, EmailStr\n\nclass UserIn(BaseModel):\n    email: EmailStr\n",
+        encoding="utf-8",
+    )
+    (service_dir / "requirements.txt").write_text("fastapi>=0.110\npydantic>=2.0\n", encoding="utf-8")
+
+    requirement = _make_requirement(tmp_path)
+    requirement.execution_result.files_created = [
+        "services/user_service/api/schemas.py",
+        "services/user_service/requirements.txt",
+    ]
+    validation = ValidationResult(
+        requirement_id=requirement.id,
+        status=ValidationStatus.REJECTED,
+        issues=["EmailStr sem dependência"],
+        score=0.2,
+        feedback="corrigir dependência",
+    )
+
+    agent = FixAgent(llm_provider=None)
+    result = asyncio.run(agent.execute(requirement, validation, attempt=1))
+
+    assert result.success is True
+    assert "services/user_service/requirements.txt" in result.files_modified
+    requirements = (service_dir / "requirements.txt").read_text(encoding="utf-8")
+    assert "email-validator>=2.0.0" in requirements
