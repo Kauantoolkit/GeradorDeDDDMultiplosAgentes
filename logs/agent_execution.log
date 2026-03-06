@@ -8091,3 +8091,402 @@ ValueError: Falha nos guardrails de geração: Erro de sintaxe em microservico-d
 {"timestamp": "2026-03-06T15:33:34.988496+00:00", "trace_id": "087da602-87b9-4b6f-a403-39d50c6267c0", "message_id": "d8f49322-4604-407f-9066-f49d23cd2073", "type": "AGENT_COMMUNICATION", "from_agent": "OrchestratorAgent", "to_agent": "ExecutorAgent", "payload": "{'requirement_id': '802eacf3-027c-428a-be72-49b7c2f3f7f4'}", "status": "failure", "execution_time_ms": 0}
 AGENT_COMMUNICATION | OrchestratorAgent → ExecutorAgent | trace_id=087da602... | time=0ms | status=failure
 ❌ Executor Agent falhou: Falha nos guardrails de geração: Erro de sintaxe em microservico-de-pedidos/application/use_cases.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/infrastructure/repositories.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/api/routes.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/main.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/application/use_cases.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/infrastructure/repositories.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/api/routes.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/main.py: invalid syntax
+Cliente client_1772811016664_z5mnzbjoe desconectado. Total: 0
+{"timestamp": "2026-03-06T15:45:47.835914+00:00", "trace_id": "be6e9da4-c76f-41ea-aa7f-d82b165e1ff0", "message_id": "db5c8a0a-e965-4646-b47f-f6c67394927c", "type": "TRACE_START", "metadata": "{'requirement_id': '6c8e899b-19e9-4eea-88b2-c69a774af530', 'description': 'gere um clone do ifood com front', 'output_directory': 'ifoodclone16'}"}
+TRACE_START | trace_id=be6e9da4...
+============================================================
+ORCHESTRATOR AGENT - Iniciando fluxo completo - trace_id: be6e9da4...
+============================================================
+
+📋 FASE 1: Executando Executor Agent...
+============================================================
+EXECUTOR AGENT - Iniciando geração de código
+============================================================
+Prompt construído (3150 chars)
+Chamando LLM para geração de código...
+Enviando prompt para llama3.2 (3150 chars)
+Resposta recebida (10361 chars)
+Resposta do LLM recebida (10361 chars)
+LLM Output preview (first 500 chars): {
+  "microservices": [
+    {
+      "name": "auth",
+      "domain": "auth",
+      "entities": ["User"],
+      "use_cases": ["Login", "Register"],
+      "ports": ["/api/login", "/api/register"],
+      "dependencies": ["db"]
+    },
+    {
+      "name": "orders",
+      "domain": "orders",
+      "entities": ["Order", "Product"],
+      "use_cases": ["CreateOrder", "UpdateOrder"],
+      "ports": ["/api/orders", "/api/orders/{id}"],
+      "dependencies": ["auth"]
+    },
+    {
+      "name": "products",
+  
+LLM output salvo para debug: logs/debug\llm_output_20260306_124616.txt
+Tentativa 1 - Output limpo: {
+  "microservices": [
+    {
+      "name": "auth",
+      "domain": "auth",
+      "entities": ["User"],
+      "use_cases": ["Login", "Register"],
+      "ports": ["/api/login", "/api/register"],
+      "dependencies": ["db"]
+    },
+    {
+      "name": "orders",
+      "domain": "orders",
+      "entities": ["Order", "Product"],
+      "use_cases": ["CreateOrder", "UpdateOrder"],
+      "ports": ["/api/orders", "/api/orders/{id}"],
+      "dependencies": ["auth"]
+    },
+    {
+      "name": "products",
+  ...
+Tipo de estrutura retornada pelo LLM: dict
+FileManager inicializado em: ifoodclone16
+Arquivo criado: services\auth\domain\__init__.py
+Arquivo criado: services\auth\domain\auth_entities.py
+Arquivo criado: services\auth\domain\auth_value_objects.py
+Arquivo criado: services\auth\domain\auth_aggregates.py
+Arquivo criado: services\auth\application\__init__.py
+Arquivo criado: services\auth\application\use_cases.py
+Arquivo criado: services\auth\application\dtos.py
+Arquivo criado: services\auth\application\mappers.py
+Arquivo criado: services\auth\infrastructure\__init__.py
+Arquivo criado: services\auth\infrastructure\repositories.py
+Arquivo criado: services\auth\infrastructure\database.py
+Arquivo criado: services\auth\api\__init__.py
+Arquivo criado: services\auth\api\routes.py
+Arquivo criado: services\auth\api\controllers.py
+Arquivo criado: services\auth\api\schemas.py
+Arquivo criado: services\auth\main.py
+Arquivo criado: services\auth\requirements.txt
+Arquivo criado: services\auth\Dockerfile
+Arquivo criado: services\auth\docker-compose.yml
+Arquivo criado: services\auth\tests\__init__.py
+Arquivo criado: services\auth\tests\test_auth_entities.py
+Arquivo criado: services\orders\domain\__init__.py
+Arquivo criado: services\orders\domain\orders_entities.py
+Arquivo criado: services\orders\domain\orders_value_objects.py
+Arquivo criado: services\orders\domain\orders_aggregates.py
+Arquivo criado: services\orders\application\__init__.py
+Arquivo criado: services\orders\application\use_cases.py
+Arquivo criado: services\orders\application\dtos.py
+Arquivo criado: services\orders\application\mappers.py
+Arquivo criado: services\orders\infrastructure\__init__.py
+Arquivo criado: services\orders\infrastructure\repositories.py
+Arquivo criado: services\orders\infrastructure\database.py
+Arquivo criado: services\orders\api\__init__.py
+Arquivo criado: services\orders\api\routes.py
+Arquivo criado: services\orders\api\controllers.py
+Arquivo criado: services\orders\api\schemas.py
+Arquivo criado: services\orders\main.py
+Arquivo criado: services\orders\requirements.txt
+Arquivo criado: services\orders\Dockerfile
+Arquivo criado: services\orders\docker-compose.yml
+Arquivo criado: services\orders\tests\__init__.py
+Arquivo criado: services\orders\tests\test_orders_entities.py
+Arquivo criado: services\products\domain\__init__.py
+Arquivo criado: services\products\domain\products_entities.py
+Arquivo criado: services\products\domain\products_value_objects.py
+Arquivo criado: services\products\domain\products_aggregates.py
+Arquivo criado: services\products\application\__init__.py
+Arquivo criado: services\products\application\use_cases.py
+Arquivo criado: services\products\application\dtos.py
+Arquivo criado: services\products\application\mappers.py
+Arquivo criado: services\products\infrastructure\__init__.py
+Arquivo criado: services\products\infrastructure\repositories.py
+Arquivo criado: services\products\infrastructure\database.py
+Arquivo criado: services\products\api\__init__.py
+Arquivo criado: services\products\api\routes.py
+Arquivo criado: services\products\api\controllers.py
+Arquivo criado: services\products\api\schemas.py
+Arquivo criado: services\products\main.py
+Arquivo criado: services\products\requirements.txt
+Arquivo criado: services\products\Dockerfile
+Arquivo criado: services\products\docker-compose.yml
+Arquivo criado: services\products\tests\__init__.py
+Arquivo criado: services\products\tests\test_products_entities.py
+Arquivo criado: services\users\domain\__init__.py
+Arquivo criado: services\users\domain\users_entities.py
+Arquivo criado: services\users\domain\users_value_objects.py
+Arquivo criado: services\users\domain\users_aggregates.py
+Arquivo criado: services\users\application\__init__.py
+Arquivo criado: services\users\application\use_cases.py
+Arquivo criado: services\users\application\dtos.py
+Arquivo criado: services\users\application\mappers.py
+Arquivo criado: services\users\infrastructure\__init__.py
+Arquivo criado: services\users\infrastructure\repositories.py
+Arquivo criado: services\users\infrastructure\database.py
+Arquivo criado: services\users\api\__init__.py
+Arquivo criado: services\users\api\routes.py
+Arquivo criado: services\users\api\controllers.py
+Arquivo criado: services\users\api\schemas.py
+Arquivo criado: services\users\main.py
+Arquivo criado: services\users\requirements.txt
+Arquivo criado: services\users\Dockerfile
+Arquivo criado: services\users\docker-compose.yml
+Arquivo criado: services\users\tests\__init__.py
+Arquivo criado: services\users\tests\test_users_entities.py
+Arquivo criado: services\payment\domain\__init__.py
+Arquivo criado: services\payment\domain\payment_entities.py
+Arquivo criado: services\payment\domain\payment_value_objects.py
+Arquivo criado: services\payment\domain\payment_aggregates.py
+Arquivo criado: services\payment\application\__init__.py
+Arquivo criado: services\payment\application\use_cases.py
+Arquivo criado: services\payment\application\dtos.py
+Arquivo criado: services\payment\application\mappers.py
+Arquivo criado: services\payment\infrastructure\__init__.py
+Arquivo criado: services\payment\infrastructure\repositories.py
+Arquivo criado: services\payment\infrastructure\database.py
+Arquivo criado: services\payment\api\__init__.py
+Arquivo criado: services\payment\api\routes.py
+Arquivo criado: services\payment\api\controllers.py
+Arquivo criado: services\payment\api\schemas.py
+Arquivo criado: services\payment\main.py
+Arquivo criado: services\payment\requirements.txt
+Arquivo criado: services\payment\Dockerfile
+Arquivo criado: services\payment\docker-compose.yml
+Arquivo criado: services\payment\tests\__init__.py
+Arquivo criado: services\payment\tests\test_payment_entities.py
+Arquivo criado: services\auth\domain\__init__.py
+Arquivo duplicado detectado na geração: services/auth/domain/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\auth\application\__init__.py
+Arquivo duplicado detectado na geração: services/auth/application/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\auth\application\use_cases.py
+Arquivo duplicado detectado na geração: services/auth/application/use_cases.py (mantendo última versão gravada)
+Arquivo criado: services\auth\application\dtos.py
+Arquivo duplicado detectado na geração: services/auth/application/dtos.py (mantendo última versão gravada)
+Arquivo criado: services\auth\application\mappers.py
+Arquivo duplicado detectado na geração: services/auth/application/mappers.py (mantendo última versão gravada)
+Arquivo criado: services\auth\infrastructure\repositories.py
+Arquivo duplicado detectado na geração: services/auth/infrastructure/repositories.py (mantendo última versão gravada)
+Arquivo criado: services\auth\infrastructure\database.py
+Arquivo duplicado detectado na geração: services/auth/infrastructure/database.py (mantendo última versão gravada)
+Arquivo criado: services\auth\api\routes.py
+Arquivo duplicado detectado na geração: services/auth/api/routes.py (mantendo última versão gravada)
+Arquivo criado: services\auth\api\controllers.py
+Arquivo duplicado detectado na geração: services/auth/api/controllers.py (mantendo última versão gravada)
+Arquivo criado: services\auth\api\schemas.py
+Arquivo duplicado detectado na geração: services/auth/api/schemas.py (mantendo última versão gravada)
+Arquivo criado: services\auth\main.py
+Arquivo duplicado detectado na geração: services/auth/main.py (mantendo última versão gravada)
+Arquivo criado: services\orders\domain\__init__.py
+Arquivo duplicado detectado na geração: services/orders/domain/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\orders\application\__init__.py
+Arquivo duplicado detectado na geração: services/orders/application/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\orders\application\use_cases.py
+Arquivo duplicado detectado na geração: services/orders/application/use_cases.py (mantendo última versão gravada)
+Arquivo criado: services\orders\application\dtos.py
+Arquivo duplicado detectado na geração: services/orders/application/dtos.py (mantendo última versão gravada)
+Arquivo criado: services\orders\application\mappers.py
+Arquivo duplicado detectado na geração: services/orders/application/mappers.py (mantendo última versão gravada)
+Arquivo criado: services\orders\infrastructure\repositories.py
+Arquivo duplicado detectado na geração: services/orders/infrastructure/repositories.py (mantendo última versão gravada)
+Arquivo criado: services\orders\infrastructure\database.py
+Arquivo duplicado detectado na geração: services/orders/infrastructure/database.py (mantendo última versão gravada)
+Arquivo criado: services\orders\api\routes.py
+Arquivo duplicado detectado na geração: services/orders/api/routes.py (mantendo última versão gravada)
+Arquivo criado: services\orders\api\controllers.py
+Arquivo duplicado detectado na geração: services/orders/api/controllers.py (mantendo última versão gravada)
+Arquivo criado: services\orders\api\schemas.py
+Arquivo duplicado detectado na geração: services/orders/api/schemas.py (mantendo última versão gravada)
+Arquivo criado: services\orders\main.py
+Arquivo duplicado detectado na geração: services/orders/main.py (mantendo última versão gravada)
+Arquivo criado: services\products\domain\__init__.py
+Arquivo duplicado detectado na geração: services/products/domain/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\products\application\__init__.py
+Arquivo duplicado detectado na geração: services/products/application/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\products\application\use_cases.py
+Arquivo duplicado detectado na geração: services/products/application/use_cases.py (mantendo última versão gravada)
+Arquivo criado: services\products\application\dtos.py
+Arquivo duplicado detectado na geração: services/products/application/dtos.py (mantendo última versão gravada)
+Arquivo criado: services\products\application\mappers.py
+Arquivo duplicado detectado na geração: services/products/application/mappers.py (mantendo última versão gravada)
+Arquivo criado: services\products\infrastructure\repositories.py
+Arquivo duplicado detectado na geração: services/products/infrastructure/repositories.py (mantendo última versão gravada)
+Arquivo criado: services\products\infrastructure\database.py
+Arquivo duplicado detectado na geração: services/products/infrastructure/database.py (mantendo última versão gravada)
+Arquivo criado: services\products\api\routes.py
+Arquivo duplicado detectado na geração: services/products/api/routes.py (mantendo última versão gravada)
+Arquivo criado: services\products\api\controllers.py
+Arquivo duplicado detectado na geração: services/products/api/controllers.py (mantendo última versão gravada)
+Arquivo criado: services\products\api\schemas.py
+Arquivo duplicado detectado na geração: services/products/api/schemas.py (mantendo última versão gravada)
+Arquivo criado: services\products\main.py
+Arquivo duplicado detectado na geração: services/products/main.py (mantendo última versão gravada)
+Arquivo criado: services\users\domain\__init__.py
+Arquivo duplicado detectado na geração: services/users/domain/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\users\application\__init__.py
+Arquivo duplicado detectado na geração: services/users/application/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\users\application\use_cases.py
+Arquivo duplicado detectado na geração: services/users/application/use_cases.py (mantendo última versão gravada)
+Arquivo criado: services\users\application\dtos.py
+Arquivo duplicado detectado na geração: services/users/application/dtos.py (mantendo última versão gravada)
+Arquivo criado: services\users\application\mappers.py
+Arquivo duplicado detectado na geração: services/users/application/mappers.py (mantendo última versão gravada)
+Arquivo criado: services\users\infrastructure\repositories.py
+Arquivo duplicado detectado na geração: services/users/infrastructure/repositories.py (mantendo última versão gravada)
+Arquivo criado: services\users\infrastructure\database.py
+Arquivo duplicado detectado na geração: services/users/infrastructure/database.py (mantendo última versão gravada)
+Arquivo criado: services\users\api\routes.py
+Arquivo duplicado detectado na geração: services/users/api/routes.py (mantendo última versão gravada)
+Arquivo criado: services\users\api\controllers.py
+Arquivo duplicado detectado na geração: services/users/api/controllers.py (mantendo última versão gravada)
+Arquivo criado: services\users\api\schemas.py
+Arquivo duplicado detectado na geração: services/users/api/schemas.py (mantendo última versão gravada)
+Arquivo criado: services\payment\domain\__init__.py
+Arquivo duplicado detectado na geração: services/payment/domain/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\payment\application\__init__.py
+Arquivo duplicado detectado na geração: services/payment/application/__init__.py (mantendo última versão gravada)
+Arquivo criado: services\payment\application\use_cases.py
+Arquivo duplicado detectado na geração: services/payment/application/use_cases.py (mantendo última versão gravada)
+Arquivo criado: services\payment\application\dtos.py
+Arquivo duplicado detectado na geração: services/payment/application/dtos.py (mantendo última versão gravada)
+Arquivo criado: services\payment\application\mappers.py
+Arquivo duplicado detectado na geração: services/payment/application/mappers.py (mantendo última versão gravada)
+Arquivo criado: services\payment\infrastructure\repositories.py
+Arquivo duplicado detectado na geração: services/payment/infrastructure/repositories.py (mantendo última versão gravada)
+Arquivo criado: services\payment\infrastructure\database.py
+Arquivo duplicado detectado na geração: services/payment/infrastructure/database.py (mantendo última versão gravada)
+Arquivo criado: services\payment\api\routes.py
+Arquivo duplicado detectado na geração: services/payment/api/routes.py (mantendo última versão gravada)
+Arquivo criado: services\payment\api\controllers.py
+Arquivo duplicado detectado na geração: services/payment/api/controllers.py (mantendo última versão gravada)
+Arquivo criado: services\payment\api\schemas.py
+Arquivo duplicado detectado na geração: services/payment/api/schemas.py (mantendo última versão gravada)
+Arquivo criado: services\payment\main.py
+Arquivo duplicado detectado na geração: services/payment/main.py (mantendo última versão gravada)
+Arquivo criado: README.md
+Arquivo criado: services\auth\static\index.html
+Arquivo criado: docker-compose.yml
+============================================================
+VALIDAÇÃO - Verificando arquivos gerados...
+Arquivo vazio: services/auth/tests/__init__.py
+Arquivo vazio: services/orders/tests/__init__.py
+Arquivo vazio: services/products/tests/__init__.py
+Arquivo vazio: services/users/tests/__init__.py
+Arquivo vazio: services/payment/tests/__init__.py
+VALIDAÇÃO - Todos os arquivos passaram na verificação!
+============================================================
+Criados 108 arquivos
+Executor Agent - Concluído em 29.32s
+Arquivos criados: 108
+{"timestamp": "2026-03-06T15:46:17.159273+00:00", "trace_id": "be6e9da4-c76f-41ea-aa7f-d82b165e1ff0", "message_id": "8058a244-796a-4878-8a82-b9aaa55331e7", "type": "AGENT_COMMUNICATION", "from_agent": "OrchestratorAgent", "to_agent": "ExecutorAgent", "payload": "{'requirement_id': '6c8e899b-19e9-4eea-88b2-c69a774af530'}", "status": "success", "execution_time_ms": 0}
+AGENT_COMMUNICATION | OrchestratorAgent → ExecutorAgent | trace_id=be6e9da4... | time=0ms | status=success
+✅ Executor Agent concluído - 108 arquivos
+
+📋 FASE 2: Validator Agent (ciclo inicial)
+============================================================
+VALIDATOR AGENT - Iniciando validação
+============================================================
+Chamando LLM para validação...
+Enviando prompt para llama3.2 (12030 chars)
+Resposta recebida (873 chars)
+Erro ao parsear JSON de validação: Expecting ',' delimiter: line 19 column 204 (char 873)
+Realizando validação manual...
+✅ Validação manual APROVADA - Score: 1.0
+FileManager inicializado em: ifoodclone16
+❌ Guardrails reprovaram validação: ["Serviço 'orders' sem entidade coerente em services/orders/domain/orders_entities.py. Esperado uma das classes: Order, Pedido"]
+{"timestamp": "2026-03-06T15:46:20.570909+00:00", "trace_id": "be6e9da4-c76f-41ea-aa7f-d82b165e1ff0", "message_id": "d603d314-f844-45fd-83c9-ebef0146b5ad", "type": "AGENT_COMMUNICATION", "from_agent": "ExecutorAgent", "to_agent": "ValidatorAgent", "payload": "{'requirement_id': '6c8e899b-19e9-4eea-88b2-c69a774af530', 'cycle': 'ciclo inicial'}", "status": "success", "execution_time_ms": 0}
+AGENT_COMMUNICATION | ExecutorAgent → ValidatorAgent | trace_id=be6e9da4... | time=0ms | status=success
+Erro fatal no Orchestrator: 'ValidationResult' object has no attribute 'approved'
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Python312\Lib\site-packages\uvicorn\__main__.py", line 4, in <module>
+    uvicorn.main()
+    │       └ <Command main>
+    └ <module 'uvicorn' from 'C:\\Python312\\Lib\\site-packages\\uvicorn\\__init__.py'>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           │    │     │       └ {}
+           │    │     └ ()
+           │    └ <function Command.main at 0x000001D1DF70D260>
+           └ <Command main>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         │    │      └ <click.core.Context object at 0x000001D1DF593B60>
+         │    └ <function Command.invoke at 0x000001D1DF70CF40>
+         └ <Command main>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           │   │      │    │           │   └ {'host': '127.0.0.1', 'port': 8000, 'app': 'api.server:app', 'uds': None, 'fd': None, 'reload': False, 'reload_dirs': (), 're...
+           │   │      │    │           └ <click.core.Context object at 0x000001D1DF593B60>
+           │   │      │    └ <function main at 0x000001D1DF7F7100>
+           │   │      └ <Command main>
+           │   └ <function Context.invoke at 0x000001D1DF70C180>
+           └ <click.core.Context object at 0x000001D1DF593B60>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           │         │       └ {'host': '127.0.0.1', 'port': 8000, 'app': 'api.server:app', 'uds': None, 'fd': None, 'reload': False, 'reload_dirs': (), 're...
+           │         └ ()
+           └ <function main at 0x000001D1DF7F7100>
+  File "C:\Python312\Lib\site-packages\uvicorn\main.py", line 413, in main
+    run(
+    └ <function run at 0x000001D1DF7542C0>
+  File "C:\Python312\Lib\site-packages\uvicorn\main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x000001D1DF7A63E0>
+    └ <uvicorn.server.Server object at 0x000001D1DF736AE0>
+  File "C:\Python312\Lib\site-packages\uvicorn\server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x000001D1DF7A6480>
+           │       │   └ <uvicorn.server.Server object at 0x000001D1DF736AE0>
+           │       └ <function run at 0x000001D1DD22B380>
+           └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x000001D1DF807140>
+           │      └ <function Runner.run at 0x000001D1DF0787C0>
+           └ <asyncio.runners.Runner object at 0x000001D1DF7D3770>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at C:\Python312\Lib\site-packages\uvicorn\server.py:71> wait_for=<Fu...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000001D1DF0763E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000001D1DF7D3770>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000001D1DF135A80>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000001D1DF078180>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000001D1DEFBE700>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+
+  File "C:\Users\kauan\Desktop\integrador\api\server.py", line 439, in execute_generation
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='6c8e899b-19e9-4eea-88b2-c69a774af530', trace_id='be6e9da4-c76f-41ea-aa7f-d82b165e1ff0', description='gere um ...
+                   │            └ <function OrchestratorAgent.execute at 0x000001D1E201E980>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x000001D1E201BFE0>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 213, in execute
+    if validation_result.approved:
+       └ ValidationResult(requirement_id='6c8e899b-19e9-4eea-88b2-c69a774af530', trace_id='', status=<ValidationStatus.REJECTED: 'reje...
+
+AttributeError: 'ValidationResult' object has no attribute 'approved'. Did you mean: 'approve'?
