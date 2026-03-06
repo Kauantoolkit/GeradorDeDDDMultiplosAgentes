@@ -13,6 +13,7 @@ Este agente é responsável por:
 
 import json
 import re
+from pathlib import Path
 from datetime import datetime
 from loguru import logger
 
@@ -283,6 +284,14 @@ class ValidatorAgent:
             if dependency_issue:
                 issues.append(dependency_issue)
 
+            main_issue = self._check_main_handler_contract(service_name, file_manager)
+            if main_issue:
+                issues.append(main_issue)
+
+            duplicate_route_issue = self._check_duplicate_routes(service_name, file_manager)
+            if duplicate_route_issue:
+                issues.append(duplicate_route_issue)
+
         frontend_issue = self._check_frontend_requirement(requirement, file_manager)
         if frontend_issue:
             issues.append(frontend_issue)
@@ -291,6 +300,7 @@ class ValidatorAgent:
 
     def _extract_service_names(self, files_created: list[str]) -> list[str]:
         services = []
+        ignore_names = {"api", "static", "tests", "__pycache__"}
         for file_path in files_created or []:
             normalized = file_path.replace("\\", "/")
             parts = normalized.split("/")
@@ -299,6 +309,10 @@ class ValidatorAgent:
             try:
                 service_index = parts.index("services") + 1
                 service_name = parts[service_index]
+                if not service_name or "." in service_name:
+                    continue
+                if service_name in ignore_names:
+                    continue
                 if service_name and service_name not in services:
                     services.append(service_name)
             except (ValueError, IndexError):
@@ -386,7 +400,15 @@ class ValidatorAgent:
         frontend_keywords = [
             "frontend", "react", "vue", "angular", "ui", "interface web", "tela", "spa"
         ]
-        if not any(keyword in description for keyword in frontend_keywords):
+        backend_only_markers = [
+            "apenas backend", "somente backend", "backend only", "sem frontend"
+        ]
+
+        requires_frontend = any(keyword in description for keyword in frontend_keywords)
+        if any(marker in description for marker in backend_only_markers):
+            requires_frontend = False
+
+        if not requires_frontend:
             return None
 
         frontend_signals = [
@@ -399,10 +421,54 @@ class ValidatorAgent:
         ]
 
         for signal in frontend_signals:
-            if file_manager.read_file(signal):
+            full_path = file_manager.base_path / Path(signal)
+            if full_path.exists():
                 return None
 
         return "Requisito menciona frontend, mas nenhum artefato de frontend foi gerado"
+
+    def _check_main_handler_contract(self, service_name: str, file_manager: FileManager) -> str | None:
+        main_content = file_manager.read_file(f"services/{service_name}/main.py")
+        if not main_content:
+            return None
+
+        request_used = bool(re.search(r"\brequest\s*:\s*Request\b", main_content))
+        request_imported = bool(re.search(r"from\s+fastapi\s+import[^\n]*\bRequest\b", main_content))
+        if request_used and not request_imported:
+            return f"Serviço '{service_name}' usa Request em main.py sem import explícito de fastapi"
+
+        imports = set()
+        for block in re.findall(r"from\s+[^\n]+\s+import\s+([^\n]+)", main_content):
+            for token in block.split(','):
+                imports.add(token.strip().split(' as ')[0])
+
+        used_calls = set(re.findall(r"\b([A-Z][A-Za-z0-9_]*)\s*\(\)", main_content))
+        ignore = {"FastAPI", "Request"}
+        missing = sorted(name for name in used_calls if name not in imports and name not in ignore)
+        if missing:
+            return f"Serviço '{service_name}' usa símbolos não importados em main.py: {', '.join(missing)}"
+
+        return None
+
+    def _check_duplicate_routes(self, service_name: str, file_manager: FileManager) -> str | None:
+        main_content = file_manager.read_file(f"services/{service_name}/main.py")
+        if not main_content:
+            return None
+
+        route_pattern = r"@app\.(get|post|put|patch|delete)\((['\"])([^'\"]+)\2"
+        seen: set[tuple[str, str]] = set()
+        duplicates: list[str] = []
+        for method, _, path in re.findall(route_pattern, main_content):
+            key = (method.lower(), path)
+            if key in seen:
+                duplicates.append(f"{method.upper()} {path}")
+            else:
+                seen.add(key)
+
+        if duplicates:
+            return f"Serviço '{service_name}' possui rotas duplicadas em main.py: {', '.join(sorted(set(duplicates)))}"
+
+        return None
     
     async def validate_structure(
         self, 

@@ -20,6 +20,7 @@ MUDANÇAS IMPLEMENTADAS:
 
 import json
 import re
+import ast
 from datetime import datetime
 from typing import Any
 from loguru import logger
@@ -582,6 +583,15 @@ class ExecutorAgent:
             )
 
         created_files = []
+        seen_paths: set[str] = set()
+
+        def register_created(path: str) -> None:
+            normalized = path.replace('\\', '/').strip()
+            if normalized in seen_paths:
+                logger.warning(f"Arquivo duplicado detectado na geração: {normalized} (mantendo última versão gravada)")
+                return
+            seen_paths.add(normalized)
+            created_files.append(normalized)
         
         # Extrai os microserviços (modo legado)
         microservices = data.get("microservices", [])
@@ -602,7 +612,7 @@ class ExecutorAgent:
             for file_path, content in ddd_structure.items():
                 guarded_content = self._apply_generation_guards(file_path, content)
                 if file_manager.create_file(file_path, guarded_content):
-                    created_files.append(file_path)
+                    register_created(file_path)
         
         # Modo DDD estratégico: bounded_contexts já trazem arquivos prontos
         bounded_contexts = data.get("bounded_contexts", [])
@@ -612,7 +622,7 @@ class ExecutorAgent:
                 path = file_data.get("path")
                 content = self._apply_generation_guards(path, file_data.get("content", ""))
                 if path and file_manager.create_file(path, content):
-                    created_files.append(path)
+                    register_created(path)
             logger.info(f"Bounded context processado: {context_name}")
         
         # Cria arquivos adicionais definidos pelo LLM
@@ -622,17 +632,22 @@ class ExecutorAgent:
             content = self._apply_generation_guards(path, file_data.get("content", ""))
             
             if path and file_manager.create_file(path, content):
-                created_files.append(path)
+                register_created(path)
         
         # Cria arquivos raiz do projeto
         root_files = self._generate_root_files(config, microservices)
         for file_path, content in root_files.items():
             guarded_content = self._apply_generation_guards(file_path, content)
             if file_manager.create_file(file_path, guarded_content):
-                created_files.append(file_path)
+                register_created(file_path)
         
         # VALIDAÇÃO: Verificar arquivos gerados para detectar problemas
-        self._validate_generated_files(created_files, file_manager)
+        validation_summary = self._validate_generated_files(created_files, file_manager)
+        if validation_summary["critical_issues"]:
+            raise ValueError(
+                "Falha nos guardrails de geração: "
+                + "; ".join(validation_summary["critical_issues"])
+            )
         
         logger.info(f"Criados {len(created_files)} arquivos")
         return created_files
@@ -712,7 +727,7 @@ class ExecutorAgent:
 
         return fixed
 
-    def _validate_generated_files(self, created_files: list, file_manager: FileManager) -> None:
+    def _validate_generated_files(self, created_files: list, file_manager: FileManager) -> dict[str, list[str]]:
         """
         Valida os arquivos gerados para detectar problemas comuns.
         
@@ -724,30 +739,61 @@ class ExecutorAgent:
         logger.info("VALIDAÇÃO - Verificando arquivos gerados...")
         
         issues_found = False
+        critical_issues: list[str] = []
+        warnings: list[str] = []
+        route_registry: dict[tuple[str, str, str], str] = {}
         
         for file_path in created_files:
             try:
                 content = file_manager.read_file(file_path)
                 if not content:
                     logger.warning(f"Arquivo vazio: {file_path}")
-                    issues_found = True
+                    warnings.append(f"Arquivo vazio: {file_path}")
                     continue
                 
                 # Verifica placeholders não substituídos
                 if PlaceholderReplacer.has_placeholders(content):
                     logger.error(f"PLACEHOLDER encontrado em: {file_path}")
                     issues_found = True
+                    critical_issues.append(f"Placeholder não substituído em {file_path}")
                 
                 # Verifica padrões comuns de código vazio/incompleto
                 if 'pass\n' in content and content.count('pass\n') > 3:
                     # Mais de 3 'pass' pode indicar código incompleto
                     logger.warning(f"Muitos 'pass' em: {file_path} - possível código incompleto")
+                    warnings.append(f"Possível código incompleto em {file_path}")
                 
                 # Verifica se há imports faltando para arquivos Python
                 if file_path.endswith('.py'):
                     # Verifica se o arquivo tem pelo menos uma função ou classe definida
-                    if 'def ' not in content and 'class ' not in content:
+                    if file_path.endswith('__init__.py'):
+                        pass
+                    elif 'def ' not in content and 'class ' not in content:
                         logger.warning(f"Arquivo Python sem definições: {file_path}")
+                        warnings.append(f"Arquivo Python sem definições: {file_path}")
+
+                    # Verifica sintaxe Python
+                    try:
+                        ast.parse(content)
+                    except SyntaxError as syntax_error:
+                        issues_found = True
+                        issue = f"Erro de sintaxe em {file_path}: {syntax_error.msg}"
+                        critical_issues.append(issue)
+                        logger.error(issue)
+
+                    if '/main.py' in file_path.replace('\\', '/'):
+                        undefined_issue = self._check_undefined_handler_symbols(file_path, content)
+                        if undefined_issue:
+                            issues_found = True
+                            critical_issues.append(undefined_issue)
+                            logger.error(undefined_issue)
+
+                    duplicate_route_issues = self._check_duplicate_routes(file_path, content, route_registry)
+                    if duplicate_route_issues:
+                        issues_found = True
+                        critical_issues.extend(duplicate_route_issues)
+                        for issue in duplicate_route_issues:
+                            logger.error(issue)
 
                 if file_path.endswith('requirements.txt'):
                     required_runtime = ['fastapi', 'uvicorn']
@@ -756,13 +802,22 @@ class ExecutorAgent:
                         if dependency not in requirements_lower:
                             logger.error(f"Dependência obrigatória ausente ({dependency}) em: {file_path}")
                             issues_found = True
+                            critical_issues.append(f"Dependência obrigatória ausente ({dependency}) em {file_path}")
 
                 if file_path.endswith('Dockerfile') and "CMD ['" in content:
                     logger.error(f"Sintaxe CMD inválida (aspas simples) em: {file_path}")
                     issues_found = True
+                    critical_issues.append(f"Sintaxe CMD inválida em {file_path}")
+
+                if '/infrastucture/' in file_path.replace('\\', '/'):
+                    issues_found = True
+                    issue = f"Diretório suspeito detectado (typo): {file_path}"
+                    critical_issues.append(issue)
+                    logger.error(issue)
                         
             except Exception as e:
                 logger.warning(f"Erro ao validar {file_path}: {e}")
+                warnings.append(f"Erro ao validar {file_path}: {e}")
         
         if issues_found:
             logger.error("VALIDAÇÃO - Problemas encontrados nos arquivos gerados!")
@@ -771,6 +826,58 @@ class ExecutorAgent:
             logger.info("VALIDAÇÃO - Todos os arquivos passaram na verificação!")
         
         logger.info("="*60)
+        return {
+            "critical_issues": list(dict.fromkeys(critical_issues)),
+            "warnings": list(dict.fromkeys(warnings)),
+        }
+
+    def _check_undefined_handler_symbols(self, file_path: str, content: str) -> str | None:
+        """Detecta símbolos frequentemente esquecidos em handlers FastAPI."""
+        request_used = bool(re.search(r"\brequest\s*:\s*Request\b", content))
+        request_imported = bool(re.search(r"from\s+fastapi\s+import[^\n]*\bRequest\b", content))
+
+        if request_used and not request_imported:
+            return f"Request usado sem import em {file_path}"
+
+        imported_symbols = set(re.findall(r"from\s+[^\n]+\s+import\s+([^\n]+)", content))
+        imported_names: set[str] = set()
+        for symbols in imported_symbols:
+            for token in symbols.split(','):
+                imported_names.add(token.strip().split(' as ')[0])
+
+        used_calls = set(re.findall(r"\b([A-Z][A-Za-z0-9_]*)\s*\(\)", content))
+        allowed_builtins = {"FastAPI"}
+        missing = sorted(name for name in used_calls if name not in imported_names and name not in allowed_builtins)
+        if missing:
+            return f"Possíveis símbolos não importados em {file_path}: {', '.join(missing)}"
+
+        return None
+
+    def _check_duplicate_routes(
+        self,
+        file_path: str,
+        content: str,
+        route_registry: dict[tuple[str, str, str], str],
+    ) -> list[str]:
+        """Detecta rotas duplicadas de FastAPI (mesmo método+path no mesmo serviço)."""
+        normalized = file_path.replace('\\', '/')
+        parts = normalized.split('/')
+        service = "unknown"
+        if len(parts) > 2 and parts[0] == 'services':
+            service = parts[1]
+
+        route_pattern = r"@app\.(get|post|put|patch|delete)\((['\"])([^'\"]+)\2"
+        issues: list[str] = []
+        for method, _, path in re.findall(route_pattern, content):
+            key = (service, method.lower(), path)
+            if key in route_registry:
+                issues.append(
+                    f"Rota duplicada detectada em serviço '{service}': {method.upper()} {path} ({file_path} e {route_registry[key]})"
+                )
+            else:
+                route_registry[key] = file_path
+
+        return issues
     
     def _generate_ddd_structure(
         self, 
