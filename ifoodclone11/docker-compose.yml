@@ -1,0 +1,74 @@
+services:
+  order_service:
+    build:
+      context: ./services/order_service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8000"
+    environment:
+      - "DATABASE_URL=postgresql://postgres:postgres@db-order_service:5432/order_service"
+      - SERVICE_NAME=order_service
+    depends_on:
+      - db-order_service
+    networks:
+      - project-network
+  db-order_service:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=order_service
+    volumes:
+      - "pgdata-order_service:/var/lib/postgresql/data"
+    networks:
+      - project-network
+  user_service:
+    build:
+      context: ./services/user_service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8000"
+    environment:
+      - "DATABASE_URL=postgresql://postgres:postgres@db-user_service:5432/user_service"
+      - SERVICE_NAME=user_service
+    depends_on:
+      - db-user_service
+    networks:
+      - project-network
+  db-user_service:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=user_service
+    volumes:
+      - "pgdata-user_service:/var/lib/postgresql/data"
+    networks:
+      - project-network
+  product_service:
+    build:
+      context: ./services/product_service
+      dockerfile: Dockerfile
+    ports:
+      - "0:8000"
+    environment:
+      - "DATABASE_URL=postgresql://postgres:postgres@db-product_service:5432/product_service"
+      - SERVICE_NAME=product_service
+    depends_on:
+      - db-product_service
+    networks:
+      - project-network
+  db-product_service:
+    image: "postgres:16"
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=product_service
+    volumes:
+      - "pgdata-product_service:/var/lib/postgresql/data"
+    networks:
+      - project-network
+networks:
+  project-network:
+    driver: bridge
+volumes:
+  pgdata-order_service:
+  pgdata-user_service:
+  pgdata-product_service:
