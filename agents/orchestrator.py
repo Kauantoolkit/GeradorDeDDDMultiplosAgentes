@@ -210,7 +210,7 @@ class OrchestratorAgent:
                 result.add_log(f"Validação concluída - Status: {validation_result.status} | Score: {validation_result.score}")
 
                 docker_issues: list[str] = []
-                if validation_result.approved:
+                if validation_result.is_approved:
                     logger.info(f"\n📋 FASE 3: Docker Test Agent ({cycle_label})")
                     result.add_log(f"FASE 3: Docker Test Agent ({cycle_label})")
 

@@ -593,8 +593,8 @@ class ExecutorAgent:
             seen_paths.add(normalized)
             created_files.append(normalized)
         
-        # Extrai os microserviços (modo legado)
-        microservices = data.get("microservices", [])
+        # Extrai e normaliza os microserviços (modo legado)
+        microservices = self._normalize_microservice_specs(data.get("microservices", []))
         
         # Gera arquivos da estrutura DDD para cada microserviço
         for microservice in microservices:
@@ -655,6 +655,71 @@ class ExecutorAgent:
         
         logger.info(f"Criados {len(created_files)} arquivos")
         return created_files
+
+    def _normalize_microservice_specs(self, microservices: Any) -> list[dict[str, Any]]:
+        """Normaliza especificações de microserviços para reduzir erros recorrentes de geração."""
+        if not isinstance(microservices, list):
+            logger.warning(
+                f"microservices em formato inválido ({type(microservices).__name__}); ignorando bloco legado"
+            )
+            return []
+
+        normalized_specs: list[dict[str, Any]] = []
+        seen_service_names: set[str] = set()
+
+        for index, item in enumerate(microservices, start=1):
+            if not isinstance(item, dict):
+                logger.warning(f"Microserviço inválido na posição {index}: {type(item).__name__} (ignorado)")
+                continue
+
+            raw_name = str(item.get("name") or f"service_{index}")
+            raw_domain = str(item.get("domain") or raw_name)
+
+            service_name = self._normalize_identifier(raw_name, fallback=f"service_{index}")
+            domain_name = self._normalize_identifier(raw_domain, fallback=service_name)
+
+            if service_name in seen_service_names:
+                logger.warning(f"Microserviço duplicado após normalização: {service_name} (entrada ignorada)")
+                continue
+
+            entities = item.get("entities", [])
+            if not isinstance(entities, list):
+                entities = []
+
+            cleaned_entities = [
+                self._normalize_entity_name(entity)
+                for entity in entities
+                if str(entity).strip()
+            ]
+
+            if not cleaned_entities:
+                fallback_entity = domain_name.rstrip('s').capitalize() or "Entity"
+                cleaned_entities = [fallback_entity]
+
+            normalized = dict(item)
+            normalized["name"] = service_name
+            normalized["domain"] = domain_name
+            normalized["entities"] = cleaned_entities
+
+            normalized_specs.append(normalized)
+            seen_service_names.add(service_name)
+
+        return normalized_specs
+
+    def _normalize_identifier(self, value: str, fallback: str = "service") -> str:
+        """Converte identificadores livres em nomes estáveis (snake_case) para paths/imports."""
+        lowered = value.strip().lower().replace('-', '_').replace(' ', '_')
+        cleaned = re.sub(r'[^a-z0-9_]', '_', lowered)
+        cleaned = re.sub(r'_+', '_', cleaned).strip('_')
+        return cleaned or fallback
+
+    def _normalize_entity_name(self, value: Any) -> str:
+        """Normaliza nomes de entidades para formato de classe Python."""
+        tokens = re.findall(r"[A-Za-z0-9]+", str(value))
+        if not tokens:
+            return "Entity"
+        normalized = "".join(token.capitalize() for token in tokens)
+        return normalized if normalized[0].isalpha() else f"Entity{normalized}"
     
     def _is_allowed_extra_file_path(self, file_path: str | None) -> bool:
         """Restringe arquivos extras do LLM para evitar lixo fora da estrutura esperada."""

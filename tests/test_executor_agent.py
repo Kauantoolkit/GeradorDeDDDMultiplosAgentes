@@ -145,3 +145,31 @@ def test_create_project_files_ignores_extra_files_outside_allowed_scope(tmp_path
     assert "services/orders/main.py" in created
     assert "microservico-de-pedidos/application/use_cases.py" not in created
     assert not (tmp_path / "microservico-de-pedidos/application/use_cases.py").exists()
+
+
+def test_normalize_microservice_specs_sanitizes_names_and_entities():
+    agent = ExecutorAgent(DummyProvider())
+
+    normalized = agent._normalize_microservice_specs([
+        {
+            "name": "Microserviço de Usuários",
+            "domain": "Usuários-App",
+            "entities": ["usuario perfil", "123item", ""],
+        }
+    ])
+
+    assert normalized[0]["name"] == "microservi_o_de_usu_rios"
+    assert normalized[0]["domain"] == "usu_rios_app"
+    assert normalized[0]["entities"] == ["UsuarioPerfil", "Entity123item"]
+
+
+def test_normalize_microservice_specs_deduplicates_after_normalization():
+    agent = ExecutorAgent(DummyProvider())
+
+    normalized = agent._normalize_microservice_specs([
+        {"name": "order-service", "domain": "orders", "entities": ["Order"]},
+        {"name": "order_service", "domain": "orders", "entities": ["Order"]},
+    ])
+
+    assert len(normalized) == 1
+    assert normalized[0]["name"] == "order_service"
