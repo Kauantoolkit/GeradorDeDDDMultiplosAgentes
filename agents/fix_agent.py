@@ -303,6 +303,14 @@ class FixAgent:
         files_modified = []
         project_path = requirement.project_config.output_directory
         file_manager = FileManager(project_path)
+
+        # Correções determinísticas para problemas recorrentes de dependência
+        files_modified.extend(
+            self._fix_emailstr_dependencies(
+                file_manager=file_manager,
+                execution_result=execution_result,
+            )
+        )
         
         # Se tem LLM, usa para sugerir correções
         if self.llm_provider:
@@ -326,6 +334,57 @@ class FixAgent:
             )
         
         return files_modified
+
+    def _fix_emailstr_dependencies(
+        self,
+        file_manager: FileManager,
+        execution_result: Any,
+    ) -> list[str]:
+        """Garante dependência de email quando EmailStr é utilizado nos schemas."""
+        modified: list[str] = []
+
+        service_names: set[str] = set()
+        files_created = getattr(execution_result, "files_created", []) or []
+        for file_path in files_created:
+            normalized = file_path.replace("\\", "/")
+            parts = normalized.split("/")
+            if "services" in parts:
+                idx = parts.index("services") + 1
+                if idx < len(parts) and parts[idx]:
+                    service_names.add(parts[idx])
+
+        services_root = file_manager.base_path / "services"
+        if services_root.exists():
+            for service_dir in services_root.iterdir():
+                if service_dir.is_dir():
+                    service_names.add(service_dir.name)
+
+        for service_name in sorted(service_names):
+            schema_content = file_manager.read_file(f"services/{service_name}/api/schemas.py")
+            if not schema_content or "EmailStr" not in schema_content:
+                continue
+
+            requirements_path = f"services/{service_name}/requirements.txt"
+            requirements_content = file_manager.read_file(requirements_path)
+            if requirements_content is None:
+                continue
+
+            normalized_requirements = requirements_content.lower()
+            has_email_dep = (
+                "email-validator" in normalized_requirements
+                or "pydantic[email]" in normalized_requirements
+            )
+            if has_email_dep:
+                continue
+
+            new_content = requirements_content.rstrip() + "\nemail-validator>=2.0.0\n"
+            if file_manager.create_file(requirements_path, new_content):
+                modified.append(requirements_path)
+                logger.info(
+                    f"  Modificado: {requirements_path} (adicionada dependência email-validator)"
+                )
+
+        return modified
     
     async def _fix_with_llm(
         self,
