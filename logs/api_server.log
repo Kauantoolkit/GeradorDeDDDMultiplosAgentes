@@ -8421,3 +8421,413 @@ ValueError: Falha nos guardrails de geração: Erro de sintaxe em microservico-d
 2026-03-06 12:33:34.988 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | OrchestratorAgent → ExecutorAgent | trace_id=087da602... | time=0ms | status=failure
 2026-03-06 12:33:34.989 | ERROR    | agents.orchestrator:execute:178 - ❌ Executor Agent falhou: Falha nos guardrails de geração: Erro de sintaxe em microservico-de-pedidos/application/use_cases.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/infrastructure/repositories.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/api/routes.py: invalid syntax; Erro de sintaxe em microservico-de-pedidos/main.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/application/use_cases.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/infrastructure/repositories.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/api/routes.py: invalid syntax; Erro de sintaxe em microservico-de-usuarios/main.py: invalid syntax
 2026-03-06 12:45:07.218 | INFO     | api.server:disconnect:77 - Cliente client_1772811016664_z5mnzbjoe desconectado. Total: 0
+2026-03-06 12:45:29.437 | INFO     | api.server:connect:69 - Cliente client_1772811929405_uuebfyzi4 conectado. Total: 1
+2026-03-06 12:45:29.441 | INFO     | api.server:connect:69 - Cliente client_1772811929405_uuebfyzi4 conectado. Total: 2
+2026-03-06 12:45:29.453 | INFO     | api.server:disconnect:77 - Cliente client_1772811929405_uuebfyzi4 desconectado. Total: 1
+2026-03-06 12:45:47.454 | INFO     | api.server:execute_generation:351 - [task_id=600009df-2d72-4135-ae1d-9bb110c04d6a] Iniciando execução | model=llama3.2 framework=python-fastapi database=postgresql output=ifoodclone16
+2026-03-06 12:45:47.499 | INFO     | infrastructure.llm_provider:check_ollama_installation:71 - Ollama encontrado em: C:\Users\kauan\AppData\Local\Programs\Ollama\ollama.EXE
+2026-03-06 12:45:47.504 | INFO     | infrastructure.llm_provider:ensure_ollama_running:103 - Ollama já está rodando!
+2026-03-06 12:45:47.829 | INFO     | infrastructure.llm_provider:__init__:164 - OllamaProvider inicializado com modelo: llama3.2
+2026-03-06 12:45:47.829 | INFO     | agents.executor_agent:__init__:130 - Executor Agent inicializado
+2026-03-06 12:45:47.829 | INFO     | agents.validator_agent:__init__:53 - Validator Agent inicializado
+2026-03-06 12:45:47.829 | INFO     | agents.rollback_agent:__init__:46 - Rollback Agent inicializado
+2026-03-06 12:45:47.829 | INFO     | agents.docker_test_agent:__init__:57 - Docker Test Agent inicializado
+2026-03-06 12:45:47.832 | INFO     | agents.error_logger:__init__:60 - Error Logger inicializado - Arquivo: logs\agent_errors.log
+2026-03-06 12:45:47.833 | INFO     | agents.fix_agent:__init__:66 - Fix Agent inicializado
+2026-03-06 12:45:47.833 | INFO     | agents.orchestrator:__init__:113 - Orchestrator Agent inicializado
+2026-03-06 12:45:47.833 | INFO     | agents.orchestrator:__init__:114 - Fluência: Executor → Validator → Fix Agent (max 3x) → Docker Test
+2026-03-06 12:45:47.835 | INFO     | agents.agent_logger:log_trace_start:339 - TRACE_START | trace_id=be6e9da4...
+2026-03-06 12:45:47.836 | INFO     | agents.orchestrator:execute:149 - ============================================================
+2026-03-06 12:45:47.836 | INFO     | agents.orchestrator:execute:150 - ORCHESTRATOR AGENT - Iniciando fluxo completo - trace_id: be6e9da4...
+2026-03-06 12:45:47.837 | INFO     | agents.orchestrator:execute:151 - ============================================================
+2026-03-06 12:45:47.837 | INFO     | agents.orchestrator:execute:157 - 
+📋 FASE 1: Executando Executor Agent...
+2026-03-06 12:45:47.839 | INFO     | agents.executor_agent:execute:150 - ============================================================
+2026-03-06 12:45:47.839 | INFO     | agents.executor_agent:execute:151 - EXECUTOR AGENT - Iniciando geração de código
+2026-03-06 12:45:47.839 | INFO     | agents.executor_agent:execute:152 - ============================================================
+2026-03-06 12:45:47.840 | DEBUG    | agents.executor_agent:execute:156 - Prompt construído (3150 chars)
+2026-03-06 12:45:47.840 | INFO     | agents.executor_agent:execute:159 - Chamando LLM para geração de código...
+2026-03-06 12:45:47.840 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (3150 chars)
+2026-03-06 12:46:16.875 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (10361 chars)
+2026-03-06 12:46:16.875 | INFO     | agents.executor_agent:execute:167 - Resposta do LLM recebida (10361 chars)
+2026-03-06 12:46:16.875 | INFO     | agents.executor_agent:execute:170 - LLM Output preview (first 500 chars): {
+  "microservices": [
+    {
+      "name": "auth",
+      "domain": "auth",
+      "entities": ["User"],
+      "use_cases": ["Login", "Register"],
+      "ports": ["/api/login", "/api/register"],
+      "dependencies": ["db"]
+    },
+    {
+      "name": "orders",
+      "domain": "orders",
+      "entities": ["Order", "Product"],
+      "use_cases": ["CreateOrder", "UpdateOrder"],
+      "ports": ["/api/orders", "/api/orders/{id}"],
+      "dependencies": ["auth"]
+    },
+    {
+      "name": "products",
+  
+2026-03-06 12:46:16.878 | INFO     | agents.executor_agent:_save_llm_output_for_debug:354 - LLM output salvo para debug: logs/debug\llm_output_20260306_124616.txt
+2026-03-06 12:46:16.879 | DEBUG    | agents.executor_agent:_parse_llm_output:254 - Tentativa 1 - Output limpo: {
+  "microservices": [
+    {
+      "name": "auth",
+      "domain": "auth",
+      "entities": ["User"],
+      "use_cases": ["Login", "Register"],
+      "ports": ["/api/login", "/api/register"],
+      "dependencies": ["db"]
+    },
+    {
+      "name": "orders",
+      "domain": "orders",
+      "entities": ["Order", "Product"],
+      "use_cases": ["CreateOrder", "UpdateOrder"],
+      "ports": ["/api/orders", "/api/orders/{id}"],
+      "dependencies": ["auth"]
+    },
+    {
+      "name": "products",
+  ...
+2026-03-06 12:46:16.880 | INFO     | agents.executor_agent:_normalize_llm_data:215 - Tipo de estrutura retornada pelo LLM: dict
+2026-03-06 12:46:16.880 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone16
+2026-03-06 12:46:16.883 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\domain\__init__.py
+2026-03-06 12:46:16.885 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\domain\auth_entities.py
+2026-03-06 12:46:16.886 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\domain\auth_value_objects.py
+2026-03-06 12:46:16.887 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\domain\auth_aggregates.py
+2026-03-06 12:46:16.888 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\__init__.py
+2026-03-06 12:46:16.889 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\use_cases.py
+2026-03-06 12:46:16.891 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\dtos.py
+2026-03-06 12:46:16.893 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\mappers.py
+2026-03-06 12:46:16.894 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\infrastructure\__init__.py
+2026-03-06 12:46:16.895 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\infrastructure\repositories.py
+2026-03-06 12:46:16.896 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\infrastructure\database.py
+2026-03-06 12:46:16.897 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\__init__.py
+2026-03-06 12:46:16.899 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\routes.py
+2026-03-06 12:46:16.900 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\controllers.py
+2026-03-06 12:46:16.901 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\schemas.py
+2026-03-06 12:46:16.902 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\main.py
+2026-03-06 12:46:16.904 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\requirements.txt
+2026-03-06 12:46:16.905 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\Dockerfile
+2026-03-06 12:46:16.906 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\docker-compose.yml
+2026-03-06 12:46:16.908 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\tests\__init__.py
+2026-03-06 12:46:16.909 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\tests\test_auth_entities.py
+2026-03-06 12:46:16.911 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\domain\__init__.py
+2026-03-06 12:46:16.911 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\domain\orders_entities.py
+2026-03-06 12:46:16.912 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\domain\orders_value_objects.py
+2026-03-06 12:46:16.914 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\domain\orders_aggregates.py
+2026-03-06 12:46:16.915 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\__init__.py
+2026-03-06 12:46:16.916 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\use_cases.py
+2026-03-06 12:46:16.917 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\dtos.py
+2026-03-06 12:46:16.919 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\mappers.py
+2026-03-06 12:46:16.920 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\infrastructure\__init__.py
+2026-03-06 12:46:16.922 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\infrastructure\repositories.py
+2026-03-06 12:46:16.923 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\infrastructure\database.py
+2026-03-06 12:46:16.924 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\__init__.py
+2026-03-06 12:46:16.925 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\routes.py
+2026-03-06 12:46:16.926 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\controllers.py
+2026-03-06 12:46:16.927 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\schemas.py
+2026-03-06 12:46:16.929 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\main.py
+2026-03-06 12:46:16.930 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\requirements.txt
+2026-03-06 12:46:16.931 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\Dockerfile
+2026-03-06 12:46:16.933 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\docker-compose.yml
+2026-03-06 12:46:16.934 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\tests\__init__.py
+2026-03-06 12:46:16.935 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\tests\test_orders_entities.py
+2026-03-06 12:46:16.936 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\domain\__init__.py
+2026-03-06 12:46:16.938 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\domain\products_entities.py
+2026-03-06 12:46:16.939 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\domain\products_value_objects.py
+2026-03-06 12:46:16.940 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\domain\products_aggregates.py
+2026-03-06 12:46:16.943 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\__init__.py
+2026-03-06 12:46:16.944 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\use_cases.py
+2026-03-06 12:46:16.945 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\dtos.py
+2026-03-06 12:46:16.946 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\mappers.py
+2026-03-06 12:46:16.948 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\infrastructure\__init__.py
+2026-03-06 12:46:16.949 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\infrastructure\repositories.py
+2026-03-06 12:46:16.951 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\infrastructure\database.py
+2026-03-06 12:46:16.952 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\__init__.py
+2026-03-06 12:46:16.953 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\routes.py
+2026-03-06 12:46:16.954 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\controllers.py
+2026-03-06 12:46:16.956 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\schemas.py
+2026-03-06 12:46:16.958 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\main.py
+2026-03-06 12:46:16.959 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\requirements.txt
+2026-03-06 12:46:16.960 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\Dockerfile
+2026-03-06 12:46:16.961 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\docker-compose.yml
+2026-03-06 12:46:16.963 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\tests\__init__.py
+2026-03-06 12:46:16.964 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\tests\test_products_entities.py
+2026-03-06 12:46:16.966 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\domain\__init__.py
+2026-03-06 12:46:16.968 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\domain\users_entities.py
+2026-03-06 12:46:16.969 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\domain\users_value_objects.py
+2026-03-06 12:46:16.970 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\domain\users_aggregates.py
+2026-03-06 12:46:16.972 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\__init__.py
+2026-03-06 12:46:16.973 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\use_cases.py
+2026-03-06 12:46:16.975 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\dtos.py
+2026-03-06 12:46:16.976 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\mappers.py
+2026-03-06 12:46:16.977 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\infrastructure\__init__.py
+2026-03-06 12:46:16.977 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\infrastructure\repositories.py
+2026-03-06 12:46:16.980 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\infrastructure\database.py
+2026-03-06 12:46:16.981 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\__init__.py
+2026-03-06 12:46:16.982 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\routes.py
+2026-03-06 12:46:16.984 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\controllers.py
+2026-03-06 12:46:16.985 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\schemas.py
+2026-03-06 12:46:16.987 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\main.py
+2026-03-06 12:46:16.988 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\requirements.txt
+2026-03-06 12:46:16.989 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\Dockerfile
+2026-03-06 12:46:16.991 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\docker-compose.yml
+2026-03-06 12:46:16.992 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\tests\__init__.py
+2026-03-06 12:46:16.993 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\tests\test_users_entities.py
+2026-03-06 12:46:16.995 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\domain\__init__.py
+2026-03-06 12:46:16.996 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\domain\payment_entities.py
+2026-03-06 12:46:16.998 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\domain\payment_value_objects.py
+2026-03-06 12:46:16.999 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\domain\payment_aggregates.py
+2026-03-06 12:46:17.001 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\__init__.py
+2026-03-06 12:46:17.002 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\use_cases.py
+2026-03-06 12:46:17.003 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\dtos.py
+2026-03-06 12:46:17.005 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\mappers.py
+2026-03-06 12:46:17.005 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\infrastructure\__init__.py
+2026-03-06 12:46:17.006 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\infrastructure\repositories.py
+2026-03-06 12:46:17.008 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\infrastructure\database.py
+2026-03-06 12:46:17.010 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\__init__.py
+2026-03-06 12:46:17.010 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\routes.py
+2026-03-06 12:46:17.012 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\controllers.py
+2026-03-06 12:46:17.013 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\schemas.py
+2026-03-06 12:46:17.015 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\main.py
+2026-03-06 12:46:17.016 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\requirements.txt
+2026-03-06 12:46:17.017 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\Dockerfile
+2026-03-06 12:46:17.019 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\docker-compose.yml
+2026-03-06 12:46:17.019 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\tests\__init__.py
+2026-03-06 12:46:17.021 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\tests\test_payment_entities.py
+2026-03-06 12:46:17.022 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\domain\__init__.py
+2026-03-06 12:46:17.022 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/domain/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.023 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\__init__.py
+2026-03-06 12:46:17.025 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/application/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.026 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\use_cases.py
+2026-03-06 12:46:17.027 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/application/use_cases.py (mantendo última versão gravada)
+2026-03-06 12:46:17.028 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\dtos.py
+2026-03-06 12:46:17.028 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/application/dtos.py (mantendo última versão gravada)
+2026-03-06 12:46:17.029 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\application\mappers.py
+2026-03-06 12:46:17.030 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/application/mappers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.032 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\infrastructure\repositories.py
+2026-03-06 12:46:17.032 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/infrastructure/repositories.py (mantendo última versão gravada)
+2026-03-06 12:46:17.033 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\infrastructure\database.py
+2026-03-06 12:46:17.034 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/infrastructure/database.py (mantendo última versão gravada)
+2026-03-06 12:46:17.034 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\routes.py
+2026-03-06 12:46:17.035 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/api/routes.py (mantendo última versão gravada)
+2026-03-06 12:46:17.036 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\controllers.py
+2026-03-06 12:46:17.036 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/api/controllers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.039 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\api\schemas.py
+2026-03-06 12:46:17.039 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/api/schemas.py (mantendo última versão gravada)
+2026-03-06 12:46:17.040 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\main.py
+2026-03-06 12:46:17.041 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/auth/main.py (mantendo última versão gravada)
+2026-03-06 12:46:17.042 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\domain\__init__.py
+2026-03-06 12:46:17.043 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/domain/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.044 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\__init__.py
+2026-03-06 12:46:17.044 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/application/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.045 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\use_cases.py
+2026-03-06 12:46:17.045 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/application/use_cases.py (mantendo última versão gravada)
+2026-03-06 12:46:17.047 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\dtos.py
+2026-03-06 12:46:17.047 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/application/dtos.py (mantendo última versão gravada)
+2026-03-06 12:46:17.049 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\application\mappers.py
+2026-03-06 12:46:17.050 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/application/mappers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.050 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\infrastructure\repositories.py
+2026-03-06 12:46:17.051 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/infrastructure/repositories.py (mantendo última versão gravada)
+2026-03-06 12:46:17.052 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\infrastructure\database.py
+2026-03-06 12:46:17.053 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/infrastructure/database.py (mantendo última versão gravada)
+2026-03-06 12:46:17.054 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\routes.py
+2026-03-06 12:46:17.055 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/api/routes.py (mantendo última versão gravada)
+2026-03-06 12:46:17.056 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\controllers.py
+2026-03-06 12:46:17.057 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/api/controllers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.057 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\api\schemas.py
+2026-03-06 12:46:17.059 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/api/schemas.py (mantendo última versão gravada)
+2026-03-06 12:46:17.060 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\orders\main.py
+2026-03-06 12:46:17.060 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/orders/main.py (mantendo última versão gravada)
+2026-03-06 12:46:17.061 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\domain\__init__.py
+2026-03-06 12:46:17.061 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/domain/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.064 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\__init__.py
+2026-03-06 12:46:17.064 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/application/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.065 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\use_cases.py
+2026-03-06 12:46:17.065 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/application/use_cases.py (mantendo última versão gravada)
+2026-03-06 12:46:17.067 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\dtos.py
+2026-03-06 12:46:17.068 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/application/dtos.py (mantendo última versão gravada)
+2026-03-06 12:46:17.069 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\application\mappers.py
+2026-03-06 12:46:17.069 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/application/mappers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.071 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\infrastructure\repositories.py
+2026-03-06 12:46:17.071 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/infrastructure/repositories.py (mantendo última versão gravada)
+2026-03-06 12:46:17.072 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\infrastructure\database.py
+2026-03-06 12:46:17.073 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/infrastructure/database.py (mantendo última versão gravada)
+2026-03-06 12:46:17.074 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\routes.py
+2026-03-06 12:46:17.074 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/api/routes.py (mantendo última versão gravada)
+2026-03-06 12:46:17.076 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\controllers.py
+2026-03-06 12:46:17.077 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/api/controllers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.078 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\api\schemas.py
+2026-03-06 12:46:17.078 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/api/schemas.py (mantendo última versão gravada)
+2026-03-06 12:46:17.079 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\products\main.py
+2026-03-06 12:46:17.080 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/products/main.py (mantendo última versão gravada)
+2026-03-06 12:46:17.082 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\domain\__init__.py
+2026-03-06 12:46:17.082 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/domain/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.083 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\__init__.py
+2026-03-06 12:46:17.084 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/application/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.085 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\use_cases.py
+2026-03-06 12:46:17.085 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/application/use_cases.py (mantendo última versão gravada)
+2026-03-06 12:46:17.087 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\dtos.py
+2026-03-06 12:46:17.088 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/application/dtos.py (mantendo última versão gravada)
+2026-03-06 12:46:17.088 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\application\mappers.py
+2026-03-06 12:46:17.089 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/application/mappers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.091 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\infrastructure\repositories.py
+2026-03-06 12:46:17.091 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/infrastructure/repositories.py (mantendo última versão gravada)
+2026-03-06 12:46:17.093 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\infrastructure\database.py
+2026-03-06 12:46:17.093 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/infrastructure/database.py (mantendo última versão gravada)
+2026-03-06 12:46:17.094 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\routes.py
+2026-03-06 12:46:17.095 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/api/routes.py (mantendo última versão gravada)
+2026-03-06 12:46:17.096 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\controllers.py
+2026-03-06 12:46:17.097 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/api/controllers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.097 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\users\api\schemas.py
+2026-03-06 12:46:17.097 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/users/api/schemas.py (mantendo última versão gravada)
+2026-03-06 12:46:17.099 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\domain\__init__.py
+2026-03-06 12:46:17.099 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/domain/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.101 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\__init__.py
+2026-03-06 12:46:17.102 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/application/__init__.py (mantendo última versão gravada)
+2026-03-06 12:46:17.103 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\use_cases.py
+2026-03-06 12:46:17.103 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/application/use_cases.py (mantendo última versão gravada)
+2026-03-06 12:46:17.105 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\dtos.py
+2026-03-06 12:46:17.105 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/application/dtos.py (mantendo última versão gravada)
+2026-03-06 12:46:17.107 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\application\mappers.py
+2026-03-06 12:46:17.107 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/application/mappers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.107 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\infrastructure\repositories.py
+2026-03-06 12:46:17.109 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/infrastructure/repositories.py (mantendo última versão gravada)
+2026-03-06 12:46:17.110 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\infrastructure\database.py
+2026-03-06 12:46:17.110 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/infrastructure/database.py (mantendo última versão gravada)
+2026-03-06 12:46:17.112 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\routes.py
+2026-03-06 12:46:17.113 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/api/routes.py (mantendo última versão gravada)
+2026-03-06 12:46:17.114 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\controllers.py
+2026-03-06 12:46:17.114 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/api/controllers.py (mantendo última versão gravada)
+2026-03-06 12:46:17.115 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\api\schemas.py
+2026-03-06 12:46:17.116 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/api/schemas.py (mantendo última versão gravada)
+2026-03-06 12:46:17.117 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\payment\main.py
+2026-03-06 12:46:17.117 | WARNING  | agents.executor_agent:register_created:591 - Arquivo duplicado detectado na geração: services/payment/main.py (mantendo última versão gravada)
+2026-03-06 12:46:17.119 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: README.md
+2026-03-06 12:46:17.121 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: services\auth\static\index.html
+2026-03-06 12:46:17.122 | INFO     | infrastructure.file_manager:create_file:76 - Arquivo criado: docker-compose.yml
+2026-03-06 12:46:17.123 | INFO     | agents.executor_agent:_validate_generated_files:768 - ============================================================
+2026-03-06 12:46:17.123 | INFO     | agents.executor_agent:_validate_generated_files:769 - VALIDAÇÃO - Verificando arquivos gerados...
+2026-03-06 12:46:17.131 | WARNING  | agents.executor_agent:_validate_generated_files:780 - Arquivo vazio: services/auth/tests/__init__.py
+2026-03-06 12:46:17.137 | WARNING  | agents.executor_agent:_validate_generated_files:780 - Arquivo vazio: services/orders/tests/__init__.py
+2026-03-06 12:46:17.143 | WARNING  | agents.executor_agent:_validate_generated_files:780 - Arquivo vazio: services/products/tests/__init__.py
+2026-03-06 12:46:17.149 | WARNING  | agents.executor_agent:_validate_generated_files:780 - Arquivo vazio: services/users/tests/__init__.py
+2026-03-06 12:46:17.155 | WARNING  | agents.executor_agent:_validate_generated_files:780 - Arquivo vazio: services/payment/tests/__init__.py
+2026-03-06 12:46:17.156 | INFO     | agents.executor_agent:_validate_generated_files:856 - VALIDAÇÃO - Todos os arquivos passaram na verificação!
+2026-03-06 12:46:17.157 | INFO     | agents.executor_agent:_validate_generated_files:858 - ============================================================
+2026-03-06 12:46:17.158 | INFO     | agents.executor_agent:_create_project_files:656 - Criados 108 arquivos
+2026-03-06 12:46:17.159 | INFO     | agents.executor_agent:execute:192 - Executor Agent - Concluído em 29.32s
+2026-03-06 12:46:17.159 | INFO     | agents.executor_agent:execute:193 - Arquivos criados: 108
+2026-03-06 12:46:17.159 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | OrchestratorAgent → ExecutorAgent | trace_id=be6e9da4... | time=0ms | status=success
+2026-03-06 12:46:17.160 | INFO     | agents.orchestrator:execute:185 - ✅ Executor Agent concluído - 108 arquivos
+2026-03-06 12:46:17.160 | INFO     | agents.orchestrator:execute:193 - 
+📋 FASE 2: Validator Agent (ciclo inicial)
+2026-03-06 12:46:17.161 | INFO     | agents.validator_agent:validate:72 - ============================================================
+2026-03-06 12:46:17.161 | INFO     | agents.validator_agent:validate:73 - VALIDATOR AGENT - Iniciando validação
+2026-03-06 12:46:17.161 | INFO     | agents.validator_agent:validate:74 - ============================================================
+2026-03-06 12:46:17.163 | INFO     | agents.validator_agent:validate:96 - Chamando LLM para validação...
+2026-03-06 12:46:17.163 | DEBUG    | infrastructure.llm_provider:generate:185 - Enviando prompt para llama3.2 (12030 chars)
+2026-03-06 12:46:20.562 | DEBUG    | infrastructure.llm_provider:generate:202 - Resposta recebida (873 chars)
+2026-03-06 12:46:20.562 | ERROR    | agents.validator_agent:_parse_validation_output:169 - Erro ao parsear JSON de validação: Expecting ',' delimiter: line 19 column 204 (char 873)
+2026-03-06 12:46:20.562 | INFO     | agents.validator_agent:_manual_validation:192 - Realizando validação manual...
+2026-03-06 12:46:20.563 | INFO     | agents.validator_agent:_manual_validation:234 - ✅ Validação manual APROVADA - Score: 1.0
+2026-03-06 12:46:20.564 | INFO     | infrastructure.file_manager:__init__:33 - FileManager inicializado em: ifoodclone16
+2026-03-06 12:46:20.569 | WARNING  | agents.validator_agent:_apply_guardrails:265 - ❌ Guardrails reprovaram validação: ["Serviço 'orders' sem entidade coerente em services/orders/domain/orders_entities.py. Esperado uma das classes: Order, Pedido"]
+2026-03-06 12:46:20.570 | INFO     | agents.agent_logger:log_agent_communication:311 - AGENT_COMMUNICATION | ExecutorAgent → ValidatorAgent | trace_id=be6e9da4... | time=0ms | status=success
+2026-03-06 12:46:20.571 | ERROR    | agents.orchestrator:execute:322 - Erro fatal no Orchestrator: 'ValidationResult' object has no attribute 'approved'
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Python312\Lib\site-packages\uvicorn\__main__.py", line 4, in <module>
+    uvicorn.main()
+    │       └ <Command main>
+    └ <module 'uvicorn' from 'C:\\Python312\\Lib\\site-packages\\uvicorn\\__init__.py'>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           │    │     │       └ {}
+           │    │     └ ()
+           │    └ <function Command.main at 0x000001D1DF70D260>
+           └ <Command main>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         │    │      └ <click.core.Context object at 0x000001D1DF593B60>
+         │    └ <function Command.invoke at 0x000001D1DF70CF40>
+         └ <Command main>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           │   │      │    │           │   └ {'host': '127.0.0.1', 'port': 8000, 'app': 'api.server:app', 'uds': None, 'fd': None, 'reload': False, 'reload_dirs': (), 're...
+           │   │      │    │           └ <click.core.Context object at 0x000001D1DF593B60>
+           │   │      │    └ <function main at 0x000001D1DF7F7100>
+           │   │      └ <Command main>
+           │   └ <function Context.invoke at 0x000001D1DF70C180>
+           └ <click.core.Context object at 0x000001D1DF593B60>
+  File "C:\Python312\Lib\site-packages\click\core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           │         │       └ {'host': '127.0.0.1', 'port': 8000, 'app': 'api.server:app', 'uds': None, 'fd': None, 'reload': False, 'reload_dirs': (), 're...
+           │         └ ()
+           └ <function main at 0x000001D1DF7F7100>
+  File "C:\Python312\Lib\site-packages\uvicorn\main.py", line 413, in main
+    run(
+    └ <function run at 0x000001D1DF7542C0>
+  File "C:\Python312\Lib\site-packages\uvicorn\main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x000001D1DF7A63E0>
+    └ <uvicorn.server.Server object at 0x000001D1DF736AE0>
+  File "C:\Python312\Lib\site-packages\uvicorn\server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x000001D1DF7A6480>
+           │       │   └ <uvicorn.server.Server object at 0x000001D1DF736AE0>
+           │       └ <function run at 0x000001D1DD22B380>
+           └ <module 'asyncio' from 'C:\\Python312\\Lib\\asyncio\\__init__.py'>
+  File "C:\Python312\Lib\asyncio\runners.py", line 194, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x000001D1DF807140>
+           │      └ <function Runner.run at 0x000001D1DF0787C0>
+           └ <asyncio.runners.Runner object at 0x000001D1DF7D3770>
+  File "C:\Python312\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at C:\Python312\Lib\site-packages\uvicorn\server.py:71> wait_for=<Fu...
+           │    │     └ <function BaseEventLoop.run_until_complete at 0x000001D1DF0763E0>
+           │    └ <ProactorEventLoop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x000001D1DF7D3770>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 674, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x000001D1DF135A80>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Python312\Lib\asyncio\base_events.py", line 641, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x000001D1DF078180>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "C:\Python312\Lib\asyncio\base_events.py", line 1987, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000001D1DEFBE700>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+  File "C:\Python312\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle <_asyncio.TaskStepMethWrapper object at 0x000001D1E205CAF0>()>
+
+  File "C:\Users\kauan\Desktop\integrador\api\server.py", line 439, in execute_generation
+    result = await orchestrator.execute(requirement)
+                   │            │       └ Requirement(id='6c8e899b-19e9-4eea-88b2-c69a774af530', trace_id='be6e9da4-c76f-41ea-aa7f-d82b165e1ff0', description='gere um ...
+                   │            └ <function OrchestratorAgent.execute at 0x000001D1E201E980>
+                   └ <agents.orchestrator.OrchestratorAgent object at 0x000001D1E201BFE0>
+
+> File "C:\Users\kauan\Desktop\integrador\agents\orchestrator.py", line 213, in execute
+    if validation_result.approved:
+       └ ValidationResult(requirement_id='6c8e899b-19e9-4eea-88b2-c69a774af530', trace_id='', status=<ValidationStatus.REJECTED: 'reje...
+
+AttributeError: 'ValidationResult' object has no attribute 'approved'. Did you mean: 'approve'?
