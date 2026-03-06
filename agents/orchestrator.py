@@ -209,38 +209,42 @@ class OrchestratorAgent:
 
                 result.add_log(f"Validação concluída - Status: {validation_result.status} | Score: {validation_result.score}")
 
-                logger.info(f"\n📋 FASE 3: Docker Test Agent ({cycle_label})")
-                result.add_log(f"FASE 3: Docker Test Agent ({cycle_label})")
+                docker_issues: list[str] = []
+                if validation_result.approved:
+                    logger.info(f"\n📋 FASE 3: Docker Test Agent ({cycle_label})")
+                    result.add_log(f"FASE 3: Docker Test Agent ({cycle_label})")
 
-                docker_test_result = await self.docker_test_agent.execute(
-                    requirement,
-                    executor_result
-                )
-
-                log_communication(
-                    from_agent="ValidatorAgent",
-                    to_agent="DockerTestAgent",
-                    trace_id=trace_id,
-                    payload={"requirement_id": requirement.id, "cycle": cycle_label},
-                    status="success" if docker_test_result.success else "failure",
-                    execution_time_ms=0
-                )
-
-                docker_ok, docker_issues, docker_requires_user_action = self._analyze_docker_result(docker_test_result)
-                if docker_ok:
-                    result.add_log("Docker test: APROVADO")
-                else:
-                    result.add_log(f"Docker test: REPROVADO - {', '.join(docker_issues)}")
-
-                if docker_requires_user_action:
-                    logger.warning("⚠️ Docker Test requer ação do usuário antes de continuar")
-                    result.add_log("Docker test bloqueado aguardando ação do usuário")
-                    result.success = False
-                    result.error_message = (
-                        "Validação bloqueada: é necessária ação manual para executar os testes Docker. "
-                        f"Detalhes: {'; '.join(docker_issues)}"
+                    docker_test_result = await self.docker_test_agent.execute(
+                        requirement,
+                        executor_result
                     )
-                    return result
+
+                    log_communication(
+                        from_agent="ValidatorAgent",
+                        to_agent="DockerTestAgent",
+                        trace_id=trace_id,
+                        payload={"requirement_id": requirement.id, "cycle": cycle_label},
+                        status="success" if docker_test_result.success else "failure",
+                        execution_time_ms=0
+                    )
+
+                    docker_ok, docker_issues, docker_requires_user_action = self._analyze_docker_result(docker_test_result)
+                    if docker_ok:
+                        result.add_log("Docker test: APROVADO")
+                    else:
+                        result.add_log(f"Docker test: REPROVADO - {', '.join(docker_issues)}")
+
+                    if docker_requires_user_action:
+                        logger.warning("⚠️ Docker Test requer ação do usuário antes de continuar")
+                        result.add_log("Docker test bloqueado aguardando ação do usuário")
+                        result.success = False
+                        result.error_message = (
+                            "Validação bloqueada: é necessária ação manual para executar os testes Docker. "
+                            f"Detalhes: {'; '.join(docker_issues)}"
+                        )
+                        return result
+                else:
+                    result.add_log("FASE 3: Docker Test Agent pulado (validação semântica reprovada)")
 
                 combined_issues = self._collect_flow_issues(validation_result, docker_issues)
                 if not combined_issues:

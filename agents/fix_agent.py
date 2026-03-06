@@ -15,6 +15,7 @@ de uma nova validação.
 """
 
 import json
+import re
 from datetime import datetime
 from typing import Any
 from loguru import logger
@@ -127,6 +128,24 @@ class FixAgent:
                 fix_plan,
                 issues_to_fix
             )
+
+            critical_tokens = [
+                "docker", "health check", "import", "route", "main.py",
+                "domain", "application", "infrastructure", "api", "frontend", "emailstr"
+            ]
+            requires_progress = any(
+                any(token in issue.lower() for token in critical_tokens)
+                for issue in issues_to_fix
+            )
+
+            if requires_progress and not files_modified:
+                result.status = ExecutionStatus.FAILED
+                result.error_message = (
+                    "FixAgent não aplicou alterações em problemas críticos; "
+                    "encerrando tentativa sem progresso"
+                )
+                logger.error(result.error_message)
+                return result
             
             # Registra as correções aplicadas
             self.error_logger.log_fix_attempt(
@@ -346,51 +365,64 @@ class FixAgent:
                 max_tokens=4000
             )
             
-            # Parseia resposta
-            try:
-                # Tenta extrair JSON
-                json_start = llm_output.find('{')
-                json_end = llm_output.rfind('}')
-                
-                if json_start >= 0 and json_end >= json_start:
-                    json_str = llm_output[json_start:json_end+1]
-                    fix_data = json.loads(json_str)
-                    
-                    # Aplica correções sugeridas
-                    fixes = fix_data.get("fixes", [])
-                    
-                    for fix in fixes:
-                        file_path = fix.get("file_path")
-                        content = fix.get("content")
-                        action = fix.get("action", "modify")
-                        
-                        if file_path and action == "create":
-                            if file_manager.create_file(file_path, content or ""):
-                                files_modified.append(file_path)
-                                logger.info(f"  Criado: {file_path}")
-                        
-                        elif file_path and action == "modify":
-                            # Lê arquivo existente
-                            existing_content = file_manager.read_file(file_path)
-                            if existing_content is not None:
-                                # Apply basic fixes (append or modify)
-                                if fix.get("append"):
-                                    new_content = existing_content + "\n" + (content or "")
-                                else:
-                                    new_content = content or existing_content
-                                
-                                if file_manager.create_file(file_path, new_content):
-                                    files_modified.append(file_path)
-                                    logger.info(f"  Modificado: {file_path}")
-            
-            except json.JSONDecodeError as e:
-                logger.warning(f"Não foi parsear resposta do LLM: {e}")
-                # Continua com correções básicas
+            fix_data = self._parse_fix_json(llm_output)
+            if not fix_data:
+                logger.warning("Não foi possível parsear resposta do LLM para correção")
+                return files_modified
+
+            fixes = fix_data.get("fixes", [])
+            for fix in fixes:
+                file_path = fix.get("file_path")
+                content = fix.get("content")
+                action = fix.get("action", "modify")
+
+                if file_path and action == "create":
+                    if file_manager.create_file(file_path, content or ""):
+                        files_modified.append(file_path)
+                        logger.info(f"  Criado: {file_path}")
+
+                elif file_path and action == "modify":
+                    existing_content = file_manager.read_file(file_path)
+                    if existing_content is not None:
+                        if fix.get("append"):
+                            new_content = existing_content + "\n" + (content or "")
+                        else:
+                            new_content = content or existing_content
+
+                        if file_manager.create_file(file_path, new_content):
+                            files_modified.append(file_path)
+                            logger.info(f"  Modificado: {file_path}")
         
         except Exception as e:
             logger.error(f"Erro ao usar LLM para correção: {e}")
         
         return files_modified
+
+    def _parse_fix_json(self, llm_output: str) -> dict | None:
+        """Extrai JSON de correções do LLM com tolerância a ruído."""
+        candidates: list[str] = []
+
+        markdown_match = re.search(r"```json\s*(\{.*?\})\s*```", llm_output, re.DOTALL)
+        if markdown_match:
+            candidates.append(markdown_match.group(1))
+
+        start = llm_output.find('{')
+        end = llm_output.rfind('}')
+        if start >= 0 and end > start:
+            candidates.append(llm_output[start:end + 1])
+
+        for candidate in list(candidates):
+            candidates.append(re.sub(r",\s*([}\]])", r"\1", candidate))
+
+        for candidate in candidates:
+            try:
+                parsed = json.loads(candidate)
+                if isinstance(parsed, dict) and isinstance(parsed.get("fixes", []), list):
+                    return parsed
+            except json.JSONDecodeError:
+                continue
+
+        return None
     
     def _fix_basic(
         self,
