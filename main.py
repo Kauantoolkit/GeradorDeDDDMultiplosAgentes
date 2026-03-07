@@ -23,7 +23,7 @@ from loguru import logger
 # Adiciona o diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from agents.orchestrator_v2 import OrchestratorAgent
+from agents.orchestrator_v3 import OrchestratorV3
 from domain.entities import Requirement, ProjectConfig
 from infrastructure.llm_provider import OllamaProvider, ensure_ollama_running
 
@@ -157,8 +157,8 @@ async def main():
     logger.info(f"Inicializando Ollama com modelo: {args.model}")
     llm_provider = OllamaProvider(model=args.model)
     
-    # Inicializa o orquestrador
-    orchestrator = OrchestratorAgent(llm_provider=llm_provider)
+    # Inicializa o orquestrador (V3 - com self-repair loop)
+    orchestrator = OrchestratorV3(llm_provider=llm_provider)
     
     # Executa o fluxo de agentes
     logger.info("Iniciando execução dos agentes...")
