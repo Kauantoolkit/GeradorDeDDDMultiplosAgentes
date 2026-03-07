@@ -90,6 +90,8 @@ class FileManager:
         Returns:
             Conteúdo do arquivo ou None se erro
         """
+        ##problematico, as llms ficam mandando de uma pra outra diretórios e quando n bate da erro aqui, tem um problema sério de inconsistencia
+        #entre as partes hard coded da aplicação e as gerenciadas por llm
         try:
             full_path = self.base_path / self._normalize_relative_path(file_path)
             return full_path.read_text(encoding='utf-8')
@@ -336,10 +338,15 @@ class FileManager:
         Returns:
             Caminho válido do arquivo encontrado, ou None
         """
-        # Primeiro, tenta o caminho original normalizado
+        # CORREÇÃO CRÍTICA: Primeiro normalizar o caminho
+        # Remover prefixos duplicados como "ifoodclone3/" se já estamos no diretório
         normalized = file_path.replace('\\', '/').strip()
         
-        # Tenta caminho original
+        # Remove prefixos de projeto conhecidos (ex: linkedinclone/, myproject/, ifoodclone3/, etc)
+        # Isso resolve o problema de caminhos como "ifoodclone3/services/..."
+        normalized = self._strip_project_prefix(normalized)
+        
+        # Primeiro, tenta o caminho original normalizado
         if (self.base_path / normalized).exists():
             return normalized
         
@@ -355,7 +362,7 @@ class FileManager:
             if (self.base_path / with_services).exists():
                 return with_services
         
-        # Tenta normalizar hífen para underscore
+        # Tenta normalizar hífen para underscore (common case: order-service vs order_service)
         if '-' in normalized:
             with_underscore = normalized.replace('-', '_')
             if (self.base_path / with_underscore).exists():
@@ -371,7 +378,49 @@ class FileManager:
         if '/domain/' in normalized or '/application/' in normalized or '/api/' in normalized:
             return self._find_in_all_services(normalized)
         
-        return None
+        # Busca genérica em todo o projeto pelo nome do arquivo
+        return self._find_file_anywhere(normalized)
+    
+    def _strip_project_prefix(self, file_path: str) -> str:
+        """
+        Remove o prefixo do diretório do projeto do caminho.
+        
+        O problema é que o LLM às vezes retorna caminhos como:
+        - "linkedinclone/services/user_service/main.py"
+        - "myproject/domain/entities.py"
+        
+        Mas o FileManager já está configurado com base_path="linkedinclone"
+        então devemos usar apenas "services/user_service/main.py"
+        
+        Args:
+            file_path: Caminho com potencial prefixo
+            
+        Returns:
+            Caminho sem o prefixo do projeto
+        """
+        # Obtém o nome do diretório base
+        base_name = self.base_path.name
+        
+        # Se o caminho começa com o nome do projeto, remove
+        if file_path.startswith(f"{base_name}/"):
+            return file_path[len(base_name) + 1:]
+        
+        # Tenta encontrar e remover qualquer prefixo de diretório que não seja válido
+        parts = file_path.split('/')
+        
+        # Lista de prefixes válidos Known valid prefixes
+        valid_prefixes = ['services', 'frontend', 'api', 'domain', 'infrastructure', 
+                          'application', 'linkedinclone', 'examples', 'tests', 'logs']
+        
+        # Se a primeira parte não é um prefixo válido, tenta remover
+        if parts and parts[0] not in valid_prefixes:
+            # Pode ser um prefixo de projeto, tenta remover
+            # Mas verifica se o resto do caminho faz sentido
+            remaining = '/'.join(parts[1:])
+            if remaining.startswith('services/') or remaining.startswith('frontend/'):
+                return remaining
+        
+        return file_path
     
     def _find_in_all_services(self, path_pattern: str) -> str | None:
         """
@@ -392,7 +441,7 @@ class FileManager:
         try:
             layer_idx = next(i for i, p in enumerate(parts) if p in ['domain', 'application', 'infrastructure', 'api'])
             filename = '/'.join(parts[layer_idx:])
-        except StopValueError:
+        except StopIteration:
             filename = path_pattern
         
         # Busca em todos os serviços
@@ -410,6 +459,49 @@ class FileManager:
                 alt_candidate = services_dir / alt_service_name / filename
                 if alt_candidate.exists():
                     return str(alt_candidate.relative_to(self.base_path))
+        
+        return None
+    
+    def _find_file_anywhere(self, filename: str) -> str | None:
+        """
+        Busca um arquivo em qualquer lugar do projeto pelo nome.
+        
+        Útil quando não sabemos o caminho exato, apenas o nome do arquivo.
+        
+        Args:
+            filename: Nome do arquivo (ex: 'entities.py', 'user_entities.py')
+            
+        Returns:
+            Caminho completo do arquivo encontrado, ou None
+        """
+        # Obtém apenas o nome do arquivo se um caminho for passado
+        just_filename = filename.split('/')[-1]
+        
+        # Busca em todo o projeto
+        for root, _, filenames in os.walk(self.base_path):
+            if just_filename in filenames:
+                full_path = Path(root) / just_filename
+                return str(full_path.relative_to(self.base_path))
+        
+        # Se não encontrou pelo nome exato, tenta encontrar arquivos similares
+        # Remove extensão e tenta encontrar arquivos que contenham o nome
+        base_name = just_filename.replace('.py', '')
+        
+        # Tenta encontrar variações de nome (ex: user_entities -> users_entities)
+        variations = [
+            base_name,
+            base_name.replace('_', ''),
+            base_name.replace('ies', 'y'),  # entities -> entity
+            base_name.replace('y', 'ies'),  # entity -> entities
+        ]
+        
+        for root, _, filenames in os.walk(self.base_path):
+            for f in filenames:
+                f_base = f.replace('.py', '')
+                for var in variations:
+                    if var in f_base or f_base in var:
+                        full_path = Path(root) / f
+                        return str(full_path.relative_to(self.base_path))
         
         return None
     

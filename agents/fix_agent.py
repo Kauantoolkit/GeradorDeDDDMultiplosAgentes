@@ -743,7 +743,456 @@ class FixAgent:
                         files_modified.append(docker_compose_path)
                         logger.info(f"  Criado: {docker_compose_path}")
         
+        # Apply smart __init__.py creation - only if directory has other files
+        files_modified.extend(self._fix_init_files_smart(file_manager, project_path))
+        
+        # Complete basic templates with related entities
+        files_modified.extend(self._complete_basic_templates(file_manager, project_path))
+        
         return files_modified
+    
+    def _fix_init_files_smart(self, file_manager: FileManager, project_path: str) -> list[str]:
+        """
+        Cria arquivos __init__.py de forma inteligente.
+        Apenas cria se o diretório tiver outros arquivos Python.
+        
+        Args:
+            file_manager: Gerenciador de arquivos
+            project_path: Caminho do projeto
+            
+        Returns:
+            Lista de arquivos modificados/criados
+        """
+        modified = []
+        
+        # Get all directories in the project
+        all_files = file_manager.list_files(".")
+        
+        # Find all Python packages (directories with .py files)
+        python_dirs = set()
+        for f in all_files:
+            if f.endswith('.py') and f != '__init__.py':
+                # Get directory path
+                dir_path = '/'.join(f.split('/')[:-1])
+                if dir_path:
+                    python_dirs.add(dir_path)
+        
+        # For each directory with Python files, check/create __init__.py
+        for dir_path in python_dirs:
+            init_file = f"{dir_path}/__init__.py"
+            
+            # Check if __init__.py already exists
+            existing = file_manager.read_file(init_file)
+            if existing is not None:
+                # File exists - check if it's empty or just a placeholder
+                if self._is_init_placeholder(existing):
+                    # Replace placeholder with proper content
+                    proper_content = self._generate_proper_init(dir_path)
+                    if file_manager.create_file(init_file, proper_content):
+                        modified.append(init_file)
+                        logger.info(f"  Completado: {init_file}")
+                continue
+            
+            # File doesn't exist - only create if directory has substantial content
+            # Check if directory has other meaningful files (not just __init__.py)
+            dir_files = [f for f in all_files if f.startswith(dir_path + '/') and f != init_file]
+            if dir_files:
+                # Directory has other files - create __init__.py
+                proper_content = self._generate_proper_init(dir_path)
+                if file_manager.create_file(init_file, proper_content):
+                    modified.append(init_file)
+                    logger.info(f"  Criado: {init_file}")
+            else:
+                logger.info(f"  Ignorado: {init_file} (diretório sem outros arquivos)")
+        
+        return modified
+    
+    def _is_init_placeholder(self, content: str) -> bool:
+        """
+        Verifica se o conteúdo do __init__.py é apenas um placeholder.
+        
+        Args:
+            content: Conteúdo do arquivo
+            
+        Returns:
+            True se é placeholder
+        """
+        if not content:
+            return True
+        
+        # Remove comments and whitespace
+        cleaned = ''.join(c for c in content if not c.isspace())
+        if not cleaned:
+            return True
+        
+        # Check for placeholder patterns
+        placeholder_patterns = [
+            '# TODO',
+            '# Placeholder',
+            '# Add your code',
+            'pass  #',
+            'pass\n',  # Just 'pass' on its own line
+            '# Module',
+        ]
+        
+        content_lower = content.lower()
+        
+        # Also check for simple 'pass' statement as only content
+        lines = content.strip().split('\n')
+        non_empty_lines = [l.strip() for l in lines if l.strip() and not l.strip().startswith('#')]
+        if len(non_empty_lines) == 1 and non_empty_lines[0] == 'pass':
+            return True
+        
+        return any(pattern.lower() in content_lower for pattern in placeholder_patterns)
+    
+    def _generate_proper_init(self, dir_path: str) -> str:
+        """
+        Gera conteúdo adequado para __init__.py baseado no diretório.
+        
+        Args:
+            dir_path: Caminho do diretório
+            
+        Returns:
+            Conteúdo do __init__.py
+        """
+        # Extract module name from path
+        module_name = dir_path.split('/')[-1] if '/' in dir_path else dir_path
+        
+        # Determine what to export based on directory structure
+        if 'domain' in dir_path.lower():
+            return f'''"""
+{module_name.title()} Domain Layer
+================================
+Domain entities, value objects, and domain services.
+"""
+
+# Entities are exported from their respective modules
+# Value Objects are exported from their respective modules
+
+__all__ = [
+    # Add explicit exports here as needed
+]
+'''
+        elif 'application' in dir_path.lower():
+            return f'''"""
+{module_name.title()} Application Layer
+====================================
+Use cases, DTOs, and application services.
+"""
+
+__all__ = [
+    # Add explicit exports here as needed
+]
+'''
+        elif 'infrastructure' in dir_path.lower():
+            return f'''"""
+{module_name.title()} Infrastructure Layer
+=======================================
+Database, repositories, and external services.
+"""
+
+__all__ = [
+    # Add explicit exports here as needed
+]
+'''
+        elif 'api' in dir_path.lower():
+            return f'''"""
+{module_name.title()} API Layer
+=============================
+Routes, controllers, and schemas.
+"""
+
+__all__ = [
+    # Add explicit exports here as needed
+]
+'''
+        else:
+            return f'''"""
+{module_name.title()}
+=================
+Module initialization.
+"""
+
+__all__ = [
+    # Add explicit exports here as needed
+]
+'''
+    
+    def _complete_basic_templates(self, file_manager: FileManager, project_path: str) -> list[str]:
+        """
+        Completa templates básicos existentes com entidades relacionadas.
+        Este método detecta templates básicos e os completa com lógica de negócio.
+        
+        Args:
+            file_manager: Gerenciador de arquivos
+            project_path: Caminho do projeto
+            
+        Returns:
+            Lista de arquivos modificados
+        """
+        modified = []
+        all_files = file_manager.list_files(".")
+        
+        # Find entity files that might need completion
+        for file_path in all_files:
+            if not file_path.endswith('_entities.py') and not file_path.endswith('/entities.py'):
+                continue
+            
+            content = file_manager.read_file(file_path)
+            if not content:
+                continue
+            
+            # Check if this is a basic template that needs completion
+            if self._is_basic_entity_template(content):
+                # Determine entity type and add related entities/methods
+                entity_name = self._extract_main_entity_name(content)
+                if entity_name:
+                    completed_content = self._complete_entity_template(
+                        content, entity_name, file_path
+                    )
+                    if completed_content and completed_content != content:
+                        if file_manager.create_file(file_path, completed_content):
+                            modified.append(file_path)
+                            logger.info(f"  Completo: {file_path} ({entity_name})")
+        
+        return modified
+    
+    def _is_basic_entity_template(self, content: str) -> bool:
+        """
+        Verifica se o conteúdo é um template básico que precisa de completamento.
+        
+        Args:
+            content: Conteúdo do arquivo
+            
+        Returns:
+            True se é template básico
+        """
+        if not content:
+            return False
+        
+        # Check for signs of basic template
+        basic_indicators = [
+            'pass  #',
+            '# TODO',
+            'pass\n\n\n',  # Multiple empty methods
+            'def create(',
+            'def update(',
+            'def to_dict(',
+        ]
+        
+        # Count basic indicators
+        indicator_count = sum(1 for ind in basic_indicators if ind in content)
+        
+        # Check if entity has actual business methods (not just create/update/to_dict)
+        has_business_methods = any(method in content for method in [
+            'authenticate', 'verify', 'activate', 'deactivate',
+            'add_item', 'remove_item', 'calculate_', 'cancel',
+            'process', 'approve', 'reject', 'refund',
+            'is_available', 'decrease_stock', 'apply_discount',
+        ])
+        
+        # If many basic indicators and no business methods, it's a basic template
+        return indicator_count >= 2 and not has_business_methods
+    
+    def _extract_main_entity_name(self, content: str) -> str | None:
+        """
+        Extrai o nome da entidade principal do conteúdo.
+        
+        Args:
+            content: Conteúdo do arquivo
+            
+        Returns:
+            Nome da entidade ou None
+        """
+        import re
+        
+        # Look for class definition
+        match = re.search(r'class\s+(\w+)\s*[:\(]', content)
+        if match:
+            return match.group(1)
+        
+        return None
+    
+    def _complete_entity_template(self, content: str, entity_name: str, file_path: str) -> str | None:
+        """
+        Completa um template básico de entidade com métodos de negócio.
+        
+        Args:
+            content: Conteúdo original
+            entity_name: Nome da entidade
+            file_path: Caminho do arquivo (para contexto)
+            
+        Returns:
+            Conteúdo completado ou None
+        """
+        entity_lower = entity_name.lower()
+        
+        # Determine what business methods to add based on entity type
+        if 'user' in entity_lower or 'usuario' in entity_lower:
+            business_methods = '''
+    def authenticate(self, password: str) -> bool:
+        """Authenticate user with password."""
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        return pwd_context.verify(password, self.senha_hash)
+    
+    def verify_email(self):
+        """Mark email as verified."""
+        self.is_verified = True
+        self.updated_at = datetime.now()
+    
+    def deactivate(self):
+        """Deactivate user account."""
+        self.is_active = False
+        self.updated_at = datetime.now()
+    
+    def change_password(self, new_password: str):
+        """Change user password."""
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.senha_hash = pwd_context.hash(new_password)
+        self.updated_at = datetime.now()
+'''
+        elif 'order' in entity_lower or 'pedido' in entity_lower:
+            business_methods = '''
+    def add_item(self, item: dict):
+        """Add item to order."""
+        self.itens.append(item)
+        self.total += item.get('preco', 0) * item.get('quantidade', 1)
+        self.updated_at = datetime.now()
+    
+    def remove_item(self, item_id: str):
+        """Remove item from order."""
+        for item in self.itens:
+            if item.get('id') == item_id:
+                self.total -= item.get('preco', 0) * item.get('quantidade', 1)
+                self.itens.remove(item)
+                break
+        self.updated_at = datetime.now()
+    
+    def calculate_total(self) -> float:
+        """Calculate order total."""
+        return sum(item.get('preco', 0) * item.get('quantidade', 1) for item in self.itens)
+    
+    def can_cancel(self) -> bool:
+        """Check if order can be cancelled."""
+        return self.status in ['PENDING', 'CONFIRMED']
+    
+    def cancel(self):
+        """Cancel the order."""
+        if self.can_cancel():
+            self.status = 'CANCELLED'
+            self.updated_at = datetime.now()
+    
+    def confirm(self):
+        """Confirm the order."""
+        self.status = 'CONFIRMED'
+        self.updated_at = datetime.now()
+    
+    def complete(self):
+        """Mark order as complete."""
+        self.status = 'COMPLETED'
+        self.updated_at = datetime.now()
+'''
+        elif 'product' in entity_lower or 'produto' in entity_lower:
+            business_methods = '''
+    def is_available(self) -> bool:
+        """Check if product is available in stock."""
+        return self.estoque > 0
+    
+    def decrease_stock(self, quantity: int) -> bool:
+        """Decrease stock by quantity."""
+        if self.estoque >= quantity:
+            self.estoque -= quantity
+            self.updated_at = datetime.now()
+            return True
+        return False
+    
+    def increase_stock(self, quantity: int):
+        """Increase stock by quantity."""
+        self.estoque += quantity
+        self.updated_at = datetime.now()
+    
+    def apply_discount(self, percentage: float) -> float:
+        """Apply discount and return new price."""
+        self.preco = self.preco * (1 - percentage / 100)
+        self.updated_at = datetime.now()
+        return self.preco
+'''
+        elif 'payment' in entity_lower or 'pagamento' in entity_lower:
+            business_methods = '''
+    def process(self):
+        """Process the payment."""
+        self.status = 'PROCESSING'
+        self.updated_at = datetime.now()
+    
+    def approve(self):
+        """Approve the payment."""
+        self.status = 'APPROVED'
+        self.updated_at = datetime.now()
+    
+    def reject(self, reason: str = ''):
+        """Reject the payment."""
+        self.status = 'REJECTED'
+        self.updated_at = datetime.now()
+    
+    def refund(self):
+        """Refund the payment."""
+        self.status = 'REFUNDED'
+        self.updated_at = datetime.now()
+    
+    def is_successful(self) -> bool:
+        """Check if payment was successful."""
+        return self.status == 'APPROVED'
+'''
+        else:
+            # Generic methods for other entities
+            business_methods = '''
+    def activate(self):
+        """Activate the entity."""
+        self.updated_at = datetime.now()
+    
+    def deactivate(self):
+        """Deactivate the entity."""
+        self.updated_at = datetime.now()
+    
+    def is_active(self) -> bool:
+        """Check if entity is active."""
+        return getattr(self, 'is_active', True)
+'''
+        
+        # Add business methods before the last method or at the end of the class
+        # Find a good insertion point
+        lines = content.split('\n')
+        insert_idx = len(lines)
+        
+        # Try to find the last method in the class
+        for i in range(len(lines) - 1, -1, -1):
+            if lines[i].strip().startswith('def ') and not lines[i].strip().startswith('def __'):
+                insert_idx = i + 1
+                break
+        
+        # Insert business methods
+        lines.insert(insert_idx, business_methods)
+        
+        # Add missing imports if needed
+        if 'from datetime import datetime' not in content:
+            # Find a good place to add import
+            import_added = False
+            for i, line in enumerate(lines):
+                if line.startswith('import ') or line.startswith('from '):
+                    # Add after last import
+                    pass
+                elif line.startswith('class ') or line.startswith('@'):
+                    # Add import before class definition
+                    lines.insert(i, 'from datetime import datetime')
+                    import_added = True
+                    break
+            
+            if not import_added:
+                lines.insert(0, 'from datetime import datetime')
+        
+        return '\n'.join(lines)
     
     def _build_fix_prompt(self, requirement: Requirement, issues: list[str]) -> str:
         """

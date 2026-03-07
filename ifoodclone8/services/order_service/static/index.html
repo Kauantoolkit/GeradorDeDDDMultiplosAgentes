@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iFood Clone - Sistema de Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        :root {
+            --primary: #ea1d2c;
+            --secondary: #f4f4f4;
+            --dark: #1a1a2e;
+            --light: #f7f7f7;
+            --gray: #666;
+        }
+        
+        body { background: linear-gradient(135deg, #ea1d2c 0%, #c41621 50%, #a30f1a 100%); min-height: 100vh; }
+        
+        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        
+        .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); width: 100%; max-width: 400px; animation: slideUp 0.5s ease; }
+        
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo-icon { font-size: 60px; margin-bottom: 10px; }
+        .logo h1 { color: var(--primary); font-size: 28px; font-weight: 700; }
+        .logo p { color: var(--gray); font-size: 14px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--dark); font-weight: 500; }
+        .form-group input { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 29, 44, 0.1); }
+        
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary) 0%, #c41621 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(234, 29, 44, 0.3); }
+        
+        .app-container { display: none; min-height: 100vh; }
+        
+        .sidebar { position: fixed; left: 0; top: 0; width: 260px; height: 100vh; background: white; padding: 20px; box-shadow: 4px 0 20px rgba(0,0,0,0.1); z-index: 100; }
+        .sidebar-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding: 10px; }
+        .sidebar-logo span { font-size: 28px; }
+        .sidebar-logo h2 { color: var(--primary); font-size: 22px; }
+        
+        .nav-menu { list-style: none; }
+        .nav-item { margin-bottom: 8px; }
+        .nav-link { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: var(--gray); text-decoration: none; border-radius: 10px; transition: all 0.3s; font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: linear-gradient(135deg, var(--primary) 0%, #c41621 100%); color: white; }
+        
+        .main-content { margin-left: 260px; padding: 30px; background: var(--light); min-height: 100vh; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { color: var(--dark); font-size: 28px; }
+        
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 45px; height: 45px; background: linear-gradient(135deg, var(--primary) 0%, #c41621 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 4px solid var(--primary); }
+        .stat-card h3 { color: var(--gray); font-size: 14px; font-weight: 500; margin-bottom: 10px; }
+        .stat-card .value { color: var(--dark); font-size: 32px; font-weight: 700; }
+        
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card h2 { color: var(--dark); margin-bottom: 20px; font-size: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid #eee; }
+        th { color: var(--gray); font-weight: 600; font-size: 13px; text-transform: uppercase; }
+        
+        .btn-danger { background: #dc3545; padding: 8px 14px; font-size: 13px; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 10px; color: white; font-weight: 500; z-index: 2000; display: none; }
+        .toast.show { display: block; }
+        .toast.success { background: #28a745; }
+        .toast.error { background: #dc3545; }
+        
+        .btn-logout { background: #dc3545; padding: 8px 20px; margin-left: 15px; }
+        .btn-secondary { background: #6c757d; margin-top: 10px; }
+        
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-confirmed { background: #d4edda; color: #155724; }
+        .status-delivered { background: #cce5ff; color: #004085; }
+    </style>
+</head>
+<body>
+    <div class="login-container" id="loginScreen">
+        <div class="login-box">
+            <div class="logo">
+                <div class="logo-icon">🍔</div>
+                <h1>iFood Clone</h1>
+                <p>Sistema de Gestão de Pedidos</p>
+            </div>
+            <div id="loginMessage"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="seu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn">Entrar</button>
+            </form>
+            <p style="text-align: center; margin-top: 20px; color: var(--gray); font-size: 13px;">
+                Use: admin@ifood.com / admin123
+            </p>
+        </div>
+    </div>
+    
+    <div class="app-container" id="appScreen">
+        <nav class="sidebar">
+            <div class="sidebar-logo">
+                <span>🍔</span>
+                <h2>iFood Clone</h2>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" class="nav-link active" onclick="showSection('dashboard')"><span>📊</span> Dashboard</a></li>
+                <li class="nav-item"><a href="#" class="nav-link" onclick="showSection('orders')"><span>📋</span> Pedidos</a></li>
+            </ul>
+        </nav>
+        
+        <main class="main-content">
+            <div class="header">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <span class="user-name" id="userName">Admin</span>
+                    <button class="btn btn-logout" onclick="logout()">Sair</button>
+                </div>
+            </div>
+            
+            <div id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total de Pedidos</h3>
+                        <div class="value" id="totalOrders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Pedidos Ativos</h3>
+                        <div class="value" id="ativos">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Receita Total</h3>
+                        <div class="value" id="receita">R$ 0,00</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="orders" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Gerenciar Pedidos</h2>
+                        <button class="btn" onclick="openModal()">+ Novo Pedido</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>ID</th><th>Cliente</th><th>Status</th><th>Total</th><th>Data</th><th>Ações</th></tr></thead>
+                        <tbody id="orderTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Novo Pedido</h2>
+                <button onclick="closeModal()">&times;</button>
+            </div>
+            <form id="orderForm">
+                <input type="hidden" id="orderId">
+                <div class="form-group">
+                    <label>ID do Cliente</label>
+                    <input type="text" id="customerId" placeholder="ID do cliente" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="orderStatus" style="width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 15px;">
+                        <option value="PENDING">Pendente</option>
+                        <option value="CONFIRMED">Confirmado</option>
+                        <option value="DELIVERED">Entregue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Total (R$)</label>
+                    <input type="number" id="orderTotal" placeholder="0.00" step="0.01" required>
+                </div>
+                <button type="submit" class="btn">Salvar</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        const API_URL = 'http://localhost:8001/api/order_service/orders';
+        const USERS = [{ email: 'admin@ifood.com', password: 'admin123', nome: 'Administrador' }];
+        
+        let currentUser = null;
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const user = USERS.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appScreen').style.display = 'block';
+                document.getElementById('userName').textContent = user.nome;
+                loadOrders();
+            } else {
+                alert('Email ou senha incorretos');
+            }
+        });
+        
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appScreen').style.display = 'none';
+            document.getElementById('loginForm').reset();
+        }
+        
+        function showSection(section) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.closest('.nav-link').classList.add('active');
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('orders').style.display = 'none';
+            document.getElementById(section).style.display = 'block';
+            document.getElementById('pageTitle').textContent = section === 'dashboard' ? 'Dashboard' : 'Pedidos';
+            if (section === 'orders') loadOrders();
+        }
+        
+        function getStatusBadge(status) {
+            const statusMap = {
+                'PENDING': '<span class="status-badge status-pending">Pendente</span>',
+                'CONFIRMED': '<span class="status-badge status-confirmed">Confirmado</span>',
+                'DELIVERED': '<span class="status-badge status-delivered">Entregue</span>'
+            };
+            return statusMap[status] || status;
+        }
+        
+        async function loadOrders() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                document.getElementById('totalOrders').textContent = data.length;
+                document.getElementById('ativos').textContent = data.filter(o => o.status === 'PENDING' || o.status === 'CONFIRMED').length;
+                const total = data.reduce((sum, o) => sum + (o.total || 0), 0);
+                document.getElementById('receita').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+                
+                const tbody = document.getElementById('orderTableBody');
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">Nenhum pedido cadastrado</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>#${item.id}</td>
+                        <td>${item.customer_id}</td>
+                        <td>${getStatusBadge(item.status)}</td>
+                        <td>R$ ${(item.total || 0).toFixed(2).replace('.', ',')}</td>
+                        <td>${item.created_at ? new Date(item.created_at).toLocaleDateString('pt-BR') : '-'}</td>
+                        <td><button class="btn btn-danger" onclick="deleteOrder('${item.id}')">Excluir</button></td>
+                    </tr>
+                `).join('');
+            } catch (e) { 
+                console.error('Error:', e); 
+                document.getElementById('orderTableBody').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: red;">Erro ao carregar pedidos. Verifique se o banco de dados está configurado.</td></tr>';
+            }
+        }
+        
+        function openModal() {
+            document.getElementById('orderModal').classList.add('active');
+            document.getElementById('modalTitle').textContent = 'Novo Pedido';
+            document.getElementById('orderId').value = '';
+            document.getElementById('orderForm').reset();
+        }
+        
+        function closeModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+        
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('orderId').value;
+            const customer_id = document.getElementById('customerId').value;
+            const status = document.getElementById('orderStatus').value;
+            const total = parseFloat(document.getElementById('orderTotal').value);
+            
+            const orderData = { customer_id, status, total };
+            
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${API_URL}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
+                } else {
+                    response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) });
+                }
+                if (response.ok) {
+                    showToast('Pedido salvo com sucesso!', 'success');
+                    closeModal();
+                    loadOrders();
+                } else {
+                    showToast('Erro ao salvar', 'error');
+                }
+            } catch (e) { showToast('Erro ao conectar com o servidor', 'error'); }
+        });
+        
+        async function deleteOrder(id) {
+            if (!confirm('Tem certeza que deseja excluir?')) return;
+            try {
+                const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    showToast('Pedido excluído!', 'success');
+                    loadOrders();
+                } else {
+                    showToast('Erro ao excluir', 'error'); }
+            } catch (e) { showToast('Erro ao conectar', 'error'); }
+        }
+        
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
+

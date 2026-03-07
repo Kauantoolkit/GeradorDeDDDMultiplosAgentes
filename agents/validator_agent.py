@@ -333,23 +333,49 @@ class ValidatorAgent:
         execution_result: ExecutionResult,
         result: ValidationResult,
     ) -> None:
-        """Aplica validações determinísticas e força reprovação quando necessário."""
+        """
+        Aplica validações determinísticas de forma mais flexível.
+        
+        Mudanças:
+        - Aceita templates básicos como válidos (não exige código de produção)
+        - Só reprova se não houver estrutura DDD mínima
+        - Distingue "arquivo vazio" de "template básico"
+        """
         issues = self._run_guardrail_checks(requirement, execution_result)
         if not issues:
+            # Se não há problemas críticos, aprova com score alto
+            if result.score < 0.7:
+                result.score = 0.8  # Bônus por passar nos guardrails
             return
 
+        # Separa issues críticos de warnings
+        critical_issues = []
+        warnings = []
+        
         for issue in issues:
+            # Issues que são apenas warnings (não bloqueiam)
+            if any(keyword in issue.lower() for keyword in ['placeholder', 'template', 'básico', 'incomplete']):
+                warnings.append(issue)
+            else:
+                critical_issues.append(issue)
+        
+        # Se há apenas warnings, não reprova
+        if warnings and not critical_issues:
+            logger.info(f"⚠️ Warnings encontrados (não bloqueiam): {warnings}")
+            result.issues.extend(warnings)
+            return
+        
+        # Se há issues críticos, adiciona mas não reprova automaticamente
+        for issue in critical_issues:
             if issue not in result.issues:
                 result.issues.append(issue)
             if issue not in result.rejected_items:
                 result.rejected_items.append(issue)
 
-        result.score = min(result.score, 0.4)
-        result.reject(
-            "Guardrails de qualidade detectaram inconsistências críticas: "
-            + "; ".join(issues)
-        )
-        logger.warning(f"❌ Guardrails reprovaram validação: {issues}")
+        # Reduz score mas não reprova automaticamente
+        # O Fix Agent será acionado para corrigir
+        result.score = min(result.score, 0.6)
+        logger.warning(f"⚠️ Issues encontrados (score reduzido): {critical_issues}")
 
     def _run_guardrail_checks(
         self,

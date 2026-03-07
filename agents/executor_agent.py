@@ -137,8 +137,10 @@ class ExecutorAgent:
         """
         self.llm_provider = llm_provider
         self.name = "Executor Agent"
-        self.max_generation_attempts = 3
-        logger.info(f"{self.name} inicializado")
+        # CORREÇÃO: Retry logic movida para o Orchestrator
+        # Executor falha rapidamente sem retry interno
+        # O Orchestrator coordena tentativas de retry se necessário
+        logger.info(f"{self.name} inicializado (sem retry interno - retry coordenao pelo Orchestrator)")
     
     async def execute(self, requirement: Requirement, trace_id: str = None) -> ExecutionResult:
         """
@@ -186,48 +188,37 @@ class ExecutorAgent:
             base_prompt = PromptBuilder.build_executor_prompt(requirement)
             logger.debug(f"Prompt base construído ({len(base_prompt)} chars)")
 
+            # CORREÇÃO: Uma única tentativa - retry é coordenao pelo Orchestrator
+            # Se falhar, retorna erro imediatamente para o Orchestrator decidir se tenta novamente
             created_files: list[str] = []
-            last_error: Exception | None = None
 
-            for attempt in range(1, self.max_generation_attempts + 1):
-                prompt = self._build_generation_retry_prompt(base_prompt, attempt, last_error)
-                logger.info(
-                    f"Chamando LLM para geração de código (tentativa {attempt}/{self.max_generation_attempts})..."
+            logger.info("Chamando LLM para geração de código...")
+
+            llm_output = await self.llm_provider.generate(
+                prompt=base_prompt,
+                temperature=0.3,
+                max_tokens=8000
+            )
+
+            result.output = llm_output
+            logger.info(f"Resposta do LLM recebida ({len(llm_output)} chars)")
+            logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
+
+            try:
+                parsed_data = self._parse_llm_output(llm_output)
+                generated_data = self._normalize_llm_data(parsed_data)
+
+                if not generated_data:
+                    raise ValueError("Não foi possível parsear a resposta do LLM")
+
+                created_files = self._create_project_files(
+                    file_manager,
+                    generated_data,
+                    requirement.project_config
                 )
-
-                llm_output = await self.llm_provider.generate(
-                    prompt=prompt,
-                    temperature=0.3,
-                    max_tokens=8000
-                )
-
-                result.output = llm_output
-                logger.info(f"Resposta do LLM recebida ({len(llm_output)} chars)")
-                logger.info(f"LLM Output preview (first 500 chars): {llm_output[:500]}")
-
-                try:
-                    parsed_data = self._parse_llm_output(llm_output)
-                    generated_data = self._normalize_llm_data(parsed_data)
-
-                    if not generated_data:
-                        raise ValueError("Não foi possível parsear a resposta do LLM")
-
-                    created_files = self._create_project_files(
-                        file_manager,
-                        generated_data,
-                        requirement.project_config
-                    )
-                    break
-                except Exception as attempt_error:
-                    last_error = attempt_error
-                    logger.warning(
-                        f"Tentativa {attempt}/{self.max_generation_attempts} falhou: {attempt_error}"
-                    )
-
-            if not created_files:
-                raise ValueError(
-                    f"Executor falhou após {self.max_generation_attempts} tentativas: {last_error}"
-                )
+            except Exception as attempt_error:
+                logger.error(f"Falha na geração: {attempt_error}")
+                raise ValueError(f"Falha na geração: {attempt_error}")
             
             result.files_created = created_files
             result.status = ExecutionStatus.SUCCESS
@@ -688,7 +679,13 @@ class ExecutorAgent:
             )
             
             for file_path, content in ddd_structure.items():
-                guarded_content = self._apply_generation_guards(file_path, content)
+                # Aplica PlaceholderReplacer para garantir que todos os placeholders foram substituídos
+                # Passa os parâmetros corretos baseado no tipo de arquivo
+                entity_for_file = microservice.get("entities", ["Entity"])
+                entity_for_file = entity_for_file[0] if entity_for_file else "Entity"
+                guarded_content = self._apply_generation_guards_and_replace(
+                    file_path, content, entity_for_file, domain, service_name
+                )
                 if file_manager.create_file(file_path, guarded_content):
                     register_created(file_path)
         
@@ -799,6 +796,290 @@ class ExecutorAgent:
         normalized = "".join(token.capitalize() for token in tokens)
         return normalized if normalized[0].isalpha() else f"Entity{normalized}"
     
+    # ============================================================
+    # NOVOS MÉTODOS PARA GERAÇÃO MELHORADA DE TEMPLATES
+    # ============================================================
+    
+    def _generate_business_methods(self, entity_name: str, domain: str) -> dict:
+        """
+        Gera métodos de negócio baseados no tipo de entidade.
+        
+        Args:
+            entity_name: Nome da entidade
+            domain: Nome do domínio
+            
+        Returns:
+            Dicionário com description, imports, fields, methods
+        """
+        entity_lower = entity_name.lower()
+        
+        # Métodos específicos por tipo de entidade
+        if 'user' in entity_lower or 'usuario' in entity_lower:
+            return {
+                "description": "Entidade de usuário com autenticação e perfil.",
+                "imports": "",
+                "fields": "nome: str\n    email: str\n    senha_hash: str\n    is_active: bool = True\n    is_verified: bool = False",
+                "methods": """
+    def authenticate(self, senha: str) -> bool:
+        \"\"\"Autentica o usuário com a senha fornecida.\"\"\"
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        return pwd_context.verify(senha, self.senha_hash)
+    
+    def verify_email(self):
+        \"\"\"Marca o e-mail como verificado.\"\"\"
+        self.is_verified = True
+        self.updated_at = datetime.now()
+    
+    def deactivate(self):
+        \"\"\"Desativa a conta do usuário.\"\"\"
+        self.is_active = False
+        self.updated_at = datetime.now()
+    
+    def change_password(self, new_password: str):
+        \"\"\"Altera a senha do usuário.\"\"\"
+        from passlib.context import CryptContext
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        self.senha_hash = pwd_context.hash(new_password)
+        self.updated_at = datetime.now()
+"""
+            }
+        elif 'order' in entity_lower or 'pedido' in entity_lower:
+            return {
+                "description": "Entidade de pedido com itens e status.",
+                "imports": "",
+                "fields": "usuario_id: UUID\n    status: str = 'PENDING'\n    total: float = 0.0\n    itens: list = field(default_factory=list)",
+                "methods": """
+    def add_item(self, item: dict):
+        \"\"\"Adiciona um item ao pedido.\"\"\"
+        self.itens.append(item)
+        self.total += item.get('preco', 0) * item.get('quantidade', 1)
+        self.updated_at = datetime.now()
+    
+    def remove_item(self, item_id: str):
+        \"\"\"Remove um item do pedido.\"\"\"
+        for item in self.itens:
+            if item.get('id') == item_id:
+                self.total -= item.get('preco', 0) * item.get('quantidade', 1)
+                self.itens.remove(item)
+                break
+        self.updated_at = datetime.now()
+    
+    def calculate_total(self) -> float:
+        \"\"\"Calcula o total do pedido.\"\"\"
+        return sum(item.get('preco', 0) * item.get('quantidade', 1) for item in self.itens)
+    
+    def can_cancel(self) -> bool:
+        \"\"\"Verifica se o pedido pode ser cancelado.\"\"\"
+        return self.status in ['PENDING', 'CONFIRMED']
+    
+    def cancel(self):
+        \"\"\"Cancela o pedido.\"\"\"
+        if self.can_cancel():
+            self.status = 'CANCELLED'
+            self.updated_at = datetime.now()
+    
+    def confirm(self):
+        \"\"\"Confirma o pedido.\"\"\"
+        self.status = 'CONFIRMED'
+        self.updated_at = datetime.now()
+    
+    def complete(self):
+        \"\"\"Marca o pedido como completo.\"\"\"
+        self.status = 'COMPLETED'
+        self.updated_at = datetime.now()
+"""
+            }
+        elif 'product' in entity_lower or 'produto' in entity_lower:
+            return {
+                "description": "Entidade de produto com estoque e precificação.",
+                "imports": "",
+                "fields": "nome: str\n    preco: float\n    descricao: str = ''\n    estoque: int = 0\n    sku: str = ''",
+                "methods": """
+    def is_available(self) -> bool:
+        \"\"\"Verifica se o produto está disponível em estoque.\"\"\"
+        return self.estoque > 0
+    
+    def decrease_stock(self, quantidade: int) -> bool:
+        \"\"\"Decremente o estoque.\"\"\"
+        if self.estoque >= quantidade:
+            self.estoque -= quantidade
+            self.updated_at = datetime.now()
+            return True
+        return False
+    
+    def increase_stock(self, quantidade: int):
+        \"\"\"Incremente o estoque.\"\"\"
+        self.estoque += quantidade
+        self.updated_at = datetime.now()
+    
+    def apply_discount(self, percentual: float) -> float:
+        \"\"\"Aplica desconto e retorna o novo preço.\"\"\"
+        self.preco = self.preco * (1 - percentual / 100)
+        self.updated_at = datetime.now()
+        return self.preco
+"""
+            }
+        elif 'payment' in entity_lower or 'pagamento' in entity_lower:
+            return {
+                "description": "Entidade de pagamento com múltiplos métodos.",
+                "imports": "",
+                "fields": "pedido_id: UUID\n    valor: float\n    metodo: str\n    status: str = 'PENDING'\n    transaction_id: str = ''",
+                "methods": """
+    def process(self):
+        \"\"\"Processa o pagamento.\"\"\"
+        self.status = 'PROCESSING'
+        self.updated_at = datetime.now()
+    
+    def approve(self):
+        \"\"\"Aprova o pagamento.\"\"\"
+        self.status = 'APPROVED'
+        self.updated_at = datetime.now()
+    
+    def reject(self, motivo: str = ''):
+        \"\"\"Rejeita o pagamento.\"\"\"
+        self.status = 'REJECTED'
+        self.updated_at = datetime.now()
+    
+    def refund(self):
+        \"\"\"Estorna o pagamento.\"\"\"
+        self.status = 'REFUNDED'
+        self.updated_at = datetime.now()
+    
+    def is_successful(self) -> bool:
+        \"\"\"Verifica se o pagamento foi bem-sucedido.\"\"\"
+        return self.status == 'APPROVED'
+"""
+            }
+        else:
+            # Métodos genéricos para outras entidades
+            return {
+                "description": "Entidade genérica.",
+                "imports": "",
+                "fields": "nome: str",
+                "methods": """
+    def activate(self):
+        \"\"\"Ativa a entidade.\"\"\"
+        self.updated_at = datetime.now()
+    
+    def deactivate(self):
+        \"\"\"Desativa a entidade.\"\"\"
+        self.updated_at = datetime.now()
+"""
+            }
+    
+    def _generate_entity_relationships(self, entity_name: str, related_entities: list = None) -> str:
+        """
+        Gera classes relacionadas automaticamente baseadas na entidade principal.
+        
+        Args:
+            entity_name: Nome da entidade principal
+            related_entities: Lista de entidades já definidas
+            
+        Returns:
+            Código das entidades relacionadas
+        """
+        entity_lower = entity_name.lower()
+        relationships = ""
+        
+        # Mapeamento de entidades para suas relacionadas
+        relationship_map = {
+            'order': ['OrderItem', 'ShippingAddress', 'PaymentInfo'],
+            'pedido': ['ItemPedido', 'EnderecoEntrega', 'InfoPagamento'],
+            'user': ['UserProfile', 'UserSession', 'UserPermission'],
+            'usuario': ['PerfilUsuario', 'SessaoUsuario', 'PermissaoUsuario'],
+            'product': ['ProductCategory', 'ProductImage', 'ProductReview'],
+            'produto': ['CategoriaProduto', 'ImagemProduto', 'AvaliacaoProduto'],
+            'customer': ['CustomerAddress', 'CustomerContact', 'CustomerPreference'],
+            'cliente': ['EnderecoCliente', 'ContatoCliente', 'PreferenciaCliente'],
+        }
+        
+        related = relationship_map.get(entity_lower, [])
+        
+        for rel_entity in related:
+            if related_entities and rel_entity.lower() in [e.lower() for e in related_entities]:
+                continue  # Skip if already defined
+            
+            if 'Item' in rel_entity or 'Item' in entity_name:
+                relationships += f'''
+class {rel_entity}:
+    """Item relacionado ao pedido."""
+    id: UUID
+    produto_id: UUID
+    quantidade: int
+    preco_unitario: float
+    
+    def get_subtotal(self) -> float:
+        return self.quantidade * self.preco_unitario
+'''
+            elif 'Address' in rel_entity or 'Endereco' in rel_entity:
+                relationships += f'''
+class {rel_entity}:
+    """Endereço relacionado."""
+    id: UUID
+    rua: str
+    cidade: str
+    estado: str
+    cep: str
+    pais: str = "Brasil"
+    
+    def __str__(self) -> str:
+        return f"{{self.rua}}, {{self.cidade}} - {{self.cep}}"
+'''
+            elif 'Payment' in rel_entity or 'Pagamento' in rel_entity:
+                relationships += f'''
+class {rel_entity}:
+    """Informações de pagamento."""
+    id: UUID
+    tipo: str
+    numero_cartao: str = ""
+    titular: str = ""
+    
+    def mask_card(self) -> str:
+        if self.numero_cartao:
+            return "****" + self.numero_cartao[-4:]
+        return ""
+'''
+            elif 'Profile' in rel_entity or 'Perfil' in rel_entity:
+                relationships += f'''
+class {rel_entity}:
+    """Perfil do usuário."""
+    id: UUID
+    bio: str = ""
+    avatar_url: str = ""
+    telefone: str = ""
+    
+    def update_bio(self, nova_bio: str):
+        self.bio = nova_bio
+'''
+        
+        return relationships
+    
+    def _detect_related_entities(self, entity_name: str) -> list:
+        """
+        Detecta entidades relacionadas baseadas no tipo de entidade principal.
+        
+        Args:
+            entity_name: Nome da entidade principal
+            
+        Returns:
+            Lista de nomes de entidades relacionadas
+        """
+        entity_lower = entity_name.lower()
+        
+        mapping = {
+            'order': ['OrderItem', 'ShippingAddress', 'PaymentInfo'],
+            'pedido': ['ItemPedido', 'EnderecoEntrega', 'InfoPagamento'],
+            'user': ['UserProfile', 'UserSession'],
+            'usuario': ['PerfilUsuario', 'SessaoUsuario'],
+            'product': ['ProductCategory', 'ProductImage'],
+            'produto': ['CategoriaProduto', 'ImagemProduto'],
+            'customer': ['CustomerAddress', 'CustomerContact'],
+            'cliente': ['EnderecoCliente', 'ContatoCliente'],
+        }
+        
+        return mapping.get(entity_lower, [])
+    
     def _is_allowed_extra_file_path(self, file_path: str | None) -> bool:
         """Restringe arquivos extras do LLM para evitar lixo fora da estrutura esperada."""
         if not file_path or not isinstance(file_path, str):
@@ -856,6 +1137,39 @@ class ExecutorAgent:
         if file_path.endswith("Dockerfile"):
             fixed = self._normalize_docker_cmd_syntax(fixed)
 
+        return fixed
+    
+    def _apply_generation_guards_and_replace(
+        self, 
+        file_path: str, 
+        content: str,
+        entity_name: str = None,
+        domain: str = None,
+        service_name: str = None
+    ) -> str:
+        """
+        Aplica correções preventivas E substitui placeholders em arquivos gerados.
+        
+        Args:
+            file_path: Caminho do arquivo
+            content: Conteúdo do arquivo
+            entity_name: Nome da entidade para substituição
+            domain: Nome do domínio para substituição
+            service_name: Nome do serviço para substituição
+            
+        Returns:
+            Conteúdo com correções e placeholders substituídos
+        """
+        if not file_path or not content:
+            return content
+        
+        # Primeiro aplica as correções preventivas
+        fixed = self._apply_generation_guards(file_path, content)
+        
+        # Depois substitui os placeholders
+        if entity_name or domain or service_name:
+            fixed = PlaceholderReplacer.replace(fixed, entity_name, domain, service_name)
+        
         return fixed
 
     def _ensure_runtime_dependencies(self, content: str) -> str:
@@ -926,7 +1240,8 @@ class ExecutorAgent:
                 
                 # Verifica placeholders não substituídos
                 if PlaceholderReplacer.has_placeholders(content):
-                    logger.error(f"PLACEHOLDER encontrado em: {file_path}")
+                    # WARNING: Placeholder não impede continuação, pode ser corrigido pelo FixAgent
+                    logger.warning(f"PLACEHOLDER encontrado em: {file_path}")
                     issues_found = True
                     critical_issues.append(f"Placeholder não substituído em {file_path}")
                 
@@ -945,7 +1260,7 @@ class ExecutorAgent:
                         logger.warning(f"Arquivo Python sem definições: {file_path}")
                         warnings.append(f"Arquivo Python sem definições: {file_path}")
 
-                    # Verifica sintaxe Python
+                # Verifica sintaxe Python
                     try:
                         ast.parse(content)
                     except SyntaxError as syntax_error:
@@ -953,6 +1268,16 @@ class ExecutorAgent:
                         issue = f"Erro de sintaxe em {file_path}: {syntax_error.msg}"
                         critical_issues.append(issue)
                         logger.error(issue)
+                        # CORREÇÃO: Remove arquivo com erro de sintaxe ao invés de manter
+                        logger.warning(f"Removendo arquivo com erro de sintaxe: {file_path}")
+                        try:
+                            file_manager.delete_file(file_path)
+                            # Remove da lista de arquivos criados
+                            if file_path in created_files:
+                                created_files.remove(file_path)
+                            logger.info(f"Arquivo removido: {file_path}")
+                        except Exception as delete_error:
+                            logger.warning(f"Não foi possível remover arquivo {file_path}: {delete_error}")
 
                     if '/main.py' in file_path.replace('\\', '/'):
                         undefined_issue = self._check_undefined_handler_symbols(file_path, content)
@@ -961,12 +1286,8 @@ class ExecutorAgent:
                             critical_issues.append(undefined_issue)
                             logger.error(undefined_issue)
 
-                    duplicate_route_issues = self._check_duplicate_routes(file_path, content, route_registry)
-                    if duplicate_route_issues:
-                        issues_found = True
-                        critical_issues.extend(duplicate_route_issues)
-                        for issue in duplicate_route_issues:
-                            logger.error(issue)
+                    # NOTA: Validação de rotas duplicadas foi movida para o ValidatorAgent
+                    # para evitar duplicação de lógica
 
                 if file_path.endswith('requirements.txt'):
                     required_runtime = ['fastapi', 'uvicorn']
@@ -1026,32 +1347,9 @@ class ExecutorAgent:
 
         return None
 
-    def _check_duplicate_routes(
-        self,
-        file_path: str,
-        content: str,
-        route_registry: dict[tuple[str, str, str], str],
-    ) -> list[str]:
-        """Detecta rotas duplicadas de FastAPI (mesmo método+path no mesmo serviço)."""
-        normalized = file_path.replace('\\', '/')
-        parts = normalized.split('/')
-        service = "unknown"
-        if len(parts) > 2 and parts[0] == 'services':
-            service = parts[1]
+    # NOTA: Validação de rotas duplicadas foi movida para o ValidatorAgent
+    # para evitar duplicação de lógica (ver validator_agent.py)
 
-        route_pattern = r"@app\.(get|post|put|patch|delete)\((['\"])([^'\"]+)\2"
-        issues: list[str] = []
-        for method, _, path in re.findall(route_pattern, content):
-            key = (service, method.lower(), path)
-            if key in route_registry:
-                issues.append(
-                    f"Rota duplicada detectada em serviço '{service}': {method.upper()} {path} ({file_path} e {route_registry[key]})"
-                )
-            else:
-                route_registry[key] = file_path
-
-        return issues
-    
     def _generate_ddd_structure(
         self, 
         service_name: str, 
@@ -1131,10 +1429,11 @@ from .{normalized_domain}_aggregates import {normalized_domain.capitalize()}Aggr
         files[f"{base_path}/main.py"] = self._generate_main(normalized_service_name, config)
         files[f"{base_path}/requirements.txt"] = self._generate_requirements()
         
-        # Docker
+        # Docker - Apenas Dockerfile, NÃO gera docker-compose.yml aqui
+        # O DockerTestAgent gera o compose unificado
         if config.include_docker:
             files[f"{base_path}/Dockerfile"] = self._generate_dockerfile(normalized_service_name)
-            files[f"{base_path}/docker-compose.yml"] = self._generate_docker_compose(normalized_service_name, config.database)
+            # NÃO gera docker-compose.yml por serviço - será criado pelo DockerTestAgent
         
         # Tests
         if config.include_tests:
@@ -1513,24 +1812,28 @@ Camada de infraestrutura com repositórios e banco de dados.
     
     def _generate_repositories(self, domain: str, entities: list) -> str:
         entity_name = entities[0] if entities else "Entity"
-        db_type = "sqlalchemy"  # Padrão
-        # Apply placeholder replacements first
-        content = f'''"""
-Repositories - Infrastructure Layer
+        
+        # CORREÇÃO CRÍTICA: Usar string normal (não f-string) para evitar problemas de escape
+        # O problema era que f-strings aninhadas causavam NameError ao tentar avaliar variáveis
+        # como {col} que existem apenas no escopo da list comprehension interna
+        entity_lower = entity_name.lower()
+        
+        content = '''
+"""Repositories - Infrastructure Layer
 ====================================
-Implementação de repositórios para {domain}.
+Implementação de repositórios para ''' + domain + '''.
 """
 
 import asyncpg
 import os
 from uuid import UUID
 from typing import Optional
-from domain.{domain}_entities import {entity_name}, {entity_name}Repository
+from domain.''' + domain + '''_entities import ''' + entity_name + ''', ''' + entity_name + '''Repository
 from infrastructure.database import get_db
 
 
-class {entity_name}RepositoryImpl({entity_name}Repository):
-    """Implementação do repositório de {entity_name}."""
+class ''' + entity_name + '''RepositoryImpl(''' + entity_name + '''Repository):
+    """Implementação do repositório de ''' + entity_name + '''."""
     
     def __init__(self):
         self.db = None
@@ -1541,37 +1844,38 @@ class {entity_name}RepositoryImpl({entity_name}Repository):
             raise RuntimeError("Database not initialized. Call init_db() first.")
         return self.db
     
-    async def get_by_id(self, id: UUID) -> Optional[{entity_name}]:
+    async def get_by_id(self, id: UUID) -> Optional[''' + entity_name + ''']:
         db = self._get_db()
         row = await db.fetchrow(
-            "SELECT * FROM {entity_name.lower()}s WHERE id = $1", str(id)
+            "SELECT * FROM ''' + entity_lower + '''s WHERE id = $1", str(id)
         )
         if row:
-            return {entity_name}(**row)
+            return ''' + entity_name + '''(**row)
         return None
     
-    async def get_all(self) -> list[{entity_name}]:
+    async def get_all(self) -> list[''' + entity_name + ''']:
         db = self._get_db()
-        rows = await db.fetch("SELECT * FROM {entity_name.lower()}s")
-        return [{entity_name}(**row) for row in rows]
+        rows = await db.fetch("SELECT * FROM ''' + entity_lower + '''s")
+        return [''' + entity_name + '''(**row) for row in rows]
     
-    async def save(self, entity: {entity_name}) -> {entity_name}:
+    async def save(self, entity: ''' + entity_name + ''') -> ''' + entity_name + ''':
         db = self._get_db()
         data = entity.to_dict()
         
         existing = await self.get_by_id(entity.id)
         if existing:
             # Build dynamic UPDATE query
-            set_clause = ", ".join([f"${{i+1}} = ${{i+2}}" for i, k in enumerate(data.keys()) if k != 'id'])
+            columns = [k for k in data.keys() if k != 'id']
+            set_clause = ", ".join([f"{c} = ${i+2}" for i, c in enumerate(columns)])
             await db.execute(
-                f"UPDATE {entity_name.lower()}s SET {{set_clause}} WHERE id = $1",
-                *[data[k] for k in data.keys() if k != 'id']
+                f"UPDATE ''' + entity_lower + '''s SET {set_clause} WHERE id = $1",
+                *[data[c] for c in columns]
             )
         else:
             columns = ", ".join(data.keys())
-            values = ", ".join([f"${{i+1}}" for i in range(len(data))])
+            values = ", ".join([f"${i+1}" for i in range(len(data))])
             await db.execute(
-                f"INSERT INTO {entity_name.lower()}s ({{columns}}) VALUES ({{values}})",
+                f"INSERT INTO ''' + entity_lower + '''s ({columns}) VALUES ({values})",
                 *data.values()
             )
         return entity
@@ -1579,7 +1883,7 @@ class {entity_name}RepositoryImpl({entity_name}Repository):
     async def delete(self, id: UUID) -> bool:
         db = self._get_db()
         result = await db.execute(
-            "DELETE FROM {entity_name.lower()}s WHERE id = $1", str(id)
+            "DELETE FROM ''' + entity_lower + '''s WHERE id = $1", str(id)
         )
         return result != "DELETE 0"
 
@@ -1588,20 +1892,15 @@ class {entity_name}RepositoryImpl({entity_name}Repository):
 _repository_instance = None
 
 
-def get_{entity_name.lower()}_repository() -> {entity_name}RepositoryImpl:
-    """Dependência para obter repositório de {entity_name}."""
+def get_''' + entity_lower + '''_repository() -> ''' + entity_name + '''RepositoryImpl:
+    """Dependência para obter repositório de ''' + entity_name + '''."""
     global _repository_instance
     if _repository_instance is None:
-        _repository_instance = {entity_name}RepositoryImpl()
+        _repository_instance = ''' + entity_name + '''RepositoryImpl()
     return _repository_instance
 '''
-        # Apply replacements to fix any remaining placeholders
-        result = content.replace('{entity_name}', entity_name)
-        result = result.replace('{entity_name.lower()}', entity_name.lower())
-        result = result.replace('{domain}', domain)
-        result = result.replace('{set_clause}', ', '.join([f'{{k}} = ${{i+2}}' for i, k in enumerate(['nome', 'email', 'created_at', 'updated_at'])]))
-        result = result.replace('{{set_clause}}', ', '.join([f'{k} = ${i+2}' for i, k in enumerate(['nome', 'email', 'created_at', 'updated_at'])]))
-        return result
+        
+        return content
     
     def _generate_database(self, db_type: str, entity_name: str = "Entity") -> str:
         """
@@ -1698,7 +1997,10 @@ Camada de API com controllers e rotas.
             Conteúdo do arquivo routes.py
         """
         entity_name = entities[0] if entities else "Entity"
-        return f'''"""
+        
+        # CORREÇÃO: Usar replacements diretos para evitar placeholders restantes
+        # O problema era que detail="{entity_name} não encontrado" não era substituído
+        routes_content = f'''"""
 Routes - API Layer
 ==================
 Definição de rotas para {service_name}.
@@ -1752,7 +2054,7 @@ async def get_{entity_name.lower()}(
     use_case = Get{entity_name}ByIdUseCase(repository)
     entity = await use_case.execute(id)
     if not entity:
-        raise HTTPException(status_code=404, detail="{entity_name} não encontrado")
+        raise HTTPException(status_code=404, detail=f"{{{entity_name}}} não encontrado")
     return {entity_name}Schema.from_orm(entity)
 
 
@@ -1766,7 +2068,7 @@ async def update_{entity_name.lower()}(
     use_case = Update{entity_name}UseCase(repository)
     entity = await use_case.execute(id, data.dict(exclude_unset=True))
     if not entity:
-        raise HTTPException(status_code=404, detail="{entity_name} não encontrado")
+        raise HTTPException(status_code=404, detail=f"{{{entity_name}}} não encontrado")
     return {entity_name}Schema.from_orm(entity)
 
 
@@ -1779,8 +2081,15 @@ async def delete_{entity_name.lower()}(
     use_case = Delete{entity_name}UseCase(repository)
     result = await use_case.execute(id)
     if not result:
-        raise HTTPException(status_code=404, detail="{entity_name} não encontrado")
+        raise HTTPException(status_code=404, detail=f"{{{entity_name}}} não encontrado")
 '''
+        # CORREÇÃO: Substituir todos os placeholders restantes
+        result = routes_content
+        result = result.replace('{service_name}', service_name)
+        result = result.replace('{entity_name}', entity_name)
+        result = result.replace('{entity_name.lower()}', entity_name.lower())
+        
+        return result
     
     def _generate_controllers(self, service_name: str, entities: list) -> str:
         entity_name = entities[0] if entities else "Entity"
@@ -2108,11 +2417,9 @@ python main.py
             entities = microservices[0].get("entities", ["Entity"])
             files[f"services/{service_name}/static/index.html"] = self._generate_frontend(service_name, entities)
         
-        # docker-compose principal se houver múltiplos serviços
-        if len(microservices) > 1:
-            files["docker-compose.yml"] = '''services:
-  # Add your microservices here
-'''
+        # docker-compose principal - REMOVIDO
+        # O DockerTestAgent é responsável por gerar o docker-compose.yml unificado
+        # Isso evita sobrescrita entre Executor e DockerTestAgent
         
         return files
     

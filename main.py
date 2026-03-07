@@ -23,7 +23,7 @@ from loguru import logger
 # Adiciona o diretório atual ao path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from agents.orchestrator import OrchestratorAgent
+from agents.orchestrator_v2 import OrchestratorAgent
 from domain.entities import Requirement, ProjectConfig
 from infrastructure.llm_provider import OllamaProvider, ensure_ollama_running
 

@@ -1,6 +1,0 @@
-{
-  "trace_id": "8ba16da9-abd2-4c8d-96c2-7534bd0a60f4",
-  "started_at": "2026-03-06T19:51:06.316075+00:00",
-  "metadata": "{'requirements': 'crie um clone do ifood', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'ifoodcomqwen'}",
-  "events": []
-}

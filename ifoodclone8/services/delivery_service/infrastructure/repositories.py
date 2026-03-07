@@ -1,0 +1,80 @@
+
+"""Repositories - Infrastructure Layer
+====================================
+Implementação de repositórios para delivery.
+"""
+
+import asyncpg
+import os
+from uuid import UUID
+from typing import Optional
+from domain.delivery_entities import Delivery, DeliveryRepository
+from infrastructure.database import get_db
+
+
+class DeliveryRepositoryImpl(DeliveryRepository):
+    """Implementação do repositório de Delivery."""
+    
+    def __init__(self):
+        self.db = None
+    
+    def _get_db(self):
+        """Obtém conexão do banco."""
+        if self.db is None:
+            raise RuntimeError("Database not initialized. Call init_db() first.")
+        return self.db
+    
+    async def get_by_id(self, id: UUID) -> Optional[Delivery]:
+        db = self._get_db()
+        row = await db.fetchrow(
+            "SELECT * FROM deliverys WHERE id = $1", str(id)
+        )
+        if row:
+            return Delivery(**row)
+        return None
+    
+    async def get_all(self) -> list[Delivery]:
+        db = self._get_db()
+        rows = await db.fetch("SELECT * FROM deliverys")
+        return [Delivery(**row) for row in rows]
+    
+    async def save(self, entity: Delivery) -> Delivery:
+        db = self._get_db()
+        data = entity.to_dict()
+        
+        existing = await self.get_by_id(entity.id)
+        if existing:
+            # Build dynamic UPDATE query
+            columns = [k for k in data.keys() if k != 'id']
+            set_clause = ", ".join([f"{c} = ${i+2}" for i, c in enumerate(columns)])
+            await db.execute(
+                f"UPDATE deliverys SET {set_clause} WHERE id = $1",
+                *[data[c] for c in columns]
+            )
+        else:
+            columns = ", ".join(data.keys())
+            values = ", ".join([f"${i+1}" for i in range(len(data))])
+            await db.execute(
+                f"INSERT INTO deliverys ({columns}) VALUES ({values})",
+                *data.values()
+            )
+        return entity
+    
+    async def delete(self, id: UUID) -> bool:
+        db = self._get_db()
+        result = await db.execute(
+            "DELETE FROM deliverys WHERE id = $1", str(id)
+        )
+        return result != "DELETE 0"
+
+
+# Instância global do repositório
+_repository_instance = None
+
+
+def get_delivery_repository() -> DeliveryRepositoryImpl:
+    """Dependência para obter repositório de Delivery."""
+    global _repository_instance
+    if _repository_instance is None:
+        _repository_instance = DeliveryRepositoryImpl()
+    return _repository_instance

@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  order_service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/dbname
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=dbname
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:

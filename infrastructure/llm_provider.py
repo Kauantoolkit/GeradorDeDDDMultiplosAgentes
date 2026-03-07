@@ -287,7 +287,7 @@ class PromptBuilder:
         bt = chr(96)
         triple_bt = bt * 3
         
-        return f"""
+        return """
 Você é o AGENTE EXECUTOR de um sistema de automação de geração de código DDD.
 
 SUA FUNÇÃO CRÍTICA:
@@ -298,55 +298,60 @@ SUA FUNÇÃO CRÍTICA:
 - NADA pode ficar faltando - seja EXTENSO e COMPLETO
 
 ARQUITETURA DDD OBRIGATÓRIA (para CADA microserviço):
-```
+
 services/
-  [nome-servico]/
+  [nome_servico]/
     domain/
       __init__.py
-      entities.py          # Entidades do domínio (ex: User, Order, Product)
-      value_objects.py    # Value Objects
-      aggregates.py       # Aggregates
-      events.py           # Domain Events
+      entities.py
+      value_objects.py
+      aggregates.py
+      events.py
     application/
       __init__.py
-      use_cases.py       # Casos de uso (ex: CreateUser, UpdateOrder)
-      dtos.py            # Data Transfer Objects
-      mappers.py         # Mapeadores
+      use_cases.py
+      dtos.py
+      mappers.py
     infrastructure/
       __init__.py
-      repositories.py    # Implementação de repositories
-      database.py        # Configuração de banco
+      repositories.py
+      database.py
     api/
       __init__.py
-      routes.py          # Rotas FastAPI
-      controllers.py     # Controladores
-      schemas.py         # Schemas Pydantic
-    main.py              # Entry point do serviço
-    requirements.txt     # Dependências Python
-    Dockerfile           # Container Docker
-    docker-compose.yml   # Compose para desenvolvimento
+      routes.py
+      controllers.py
+      schemas.py
+    main.py
+    requirements.txt
+    Dockerfile
+    docker-compose.yml
     tests/
       __init__.py
-      test_entities.py  # Testes de entidades
-```
+      test_entities.py
 
 IMPORTANTE - FORMATO DE RESPOSTA:
-Você DEVE retornar APENAS um objeto JSON válido, sem nenhum texto adicional antes ou depois.
-Não inclua explicações, introduções ou conclusões em texto.
-O JSON deve ser compacto (sem formatação pretty-print com espaços extras).
+Você DEVE retornar APENAS um objeto JSON válido.
+
+CRÍTICO - EVITE ESTES ERROS:
+1. NÃO use markdown como ```json
+2. NÃO inclua comentários no JSON
+3. NÃO use aspas simples
+4. NÃO deixe vírgulas antes de }} ou ]
+5. SEMPRE inicie com {{ e termine com }}
 
 {base_prompt}
 
-Retorne um JSON válido com esta estrutura exata:
+Retorne um JSON com esta estrutura:
+
 {{
     "microservices": [
         {{
-            "name": "nome-do-servico",
-            "domain": "nome-do-dominio",
+            "name": "nome_do_servico",
+            "domain": "nome_do_dominio",
             "entities": ["Entity1", "Entity2"],
             "use_cases": ["UseCase1", "UseCase2"],
             "ports": ["/api/endpoint1", "/api/endpoint2"],
-            "dependencies": ["outro-servico"]
+            "dependencies": ["outro_servico"]
         }}
     ],
     "files": [
@@ -358,13 +363,12 @@ Retorne um JSON válido com esta estrutura exata:
 }}
 
 GARANTA QUE:
-- O JSON seja válido e possa ser parseado
+- O JSON seja válido
 - Crie NO MÍNIMO 5 arquivos por microserviço
-- Inclua TODAS as camadas DDD (domain, application, infrastructure, api)
-- Cada arquivo deve ter código REAL e FUNCIONAL
-- O código devecompilar e fazer sentido
-- O JSON seja retornado SEM formatação markdown (sem {triple_bt}json ou {triple_bt})
-"""
+- Inclua TODAS as camadas DDD
+- Cada arquivo tenha código real
+- NÃO use markdown
+""".format(base_prompt=base_prompt)
     
     @staticmethod
     def build_ddd_executor_prompt(requirement: Any) -> str:
