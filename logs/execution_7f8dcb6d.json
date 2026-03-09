@@ -1,0 +1,25 @@
+{
+  "trace_id": "7f8dcb6d-a8f1-48b9-91e0-c2075ab7c699",
+  "started_at": "2026-03-08T01:39:42.055731+00:00",
+  "metadata": "{'requirements': 'faça um clone do linkedin', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'cloneLinkedin'}",
+  "events": [
+    {
+      "timestamp": "2026-03-08T01:39:42.415786+00:00",
+      "trace_id": "644259d5-af25-4f1a-abb7-92a6aa9117fc",
+      "message_id": "62963417-f44e-4a4c-99d7-a90730c85075",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '97caf64e-b7cc-4e88-92b4-dc327eab2f05', 'description': 'faça um clone do linkedin', 'output_directory': 'cloneLinkedin'}"
+    },
+    {
+      "timestamp": "2026-03-08T01:40:36.775577+00:00",
+      "trace_id": "644259d5-af25-4f1a-abb7-92a6aa9117fc",
+      "message_id": "74e76fe4-569c-4117-89c2-e5079dcabadb",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'faça um clone do linkedin', 'output_directory': 'cloneLinkedin', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 0, 'execution_time': 54.35724}",
+      "execution_time_ms": 54357.24,
+      "status": "success"
+    }
+  ]
+}

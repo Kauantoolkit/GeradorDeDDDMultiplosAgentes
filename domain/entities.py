@@ -19,15 +19,11 @@ import uuid
 
 
 class AgentType(Enum):
-    """Tipos de agentes no sistema."""
-    EXECUTOR = "executor"       # Gera código (deprecated - use CODE)
-    VALIDATOR = "validator"     # Valida código (deprecated - use RuntimeRunner)
+    """Tipos de agentes no sistema (V3)."""
     CODE = "code"              # Unificado: geração + correção
     RUNTIME_RUNNER = "runtime_runner"  # Validação objetiva de runtime
     ROLLBACK = "rollback"       # Desfaz mudanças
     ORCHESTRATOR = "orchestrator"  # Coordena fluxo
-    DOCKER_TEST = "docker_test"    # Valida containers Docker
-    FIX = "fix"                 # Corrige problemas (merged into CODE)
     FRONTEND = "frontend"       # Gera frontend
 
 

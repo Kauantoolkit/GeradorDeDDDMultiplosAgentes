@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from domain.entities import Requirement, ProjectConfig
 from infrastructure.llm_provider import OllamaProvider, ensure_ollama_running, check_ollama_installation
-from agents.orchestrator import OrchestratorAgent
+from agents.orchestrator_v3 import OrchestratorV3
 
 
 # ==================== CONFIGURAÇÃO ====================
@@ -442,7 +442,7 @@ async def execute_generation(
             "message": f"Inicializando modelo: {model}"
         })
         llm_provider = OllamaProvider(model=model)
-        orchestrator = OrchestratorAgent(llm_provider=llm_provider)
+        orchestrator = OrchestratorV3(llm_provider=llm_provider)
 
         await send_update("agent_status", {
             "agent": "orchestrator",

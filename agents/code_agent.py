@@ -134,7 +134,14 @@ class CodeAgent:
             )
             
             result.files_created = created_files
-            result.status = ExecutionStatus.SUCCESS
+            
+            # CRITICAL: Only mark SUCCESS if files were actually created
+            if not created_files:
+                logger.warning("No files were created - marking as FAILED")
+                result.status = ExecutionStatus.FAILED
+                result.error_message = "Failed to parse LLM output or create files"
+            else:
+                result.status = ExecutionStatus.SUCCESS
             
             logger.info(f"Code generated: {len(created_files)} files created")
             
@@ -614,32 +621,95 @@ IMPORTANT:
     
     def _parse_llm_output(self, llm_output: str) -> Any:
         """Parse LLM JSON output with multiple strategies."""
-        # Strategy 1: Find JSON in markdown
+        # Strategy 1: Find JSON in markdown code blocks
         json_match = re.search(r'```json\s*(\{.*?\})\s*```', llm_output, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group(1))
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as e:
+                logger.warning(f"Strategy 1 failed: {e}")
         
-        # Strategy 2: Find JSON without markdown
+        # Strategy 2: Find JSON without markdown - look for first { and last }
+        # Be careful to find matching braces
         json_start = llm_output.find('{')
-        json_end = llm_output.rfind('}')
+        if json_start >= 0:
+            # Find the matching closing brace by counting braces
+            depth = 0
+            json_end = json_start
+            for i, char in enumerate(llm_output[json_start:]):
+                if char == '{':
+                    depth += 1
+                elif char == '}':
+                    depth -= 1
+                    if depth == 0:
+                        json_end = json_start + i + 1
+                        break
+            
+            if json_end > json_start:
+                json_str = llm_output[json_start:json_end]
+                try:
+                    return json.loads(json_str)
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Strategy 2 failed: {e}")
         
-        if json_start >= 0 and json_end > json_start:
-            json_str = llm_output[json_start:json_end+1]
-            try:
-                return json.loads(json_str)
-            except json.JSONDecodeError:
-                pass
-        
-        # Strategy 3: Try to fix common issues
+        # Strategy 3: Try to fix common issues and parse again
         try:
             cleaned = self._clean_llm_output(llm_output)
-            return json.loads(cleaned)
-        except:
-            pass
+            # Try again with cleaned output
+            json_start = cleaned.find('{')
+            if json_start >= 0:
+                # Find matching closing brace
+                depth = 0
+                json_end = json_start
+                for i, char in enumerate(cleaned[json_start:]):
+                    if char == '{':
+                        depth += 1
+                    elif char == '}':
+                        depth -= 1
+                        if depth == 0:
+                            json_end = json_start + i + 1
+                            break
+                
+                if json_end > json_start:
+                    json_str = cleaned[json_start:json_end]
+                    return json.loads(json_str)
+        except Exception as e:
+            logger.warning(f"Strategy 3 failed: {e}")
         
+        # Strategy 4: Extract microservices array directly
+        try:
+            microservices_match = re.search(r'"microservices"\s*:\s*\[(.*?)\]', llm_output, re.DOTALL)
+            if microservices_match:
+                # Try to parse as array
+                array_str = "[" + microservices_match.group(1) + "]"
+                # Fix common issues in array
+                array_str = array_str.replace("'", '"')
+                array_str = re.sub(r',(\s*[}\]])', r'\1', array_str)
+                parsed = json.loads(array_str)
+                return {"microservices": parsed}
+        except Exception as e:
+            logger.warning(f"Strategy 4 failed: {e}")
+        
+        # Last resort: return a default structure if we can extract service names
+        try:
+            service_names = re.findall(r'"name"\s*:\s*"([^"]+)"', llm_output)
+            if service_names:
+                logger.info(f"Found service names via regex: {service_names}")
+                microservices = []
+                for name in set(service_names):
+                    microservices.append({
+                        "name": name,
+                        "domain": name,
+                        "entities": [],
+                        "use_cases": [],
+                        "ports": [],
+                        "dependencies": []
+                    })
+                return {"microservices": microservices}
+        except Exception as e:
+            logger.warning(f"Last resort strategy failed: {e}")
+        
+        logger.error("All parsing strategies failed")
         return None
     
     def _normalize_llm_data(self, data: Any) -> dict:
@@ -720,6 +790,22 @@ IMPORTANT:
         
         return normalized.startswith(allowed_prefixes)
     
+    def _get_language_from_extension(self, file_path: str) -> str:
+        """Get language identifier for code block."""
+        ext = file_path.split('.')[-1].lower()
+        language_map = {
+            "py": "python",
+            "js": "javascript",
+            "jsx": "jsx",
+            "ts": "typescript",
+            "tsx": "tsx",
+            "css": "css",
+            "html": "html",
+            "json": "json",
+            "md": "markdown"
+        }
+        return language_map.get(ext, ext)
+    
     # ============================================================
     # DDD Structure Generation (from ExecutorAgent)
     # ============================================================
@@ -760,18 +846,31 @@ from .{normalized_domain}_aggregates import {normalized_domain.capitalize()}Aggr
         files[f"{base_path}/domain/{normalized_domain}_aggregates.py"] = self._generate_aggregates(normalized_domain, entities)
         
         # Application Layer
-        files[f"{base_path}/application/__init__.py"] = f"Application Layer - {service_name}\n"
+        files[f"{base_path}/application/__init__.py"] = '''"""Application Layer - {service_name}."""
+from .dtos import *
+from .mappers import *
+from .use_cases import *
+'''
+
         files[f"{base_path}/application/use_cases.py"] = self._generate_use_cases(normalized_domain, entities)
         files[f"{base_path}/application/dtos.py"] = self._generate_dtos(entities)
         files[f"{base_path}/application/mappers.py"] = self._generate_mappers(normalized_domain, entities)
         
         # Infrastructure Layer
-        files[f"{base_path}/infrastructure/__init__.py"] = "Infrastructure Layer\n"
+        files[f"{base_path}/infrastructure/__init__.py"] = '''"""Infrastructure Layer."""
+from .repositories import *
+from .database import *
+'''
+
         files[f"{base_path}/infrastructure/repositories.py"] = self._generate_repositories(normalized_domain, entities)
         files[f"{base_path}/infrastructure/database.py"] = self._generate_database(config.database, entities[0] if entities else "Entity")
         
         # API Layer
-        files[f"{base_path}/api/__init__.py"] = "API Layer\n"
+        files[f"{base_path}/api/__init__.py"] = '''"""API Layer."""
+from .routes import router
+from .schemas import *
+'''
+
         files[f"{base_path}/api/routes.py"] = self._generate_routes(normalized_service, normalized_domain, entities)
         files[f"{base_path}/api/schemas.py"] = self._generate_schemas(entities)
         
@@ -806,7 +905,7 @@ class {entity_name}:
             id=uuid4(),
             created_at=now,
             updated_at=now,
-            **{k: v for k, v in kwargs.items() if k not in ['id', 'created_at', 'updated_at']}
+            **{{k: v for k, v in kwargs.items() if k not in ['id', 'created_at', 'updated_at']}}
         )
     
     def update(self, **kwargs):
@@ -997,7 +1096,7 @@ from uuid import UUID
 from typing import List
 
 from application.dtos import {entity}DTO, Create{entity}DTO
-from infrastructure.repositories import {entity}RepositoryImpl
+from infrastructure.repositories import {entity}RepositoryImpl, get_{entity_lower}_repository
 
 router = APIRouter(prefix="/api/{service_name}", tags=["{service_name}"])
 
@@ -1031,7 +1130,7 @@ class {entity}Schema(BaseModel):
         return f'''"""Main application for {service_name}."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routes import router
+from .api.routes import router
 
 app = FastAPI(title="{service_name}", version="1.0.0")
 

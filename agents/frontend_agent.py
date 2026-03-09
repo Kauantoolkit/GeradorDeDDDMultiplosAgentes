@@ -43,7 +43,7 @@ class FrontendAgent:
     ) -> ExecutionResult:
         """Executa a geração do frontend."""
         result = ExecutionResult(
-            agent_type=AgentType.EXECUTOR,
+            agent_type=AgentType.CODE,
             status=ExecutionStatus.IN_PROGRESS
         )
         
@@ -181,7 +181,7 @@ class FrontendAgent:
         files["frontend/vite.config.js"] = self._generate_vite_config()
         files["frontend/index.html"] = self._generate_index_html(project_name)
         files["frontend/src/main.jsx"] = self._generate_main_jsx()
-        files["frontend/src/App.jsx"] = self._generate_app_jsx(entities)
+        files["frontend/src/App.jsx"] = self._generate_app_jsx(entities, project_name)
         files["frontend/src/services/api.js"] = self._generate_api_service(routes)
         
         return files
@@ -237,7 +237,7 @@ export default defineConfig({
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} - Sistema de Gestão</title>
+    <title>{title}</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   </head>
   <body>
@@ -260,7 +260,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 """
     
-    def _generate_app_jsx(self, entities: list) -> str:
+    def _generate_app_jsx(self, entities: list, project_name: str) -> str:
         # Build nav items
         nav_lines = []
         for entity in entities:
@@ -287,7 +287,7 @@ import ApiService from './services/api';
 function Home() {{
   return (
     <div className="home">
-      <h1>Bem-vindo ao Sistema</h1>
+      <h1>Bem-vindo ao {project_name.title()}</h1>
       <p>Selecione uma opção no menu acima</p>
     </div>
   );
@@ -298,7 +298,7 @@ function App() {{
     <BrowserRouter>
       <div className="app">
         <nav className="sidebar">
-          <h2>Menu</h2>
+          <h2>{project_name.title()}</h2>
           <ul>
             <li><Link to="/">Home</Link></li>
 {nav_items}
@@ -452,7 +452,7 @@ function ENTITYList() {
       </table>
       
       {items.length === 0 && (
-        <p className="empty">Nenhum ENTITY_lower encontrado</p>
+        <p className="empty">Nenhum {entity} encontrado</p>
       )}
     </div>
   );

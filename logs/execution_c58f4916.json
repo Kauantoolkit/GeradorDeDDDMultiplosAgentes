@@ -1,0 +1,25 @@
+{
+  "trace_id": "c58f4916-41ba-4079-a62d-271fcb422ce6",
+  "started_at": "2026-03-08T21:02:27.072940+00:00",
+  "metadata": "{'requirements': 'crie um sistema para academia', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'generated'}",
+  "events": [
+    {
+      "timestamp": "2026-03-08T21:02:27.435923+00:00",
+      "trace_id": "5444df7b-559b-47da-b7e9-63ab821841df",
+      "message_id": "ccef68a1-d0c4-4814-bb08-0cdc7058a111",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '23e7f6a6-c764-4c1f-b788-4d3ce823ce7c', 'description': 'crie um sistema para academia', 'output_directory': 'generated'}"
+    },
+    {
+      "timestamp": "2026-03-08T21:02:56.432412+00:00",
+      "trace_id": "5444df7b-559b-47da-b7e9-63ab821841df",
+      "message_id": "12de5822-e736-4dfd-8ce5-7711c0a03888",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'crie um sistema para academia', 'output_directory': 'generated', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 52, 'execution_time': 28.99349}",
+      "execution_time_ms": 28993.49,
+      "status": "success"
+    }
+  ]
+}

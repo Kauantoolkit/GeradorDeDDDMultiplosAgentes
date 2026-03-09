@@ -23,8 +23,14 @@ RuntimeRunner.validate() → errors?
     ↓
 FrontendAgent (optional)
     ↓
+[Frontend self-repair loop] ← NEW
+    while frontend_errors and attempts < MAX:
+        CodeAgent.fix(frontend_errors) → modified files
+        RuntimeRunner.validate_frontend() → errors?
+    ↓
 Success
 ```
+
 """
 
 import asyncio
@@ -68,12 +74,13 @@ class OrchestratorV3:
     2. Runtime-driven validation (RuntimeRunner)
     3. Self-repair loop with full context
     4. Simplified coordination logic
+    5. Frontend self-repair loop (NEW)
     """
     
     def __init__(
         self,
         llm_provider: OllamaProvider,
-        max_repair_attempts: int = 3,
+        max_repair_attempts: int = 5,
         generate_frontend: bool = True
     ):
         """
@@ -148,16 +155,37 @@ class OrchestratorV3:
             logger.info("\n📋 STEP 1: Code Generation")
             result.add_log("STEP 1: Code Generation")
             
-            generation_result = await self.code_agent.generate(requirement, trace_id=trace_id)
+            generation_success = False
+            generation_attempts = 0
+            max_generation_attempts = 3
             
-            if not generation_result.success:
-                logger.error(f"❌ Initial generation failed: {generation_result.error_message}")
+            while not generation_success and generation_attempts < max_generation_attempts:
+                generation_attempts += 1
+                logger.info(f"\n--- Generation Attempt {generation_attempts}/{max_generation_attempts} ---")
+                result.add_log(f"Generation attempt {generation_attempts}")
+                
+                generation_result = await self.code_agent.generate(requirement, trace_id=trace_id)
+                
+                if not generation_result.success:
+                    logger.warning(f"❌ Generation attempt {generation_attempts} failed: {generation_result.error_message}")
+                    result.add_log(f"Generation failed: {generation_result.error_message}")
+                    continue
+                
+                if not generation_result.files_created:
+                    logger.warning(f"❌ Generation attempt {generation_attempts} created 0 files")
+                    result.add_log("Generation created 0 files - retrying")
+                    continue
+                
+                # Success!
+                generation_success = True
+                result.files_generated.extend(generation_result.files_created)
+                logger.info(f"✅ Initial code generated: {len(generation_result.files_created)} files")
+            
+            if not generation_success:
+                logger.error(f"❌ All {max_generation_attempts} generation attempts failed")
                 result.success = False
-                result.error_message = f"Generation failed: {generation_result.error_message}"
+                result.error_message = f"Failed to generate code after {max_generation_attempts} attempts"
                 return result
-            
-            result.files_generated.extend(generation_result.files_created)
-            logger.info(f"✅ Initial code generated: {len(generation_result.files_created)} files")
             
             # ==========================================
             # STEP 2: RUNTIME VALIDATION + SELF-REPAIR LOOP
@@ -244,6 +272,21 @@ class OrchestratorV3:
                 else:
                     logger.warning(f"Frontend generation failed: {frontend_result.error_message}")
                     result.add_log(f"Frontend: failed - {frontend_result.error_message}")
+                
+                # ==========================================
+                # STEP 3.5: FRONTEND VALIDATION + SELF-REPAIR LOOP
+                # ==========================================
+                logger.info("\n📋 STEP 3.5: Frontend Validation + Self-Repair")
+                result.add_log("STEP 3.5: Frontend Validation")
+                
+                frontend_errors = await self._validate_and_fix_frontend(project_path, requirement)
+                
+                if frontend_errors:
+                    logger.warning(f"⚠️ Frontend validation found {len(frontend_errors)} errors")
+                    result.add_log(f"Frontend errors: {len(frontend_errors)}")
+                else:
+                    logger.info("✅ Frontend validated successfully!")
+                    result.add_log("Frontend validation: SUCCESS")
             
             # ==========================================
             # SUCCESS
@@ -282,6 +325,148 @@ class OrchestratorV3:
             result.add_log(f"FATAL ERROR: {str(e)}")
             
             return result
+    
+    async def _validate_and_fix_frontend(
+        self,
+        project_path: str,
+        requirement: Requirement
+    ) -> list[dict]:
+        """
+        Validate and fix frontend errors.
+        
+        This is the NEW frontend self-repair loop that runs after frontend generation.
+        
+        Args:
+            project_path: Path to the project
+            requirement: Original project requirements
+            
+        Returns:
+            List of remaining frontend errors (empty if all fixed)
+        """
+        frontend_errors = []
+        
+        # Self-repair loop for frontend
+        for repair_attempt in range(1, self.max_repair_attempts + 1):
+            logger.info(f"\n--- Frontend Self-Repair: Attempt {repair_attempt}/{self.max_repair_attempts} ---")
+            
+            # Validate frontend
+            frontend_validation = await self.runtime_runner.runner.validate_frontend()
+            
+            # Check for errors
+            errors = frontend_validation.get("errors", [])
+            build_ok = frontend_validation.get("npm_build_ok", False)
+            install_ok = frontend_validation.get("npm_install_ok", False)
+            
+            if build_ok and install_ok and not errors:
+                logger.info("✅ Frontend validated successfully!")
+                return []  # No errors - success!
+            
+            # Format errors for CodeAgent
+            if errors:
+                frontend_errors = self._format_frontend_errors(errors, frontend_validation)
+                logger.warning(f"⚠️ Frontend validation found {len(frontend_errors)} errors")
+                
+                # Try to fix with CodeAgent
+                logger.info(f"\n📋 Frontend Fix Attempt {repair_attempt}: CodeAgent fixing errors...")
+                
+                fix_result = await self.code_agent.fix(
+                    requirement=requirement,
+                    runtime_errors=frontend_errors,
+                    attempt=repair_attempt,
+                    trace_id=None
+                )
+                
+                if fix_result.success and fix_result.files_modified:
+                    logger.info(f"✅ Frontend fix applied: {len(fix_result.files_modified)} files modified")
+                else:
+                    logger.warning(f"⚠️ Frontend fix attempt {repair_attempt} did not modify any files")
+            else:
+                # No parseable errors but still failing - try anyway
+                if not install_ok:
+                    logger.warning("⚠️ npm install failed - cannot proceed with build validation")
+                    frontend_errors = [{
+                        "type": "frontend_install_error",
+                        "service": "frontend",
+                        "message": "npm install failed"
+                    }]
+                elif not build_ok:
+                    logger.warning("⚠️ npm build failed - attempting fix")
+                    frontend_errors = [{
+                        "type": "frontend_build_error",
+                        "service": "frontend", 
+                        "message": "npm build failed - check for JSX/JS syntax errors"
+                    }]
+                
+                # Try to fix even if we don't have specific errors
+                fix_result = await self.code_agent.fix(
+                    requirement=requirement,
+                    runtime_errors=frontend_errors,
+                    attempt=repair_attempt,
+                    trace_id=None
+                )
+                
+                if fix_result.success and fix_result.files_modified:
+                    logger.info(f"✅ Frontend fix applied: {len(fix_result.files_modified)} files modified")
+        
+        # Final validation check
+        final_frontend_validation = await self.runtime_runner.runner.validate_frontend()
+        if final_frontend_validation.get("npm_build_ok", False):
+            logger.info("✅ Frontend validated successfully after fixes!")
+            return []
+        
+        # Return remaining errors
+        return self._format_frontend_errors(
+            final_frontend_validation.get("errors", []),
+            final_frontend_validation
+        )
+    
+    def _format_frontend_errors(self, errors: list, validation_result: dict) -> list[dict]:
+        """
+        Format frontend errors for CodeAgent.
+        
+        Args:
+            errors: List of error strings
+            validation_result: Full validation result
+            
+        Returns:
+            Formatted error list for CodeAgent
+        """
+        formatted_errors = []
+        
+        for error in errors:
+            error_dict = {
+                "type": "frontend_error",
+                "service": "frontend",
+                "message": error
+            }
+            
+            # Check for specific error types
+            error_lower = error.lower() if isinstance(error, str) else ""
+            if "install" in error_lower or "npm" in error_lower:
+                error_dict["error_category"] = "npm_install"
+            elif "build" in error_lower or "jsx" in error_lower or "javascript" in error_lower:
+                error_dict["error_category"] = "build_syntax"
+            
+            formatted_errors.append(error_dict)
+        
+        # Add build/install status if failing
+        if not validation_result.get("npm_install_ok", True):
+            formatted_errors.append({
+                "type": "frontend_error",
+                "service": "frontend",
+                "message": "npm install failed",
+                "error_category": "npm_install"
+            })
+        
+        if not validation_result.get("npm_build_ok", True):
+            formatted_errors.append({
+                "type": "frontend_error",
+                "service": "frontend",
+                "message": "npm build failed - check for JSX/JS syntax errors",
+                "error_category": "build_syntax"
+            })
+        
+        return formatted_errors
     
     async def execute_with_retry(
         self,

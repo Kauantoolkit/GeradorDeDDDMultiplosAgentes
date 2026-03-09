@@ -6,6 +6,7 @@ This component provides objective runtime validation:
 - Tests Python imports
 - Checks syntax errors
 - Validates service startup
+- Validates frontend (React) code (NEW)
 - Returns real errors with stack traces
 
 Key Principles:
@@ -16,10 +17,13 @@ Key Principles:
 """
 
 import ast
+import asyncio
 import sys
 import os
 import subprocess
 import importlib.util
+import json
+import re
 from pathlib import Path
 from typing import Any, Optional
 from loguru import logger
@@ -312,6 +316,290 @@ class RuntimeRunner:
         }
         
         return translations.get(module_name, module_name)
+    
+    # ============================================================
+    # Frontend Validation (React/Vite)
+    # ============================================================
+    
+    async def validate_frontend(self, frontend_path: str = None) -> dict[str, Any]:
+        """
+        Validate frontend (React/Vite) application.
+        
+        Args:
+            frontend_path: Path to frontend directory (default: frontend/)
+            
+        Returns:
+            Validation result dictionary
+        """
+        result = {
+            "exists": False,
+            "npm_install_ok": False,
+            "npm_build_ok": False,
+            "syntax_ok": False,
+            "errors": [],
+            "warnings": [],
+            "score": 0.0
+        }
+        
+        # Determine frontend path
+        if frontend_path is None:
+            frontend_path = Path(self.project_path) / "frontend"
+        else:
+            frontend_path = Path(frontend_path)
+        
+        if not frontend_path.exists():
+            logger.warning(f"Frontend directory not found: {frontend_path}")
+            result["errors"].append("Frontend directory not found")
+            return result
+        
+        result["exists"] = True
+        result["path"] = str(frontend_path)
+        
+        # Check package.json exists
+        package_json = frontend_path / "package.json"
+        if not package_json.exists():
+            result["errors"].append("package.json not found")
+            return result
+        
+        # 1. Check if node_modules exists, if not suggest npm install
+        node_modules = frontend_path / "node_modules"
+        if not node_modules.exists():
+            logger.info("  node_modules not found - will try npm install")
+            install_result = await self._test_npm_install(frontend_path)
+            result["npm_install_ok"] = install_result["success"]
+            result["errors"].extend(install_result.get("errors", []))
+        else:
+            result["npm_install_ok"] = True
+            logger.info("  ✓ node_modules exists")
+        
+        # 2. Validate JSX/JS syntax using esbuild (bundler check)
+        syntax_result = self._test_jsx_syntax(frontend_path)
+        result["syntax_ok"] = syntax_result["success"]
+        result["errors"].extend(syntax_result.get("errors", []))
+        
+        # 3. Try npm run build to catch all issues
+        if result["npm_install_ok"]:
+            build_result = await self._test_npm_build(frontend_path)
+            result["npm_build_ok"] = build_result["success"]
+            result["errors"].extend(build_result.get("errors", []))
+            result["warnings"].extend(build_result.get("warnings", []))
+        
+        # Calculate score
+        checks = [
+            result["npm_install_ok"],
+            result["syntax_ok"],
+            result["npm_build_ok"]
+        ]
+        # If npm_install fails, don't count npm_build as failure
+        if not result["npm_install_ok"]:
+            result["score"] = 0.3 if result["syntax_ok"] else 0.0
+        else:
+            result["score"] = sum(checks) / len(checks) if checks else 0.0
+        
+        return result
+    
+    def _test_jsx_syntax(self, frontend_path: Path) -> dict[str, Any]:
+        """
+        Test JSX/JavaScript syntax using basic pattern matching.
+        
+        For more thorough checking, use npm run build.
+        
+        Args:
+            frontend_path: Path to frontend directory
+            
+        Returns:
+            Test result dictionary
+        """
+        result = {
+            "success": True,
+            "errors": []
+        }
+        
+        jsx_files = list(frontend_path.rglob("*.jsx"))
+        js_files = list(frontend_path.rglob("*.js"))
+        tsx_files = list(frontend_path.rglob("*.tsx"))
+        
+        all_js_files = jsx_files + js_files + tsx_files
+        
+        # Skip node_modules
+        all_js_files = [f for f in all_js_files if "node_modules" not in str(f)]
+        
+        # Common JSX syntax issues to check
+        common_errors = [
+            (r'<\w+[^>]*[^/]>(?!.*</\w+>)', "Unclosed JSX tag"),
+            (r'return\s*\(\s*(?!\()', "Missing parentheses around JSX return"),
+            (r'class\s*=\s*"[^"]*$', "Unclosed class attribute"),
+            (r'className\s*=\s*[\'"][^\'"]*$', "Unclosed className attribute"),
+            (r'onClick\s*=\s*\{\s*$', "Empty onClick handler"),
+            (r'\{\s*\{\s*', "Double opening braces"),
+            (r'\}\s*\}\s*', "Double closing braces"),
+            (r'import\s+.*\s+from\s+[\'"][^\'"]+$', "Unclosed import string"),
+        ]
+        
+        for jsx_file in all_js_files:
+            try:
+                with open(jsx_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Check for basic JSX issues
+                for pattern, error_desc in common_errors:
+                    matches = re.finditer(pattern, content, re.MULTILINE)
+                    for match in matches:
+                        line_num = content[:match.start()].count('\n') + 1
+                        result["errors"].append(
+                            f"Syntax issue in {jsx_file.name} at line {line_num}: {error_desc}"
+                        )
+                        result["success"] = False
+                
+                # Check for balanced braces
+                open_braces = content.count('{')
+                close_braces = content.count('}')
+                if open_braces != close_braces:
+                    result["errors"].append(
+                        f"Unbalanced braces in {jsx_file.name}: {open_braces} open, {close_braces} close"
+                    )
+                    result["success"] = False
+                
+                # Check for balanced parentheses
+                open_parens = content.count('(')
+                close_parens = content.count(')')
+                if open_parens != close_parens:
+                    result["errors"].append(
+                        f"Unbalanced parentheses in {jsx_file.name}: {open_parens} open, {close_parens} close"
+                    )
+                    result["success"] = False
+                    
+            except Exception as e:
+                result["errors"].append(f"Error reading {jsx_file}: {e}")
+                result["success"] = False
+        
+        if result["success"]:
+            logger.info(f"  ✓ JSX/JS syntax check passed ({len(all_js_files)} files)")
+        
+        return result
+    
+    async def _test_npm_install(self, frontend_path: Path) -> dict[str, Any]:
+        """
+        Test npm install.
+        
+        Args:
+            frontend_path: Path to frontend directory
+            
+        Returns:
+            Test result dictionary
+        """
+        result = {
+            "success": False,
+            "errors": []
+        }
+        
+        try:
+            logger.info("  Running npm install...")
+            
+            # Run npm install
+            process = await asyncio.create_subprocess_exec(
+                "npm", "install",
+                cwd=str(frontend_path),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await process.communicate()
+            
+            if process.returncode == 0:
+                result["success"] = True
+                logger.info("  ✓ npm install OK")
+            else:
+                error_msg = stderr.decode() if stderr else "npm install failed"
+                result["errors"].append(f"npm install failed: {error_msg}")
+                logger.error(f"  ✗ npm install failed: {error_msg[:200]}")
+        
+        except FileNotFoundError:
+            result["errors"].append("npm not found - make sure Node.js is installed")
+            logger.error("  ✗ npm not found")
+        except Exception as e:
+            result["errors"].append(f"npm install error: {e}")
+            logger.error(f"  ✗ npm install error: {e}")
+        
+        return result
+    
+    async def _test_npm_build(self, frontend_path: Path) -> dict[str, Any]:
+        """
+        Test npm run build to catch all issues.
+        
+        Args:
+            frontend_path: Path to frontend directory
+            
+        Returns:
+            Test result dictionary
+        """
+        result = {
+            "success": False,
+            "errors": [],
+            "warnings": []
+        }
+        
+        try:
+            logger.info("  Running npm run build...")
+            
+            # Run npm run build
+            process = await asyncio.create_subprocess_exec(
+                "npm", "run", "build",
+                cwd=str(frontend_path),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            
+            stdout, stderr = await process.communicate()
+            
+            output = (stdout.decode() if stdout else "") + (stderr.decode() if stderr else "")
+            
+            if process.returncode == 0:
+                result["success"] = True
+                logger.info("  ✓ npm run build OK")
+            else:
+                # Parse errors from output
+                errors = self._parse_build_errors(output)
+                result["errors"].extend(errors)
+                
+                if errors:
+                    logger.error(f"  ✗ npm build failed with {len(errors)} errors")
+                    for err in errors[:5]:  # Show first 5 errors
+                        logger.error(f"     - {err}")
+                else:
+                    logger.error(f"  ✗ npm build failed (no parseable errors)")
+        
+        except FileNotFoundError:
+            result["errors"].append("npm not found - make sure Node.js is installed")
+        except Exception as e:
+            result["errors"].append(f"npm build error: {e}")
+            logger.error(f"  ✗ npm build error: {e}")
+        
+        return result
+    
+    def _parse_build_errors(self, output: str) -> list[str]:
+        """
+        Parse errors from npm build output.
+        
+        Args:
+            output: Build output text
+            
+        Returns:
+            List of error messages
+        """
+        errors = []
+        
+        lines = output.split('\n')
+        for line in lines:
+            # Look for error indicators
+            lower_line = line.lower()
+            if 'error' in lower_line or 'failed' in lower_line or '✘' in line:
+                # Clean up the line
+                cleaned = line.strip()
+                if cleaned and len(cleaned) > 5:
+                    errors.append(cleaned[:200])  # Truncate long lines
+        
+        return errors
 
 
 class RuntimeRunnerOrchestrator:
@@ -328,10 +616,13 @@ class RuntimeRunnerOrchestrator:
         self.project_path = project_path
         self.runner = RuntimeRunner(project_path)
     
-    async def validate_and_fix(self) -> dict[str, Any]:
+    async def validate_and_fix(self, include_frontend: bool = True) -> dict[str, Any]:
         """
         Run validation and attempt auto-fixes.
         
+        Args:
+            include_frontend: Whether to also validate frontend (default: True)
+            
         Returns:
             Validation results with fixes applied
         """
@@ -341,6 +632,13 @@ class RuntimeRunnerOrchestrator:
         
         # Validate all services
         results = await self.runner.validate_all_services()
+        
+        # Validate frontend if requested
+        frontend_result = None
+        if include_frontend:
+            logger.info("Validating frontend...")
+            frontend_result = await self.runner.validate_frontend()
+            logger.info(f"Frontend validation: score={frontend_result.get('score', 0):.2f}")
         
         # Collect all runtime errors for reporting
         all_errors = []
@@ -377,12 +675,22 @@ class RuntimeRunnerOrchestrator:
                         "message": error,
                     })
         
+        # Add frontend errors
+        if frontend_result and not frontend_result.get("npm_build_ok", False):
+            for error in frontend_result.get("errors", []):
+                all_errors.append({
+                    "type": "frontend_error",
+                    "service": "frontend",
+                    "message": error,
+                })
+        
         # Try auto-fixes for common errors
         if all_errors:
             self._auto_fix_common_errors(all_errors)
         
         return {
             "results": results,
+            "frontend": frontend_result,
             "total_services": len(results),
             "successful": sum(1 for r in results.values() if r["imports_ok"]),
             "failed": sum(1 for r in results.values() if not r["imports_ok"]),

@@ -1,0 +1,28 @@
+{
+    "services": [
+        {
+            "id": 1,
+            "name": "User Service",
+            "description": "Handles user-related operations",
+            "url": "https://user-service.com"
+        },
+        {
+            "id": 2,
+            "name": "Product Service",
+            "description": "Handles product-related operations",
+            "url": "https://product-service.com"
+        },
+        {
+            "id": 3,
+            "name": "Order Service",
+            "description": "Handles order-related operations",
+            "url": "https://order-service.com"
+        },
+        {
+            "id": 4,
+            "name": "Payment Service",
+            "description": "Handles payment-related operations",
+            "url": "https://payment-service.com"
+        }
+    ]
+}

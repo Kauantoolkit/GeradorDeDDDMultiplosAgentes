@@ -1,0 +1,1 @@
+{"requirements": "Criar um clone do iFood com microserviços para gerenciamento de pedidos, clientes, entregadores e pagamentos", "model": "llama3.2", "output": "ifoodclone", "framework": "python-fastapi", "database": "postgresql"}
