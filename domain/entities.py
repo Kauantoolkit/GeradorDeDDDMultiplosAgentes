@@ -348,6 +348,8 @@ class ExecutionResult:
     started_at: datetime = field(default_factory=datetime.now)
     finished_at: datetime = field(default_factory=datetime.now)
     validation_result: ValidationResult | None = None
+    database_urls: dict = field(default_factory=dict)  # URLs de banco para o usuário criar
+    waiting_for_databases: bool = False  # Flag para indicar que está esperando criação de bancos
     
     @property
     def success(self) -> bool:
@@ -368,6 +370,7 @@ class ProjectGenerationResult:
     project_path: str = ""
     services: list[str] = field(default_factory=list)
     files_generated: list[str] = field(default_factory=list)
+    database_urls: dict = field(default_factory=dict)  # URLs de banco para o usuário criar
     error_message: str = ""
     execution_logs: list[str] = field(default_factory=list)
     rollback_performed: bool = False

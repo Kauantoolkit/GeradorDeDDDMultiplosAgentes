@@ -283,11 +283,7 @@ class PromptBuilder:
         # Modo legado
         base_prompt = requirement.to_prompt()
         
-        # Use chr to avoid backtick issues
-        bt = chr(96)
-        triple_bt = bt * 3
-        
-        return """
+        return f"""
 Você é o AGENTE EXECUTOR de um sistema de automação de geração de código DDD.
 
 SUA FUNÇÃO CRÍTICA:
@@ -296,6 +292,8 @@ SUA FUNÇÃO CRÍTICA:
 - Gerar a estrutura COMPLETA de diretórios DDD com TODAS as camadas
 - Criar TODOS os arquivos de código fonte necessários
 - NADA pode ficar faltando - seja EXTENSO e COMPLETO
+
+REQUISITOS: {base_prompt}
 
 ARQUITETURA DDD OBRIGATÓRIA (para CADA microserviço):
 
@@ -339,8 +337,6 @@ CRÍTICO - EVITE ESTES ERROS:
 4. NÃO deixe vírgulas antes de }} ou ]
 5. SEMPRE inicie com {{ e termine com }}
 
-{base_prompt}
-
 Retorne um JSON com esta estrutura:
 
 {{
@@ -354,6 +350,10 @@ Retorne um JSON com esta estrutura:
             "dependencies": ["outro_servico"]
         }}
     ],
+    "database_urls": {{
+        "nome_servico1": "postgresql://postgres:postgres@localhost:5432/nome_db1",
+        "nome_servico2": "postgresql://postgres:postgres@localhost:5432/nome_db2"
+    }},
     "files": [
         {{
             "path": "caminho/para/arquivo.py",
@@ -362,21 +362,23 @@ Retorne um JSON com esta estrutura:
     ]
 }}
 
+IMPORTANTE - DATABASE_URLs:
+- Para CADA microserviço, defina uma URL de banco PostgreSQL
+- Use: postgresql://postgres:postgres@localhost:5432/nome_db
+- O usuário criará estes bancos no pgAdmin antes de testar
+
 GARANTA QUE:
 - O JSON seja válido
 - Crie NO MÍNIMO 5 arquivos por microserviço
 - Inclua TODAS as camadas DDD
 - Cada arquivo tenha código real
 - NÃO use markdown
-""".format(base_prompt=base_prompt)
+"""
     
     @staticmethod
     def build_ddd_executor_prompt(requirement: Any) -> str:
         """
         Constrói o prompt DDD estratégico para o Executor Agent.
-        
-        Este prompt força a geração de código com modelagem de domínio rica,
-        agregados consistentes e separação rigorosa de camadas.
         
         Args:
             requirement: Requisito do projeto com bounded contexts
@@ -405,165 +407,124 @@ Aggregate Root: {ctx.aggregate_root}
                 if ctx.use_cases:
                     contexts_prompt += f"Use Cases: {', '.join([uc.name for uc in ctx.use_cases])}\n"
         
-        bt = chr(96)
-        triple_bt = bt * 3
-        
         return f"""
 Você é o AGENTE EXECUTOR DDD (Domain-Driven Design).
 Sua missão é gerar Bounded Contexts completos com modelagem de domínio estratégica e tática.
 
-REQUISITOS: {requirement.description}
+REQUISITOS DO PROJETO: {requirement.description}
 
-CONFIGURAÇÕES:
+CONFIGURAÇÕES DO PROJETO:
 - Framework: {config.framework}
 - Banco de Dados: {config.database}
-- Diretório: {config.output_directory}
-- Incluir Tests: {config.include_tests}
-- Incluir Docker: {config.include_docker}
+- Diretório de saída: {config.output_directory}
 
 {contexts_prompt}
 
 ══════════════════════════════════════════════════════════════
-ESTRUTURA OBRIGATÓRIA - CLEAN ARCHITECTURE + DDD
+ARQUITETURA DDD - ESTRUTURA DE CAMADAS
 ══════════════════════════════════════════════════════════════
 
-Para CADA Bounded Context, gere:
+Para CADA Bounded Context, gere a seguinte estrutura de arquivos:
 
 /domain                    # CAMADA DE DOMÍNIO - SEM DEPENDÊNCIAS EXTERNAS
-  /entities/               # Entidades com comportamento (não anêmicas!)
-    __init__.py
-    [EntityName].py        # Ex: Invoice.py, Order.py, User.py
-      - deve ter métodos com REGRAS DE NEGÓCIO
-      - NÃO apenas getters/setters
-  /value_objects/          # Value Objects imutáveis com validação
-    __init__.py
-    [ValueObjectName].py  # Ex: Money.py, Address.py, Email.py
-      - deve ter __post_init__ com validação
-      - deve ter métodos de domínio (add, multiply, etc)
-  /aggregates/             # Aggregate Roots controlando invariantes
-    __init__.py
-    [AggregateName].py     # Ex: InvoiceAggregate.py
-      - encapsula entidades e value objects
-      - controla INVARIANTES de negócio
-      - não permite acesso direto às entidades internas
-  /events/                 # Domain Events
-    __init__.py
-    [EventName].py         # Ex: InvoiceCreatedEvent.py
-  /repositories/           # Interfaces (protocolos) - APENAS interfaces!
-    __init__.py
-    [EntityName]Repository.py  # Interface, não implementação
+  __init__.py
+  /entities               # Entidades com comportamento de negócio
+  /value_objects         # Value Objects imutáveis com validação
+  /aggregates            # Aggregate Roots controlando invariantes
+  /events                # Domain Events
+  /repositories          # Interfaces (protocolos) - APENAS interfaces
 
 /application               # CAMADA DE APLICAÇÃO
-  /use_cases/              # Orchestra agregados
-    __init__.py
-    [UseCaseName].py       # Ex: CreateInvoiceUseCase.py
-      - Recebe DTO
-      - Orquestra agregados
-      - Dispara eventos
-      - NÃO tem regras de negócio (apenas fluxo)
-  /dto/                    # Data Transfer Objects
-    __init__.py
-    [EntityName]DTO.py
-  /ports/                  # Interfaces para serviços externos
-    __init__.py
-    [PortName].py
+  __init__.py
+  /use_cases             # Casos de uso (orquestração)
+  /dto                   # Data Transfer Objects
 
-/infrastructure           # CAMADA DE INFRAESTRUTURA - IMPLEMENTAÇÕES
-  /persistence/           # Entity Framework / SQLAlchemy models
-    __init__.py
-    [EntityName]Model.py   # ORM entities - NUNCA importe no domínio!
-  /repositories/           # Implementações concretas
-    __init__.py
-    [EntityName]RepositoryImpl.py
-  /mappers/                # Mapping between domain and infrastructure
-    __init__.py
-    [EntityName]Mapper.py
-  /database.py             # Configuração de banco
+/infrastructure           # CAMADA DE INFRAESTRUTURA
+  __init__.py
+  /persistence           # Models ORM
+  /repositories          # Implementações concretas
 
 /api                       # CAMADA DE APRESENTAÇÃO
-  /controllers.py          # Adaptadores de entrada
-  /routes.py               # Rotas FastAPI
-  /schemas.py              # Pydantic schemas
+  __init__.py
+  routes.py               # Rotas FastAPI
+  schemas.py              # Pydantic schemas
 
-/tests                     # TESTES DE DOMÍNIO (sem banco, sem frameworks)
-  /domain/
-    test_[aggregate].py    # Testa invariantes, regras
-  /use_cases/
-    test_[use_case].py    # Testa orchestração
+main.py                   # Entry point
+requirements.txt          # Dependências Python
+Dockerfile                # Container Docker
 
 ══════════════════════════════════════════════════════════════
-REGRAS DDD OBRIGATÓRIAS
+REGRAS DDD FUNDAMENTAIS
 ══════════════════════════════════════════════════════════════
 
-1. DOMÍNIO NUNCA PODE IMPORTAR FRAMEWORKS
-   - sqlalchemy, fastapi, pydantic são INFRAESTRUTURA
-   - domain/entities.py deve importar APENAS built-ins (uuid, datetime, dataclasses)
+1. DOMÍNIO NÃO PODE IMPORTAR FRAMEWORKS
+   - domain/ deve importar apenas built-ins (uuid, datetime, dataclasses)
+   - Frameworks (sqlalchemy, fastapi, pydantic) são infraestrutura
 
-2. ENTIDADES NÃO PODEM SER ANÊMICAS
-   - ERRADO: class User:
-       id: str
-       nome: str
-       def get_nome(self): return self.nome
-   
-   - CORRETO: class User:
-       id: str
-       _nome: str  # private
-       def change_name(self, novo_nome):
-           if not novo_nome: raise DomainException("Nome inválido")
-           self._nome = novo_nome
+2. ENTIDADES DEVEM TER COMPORTAMENTO
+   - Não seja anêmico (não apenas getters/setters)
+   - Inclua métodos com regras de negócio
 
 3. VALUE OBJECTS SÃO IMUTÁVEIS
-   - Usar @dataclass(frozen=True)
+   - Use @dataclass(frozen=True)
    - Validações no __post_init__
-   - Métodos retornam NOVAS instâncias
 
-4. AGGREGATE ROOT CONTROLA INVARIANTES
-   - Nenhuma entidade interna pode ser acessada diretamente
-   - Todas as modificações passam pela raiz
-   - Invariantes verificadas em CADA mudança
+4. DTOs DEVEM TER CAMPOS REAIS
+   - Analise a entidade e infira os campos necessários
+   - NÃO gere DTOs vazios com apenas "pass"
+   - Gere: EntityDTO, CreateEntityDTO, UpdateEntityDTO
 
-5. DOMAIN EVENTS PARA REAÇÕES EM CADEIA
-   - Criar eventos quando algo significativo acontece
-   - Eventos são usados por Application Layer para reações
+5. REPOSITÓRIOS DEVEM TER IMPLEMENTAÇÃO
+   - Métodos como get_all(), get_by_id(), save(), delete()
+   - Use lista em memória como fallback (self._storage = [])
+   - NÃO gere apenas "pass"
 
-6. USE CASES ORQUESTRAM (NÃO TÊM REGRAS)
-   - Use case busca agregados
-   - Chama métodos do agregado (que têm as regras)
-   - Dispara eventos
-   - Salva
+6. ROTAS DEVEM TER CRUD COMPLETO
+   - GET (listar), GET by id, POST (criar), PUT (atualizar), DELETE (excluir)
+   - NÃO gere apenas GET e POST
+
+7. DOCKERFILE CONFIGURAÇÃO COMPLETA
+   - Use python:3.11-slim
+   - Instale dependências corretamente
+   - Exponha porta 8000
+   - CMD com uvicorn
 
 ══════════════════════════════════════════════════════════════
-FORMATO DE RESPOSTA
+FORMATO DE RESPOSTA - JSON
 ══════════════════════════════════════════════════════════════
 
-Retorne APENAS JSON válido:
+Retorne APENAS JSON válido (sem markdown):
+
 {{
     "bounded_contexts": [
         {{
-            "name": "billing",
+            "name": "nome_do_contexto",
             "files": [
-                {{"path": "services/billing/domain/entities/invoice.py", "content": "..."}},
-                {{"path": "services/billing/domain/value_objects/money.py", "content": "..."}},
-                {{"path": "services/billing/domain/aggregates/invoice_aggregate.py", "content": "..."}},
-                {{"path": "services/billing/domain/events/invoice_created_event.py", "content": "..."}},
-                {{"path": "services/billing/domain/repositories/invoice_repository.py", "content": "..."}},
-                {{"path": "services/billing/application/use_cases/create_invoice_use_case.py", "content": "..."}},
-                {{"path": "services/billing/application/dto/create_invoice_dto.py", "content": "..."}},
-                {{"path": "services/billing/infrastructure/persistence/invoice_model.py", "content": "..."}},
-                {{"path": "services/billing/infrastructure/repositories/invoice_repository_impl.py", "content": "..."}},
-                {{"path": "services/billing/api/routes.py", "content": "..."}},
-                {{"path": "services/billing/main.py", "content": "..."}}
+                {{"path": "caminho/arquivo.py", "content": "conteúdo..."}},
+                ...
             ]
         }}
-    ]
+    ],
+    "database_urls": {{
+        "nome_contexto1": "postgresql://postgres:postgres@localhost:5432/nome_db",
+        "nome_contexto2": "postgresql://postgres:postgres@localhost:5432/nome_db"
+    }},
+    "notes": "Instruções para o usuário"
 }}
 
-GARANTA QUE CADA ARQUIVO TENHA:
-- Código Python REAL e FUNCIONAL (não placeholders)
-- Imports corretos (domínio só importa domínio!)
-- Regras de negócio no lugar certo
-- Sem dependência circular
-- O JSON seja válido e retornado SEM markdown (sem {triple_bt})
+IMPORTANTE - DATABASE_URLs:
+- Para CADA bounded context, defina uma URL de banco PostgreSQL
+- Use: postgresql://postgres:postgres@localhost:5432/nome_db
+- O usuário criará estes bancos no pgAdmin antes de testar
+- Código deve usar variável de ambiente DATABASE_URL
+
+GARANTA QUE:
+- JSON seja válido
+- Cada arquivo tenha código Python REAL
+- DTOs tenham campos baseados na entidade
+- Repositórios tenham métodos implementados
+- Rotas incluam DELETE
+- Sem markdown no retorno
 """
     
     @staticmethod
@@ -786,3 +747,4 @@ Retorne em formato JSON:
 
 Gere APENAS o JSON, sem texto adicional.
 """
+

@@ -1,0 +1,25 @@
+{
+  "trace_id": "c9e42b39-d8a1-40a9-9890-5cf07dfdfd53",
+  "started_at": "2026-03-10T19:13:12.465105+00:00",
+  "metadata": "{'requirements': 'gere um sistema de academia', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia3'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T19:13:12.808474+00:00",
+      "trace_id": "1dd35cc7-f58d-4674-9aa7-4bcbecd17835",
+      "message_id": "37bcec28-cfd8-4071-8767-200755fdd873",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '9433ea92-d7e9-4b18-9c36-0644a0628935', 'description': 'gere um sistema de academia', 'output_directory': 'academia3'}"
+    },
+    {
+      "timestamp": "2026-03-10T19:13:39.006633+00:00",
+      "trace_id": "1dd35cc7-f58d-4674-9aa7-4bcbecd17835",
+      "message_id": "d81dd35e-836f-48be-9c6b-88bca4af8992",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'gere um sistema de academia', 'output_directory': 'academia3', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 69, 'database_urls': {'academia_members': 'postgresql://postgres:postgres@localhost:5432/academia_members', 'academia_trainings': 'postgresql://postgres:postgres@localhost:5432/academia_trainings', 'academia_sessions': 'postgresql://postgres:postgres@localhost:5432/academia_sessions', 'academia_payments': 'postgresql://postgres:postgres@localhost:5432/academia_payments'}, 'execution_time': 26.194157}",
+      "execution_time_ms": 26194.16,
+      "status": "success"
+    }
+  ]
+}

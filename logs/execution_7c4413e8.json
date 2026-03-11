@@ -1,0 +1,25 @@
+{
+  "trace_id": "7c4413e8-bbe4-42ce-89de-a7f16e9d519a",
+  "started_at": "2026-03-10T18:06:33.216631+00:00",
+  "metadata": "{'requirements': 'crie um sistema de gestão para uma academia', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia3'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T18:06:33.609152+00:00",
+      "trace_id": "69d7ec98-bab8-4ab7-a6ff-649e85461bd9",
+      "message_id": "b8be38f6-e863-4e04-a6c9-ca0935e13b77",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': 'd820ee9b-307d-4e15-9bd3-e872d063788e', 'description': 'crie um sistema de gestão para uma academia', 'output_directory': 'academia3'}"
+    },
+    {
+      "timestamp": "2026-03-10T18:09:09.970615+00:00",
+      "trace_id": "69d7ec98-bab8-4ab7-a6ff-649e85461bd9",
+      "message_id": "5fbe88a8-96c4-446e-ac24-7d188054e411",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'crie um sistema de gestão para uma academia', 'output_directory': 'academia3', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 69, 'database_urls': {}, 'execution_time': 156.357459}",
+      "execution_time_ms": 156357.46,
+      "status": "success"
+    }
+  ]
+}

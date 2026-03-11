@@ -1,0 +1,25 @@
+{
+  "trace_id": "6fbb882b-7a1f-4af3-8774-9c2a697d7366",
+  "started_at": "2026-03-10T19:04:12.867486+00:00",
+  "metadata": "{'requirements': 'gere uma aplicação para uma academia', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia3'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T19:04:13.226767+00:00",
+      "trace_id": "07ad6e81-2ddf-47e6-b179-782a20bf6cb7",
+      "message_id": "5b580938-e345-4227-a545-6aaa6010811e",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '40d95c12-ffb1-4f32-be39-2e30db1d9bda', 'description': 'gere uma aplicação para uma academia', 'output_directory': 'academia3'}"
+    },
+    {
+      "timestamp": "2026-03-10T19:06:38.469033+00:00",
+      "trace_id": "07ad6e81-2ddf-47e6-b179-782a20bf6cb7",
+      "message_id": "d2d06c22-c8c5-464a-87bf-c3fe74f97d85",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'gere uma aplicação para uma academia', 'output_directory': 'academia3', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 69, 'database_urls': {}, 'execution_time': 145.236249}",
+      "execution_time_ms": 145236.25,
+      "status": "success"
+    }
+  ]
+}

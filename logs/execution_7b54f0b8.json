@@ -1,0 +1,58 @@
+{
+  "trace_id": "7b54f0b8-b871-4f0e-b1d9-b922f87a6489",
+  "started_at": "2026-03-10T20:58:44.742813+00:00",
+  "metadata": "{'requirements': 'crie um sistema para academia com front', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia5-parseTexto'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T20:58:45.079806+00:00",
+      "trace_id": "8db5da9d-31b3-4f8e-9058-ca8cbbee7a1c",
+      "message_id": "3ef4f417-5fe2-436c-a344-e95f776d3c04",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '0b929d86-dfb9-448d-b70a-03649a0dadc4', 'description': 'crie um sistema para academia com front', 'output_directory': 'academia5-parseTexto'}"
+    },
+    {
+      "timestamp": "2026-03-10T20:59:20.981410+00:00",
+      "trace_id": "8db5da9d-31b3-4f8e-9058-ca8cbbee7a1c",
+      "message_id": "59da1a76-8fa8-49fd-89dd-58135fb4ffa3",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'crie um sistema para academia com front', 'output_directory': 'academia5-parseTexto', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 52, 'database_urls': {'workouts': 'postgresql://postgres:postgres@localhost:5432/workouts_db', 'users': 'postgresql://postgres:postgres@localhost:5432/users_db', 'enrollments': 'postgresql://postgres:postgres@localhost:5432/enrollments_db'}, 'execution_time': 35.897603}",
+      "execution_time_ms": 35897.6,
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-10T21:01:36.741945+00:00",
+      "trace_id": "7b54f0b8-b871-4f0e-b1d9-b922f87a6489",
+      "message_id": "6a9090b5-8814-4e20-9b74-eed27a113dbd",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement_id': '0b929d86-dfb9-448d-b70a-03649a0dadc4', 'attempt': 1, 'runtime_errors_count': 7, 'mode': 'fixing'}",
+      "output": "{'files_modified': ['services/enrollments/requirements.txt', 'services/users/requirements.txt', 'services/workouts/requirements.txt'], 'execution_time': 16.616688}",
+      "execution_time_ms": 16616.69,
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-10T21:01:53.653625+00:00",
+      "trace_id": "7b54f0b8-b871-4f0e-b1d9-b922f87a6489",
+      "message_id": "2de3182a-d35b-486b-a628-38e3d408d459",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement_id': '0b929d86-dfb9-448d-b70a-03649a0dadc4', 'attempt': 2, 'runtime_errors_count': 7, 'mode': 'fixing'}",
+      "output": "{'files_modified': ['services/enrollments/requirements.txt', 'services/users/requirements.txt', 'services/workouts/requirements.txt'], 'execution_time': 16.836443}",
+      "execution_time_ms": 16836.44,
+      "status": "success"
+    },
+    {
+      "timestamp": "2026-03-10T21:02:10.699375+00:00",
+      "trace_id": "7b54f0b8-b871-4f0e-b1d9-b922f87a6489",
+      "message_id": "12d0f9e1-cfea-410b-a875-4d126fd78ce7",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement_id': '0b929d86-dfb9-448d-b70a-03649a0dadc4', 'attempt': 3, 'runtime_errors_count': 7, 'mode': 'fixing'}",
+      "output": "{'files_modified': ['services/enrollments/requirements.txt', 'services/users/requirements.txt', 'services/workouts/requirements.txt'], 'execution_time': 16.952234}",
+      "execution_time_ms": 16952.23,
+      "status": "success"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-// Use Vite dev server which proxies to backend
-const WS_URL = 'ws://localhost:5173/ws';
+// Connect directly to backend (Vite proxy doesn't support WebSocket)
+const WS_URL = 'ws://localhost:8000/ws';
 
 export function useWebSocket() {
   const [isConnected, setIsConnected] = useState(false);

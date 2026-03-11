@@ -668,3 +668,44 @@ body {
 .output-section h4 {
   color: var(--secondary);
 }
+
+/* Detailed Error Display in Timeline */
+.event-log-errors {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+}
+
+.error-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.error-item:last-child {
+  border-bottom: none;
+}
+
+.error-service {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.error-type {
+  color: var(--danger);
+}
+
+.error-msg {
+  color: var(--text-muted);
+}
+
+.error-dep {
+  color: var(--secondary);
+  font-weight: 500;
+}

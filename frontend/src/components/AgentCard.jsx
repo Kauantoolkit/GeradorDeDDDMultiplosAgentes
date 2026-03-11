@@ -129,6 +129,24 @@ function AgentCard({ agent, status, message, score, details, lastUpdateAt }) {
             {details.diagnostics?.task_id && (
               <p>Task: {details.diagnostics.task_id}</p>
             )}
+            {/* Show detailed errors in diagnostics */}
+            {details.diagnostics?.detailed_errors && details.diagnostics.detailed_errors.length > 0 && (
+              <div className="diagnostic-errors">
+                <p style={{ color: 'var(--warning)', fontWeight: 600, marginTop: '0.5rem' }}>
+                  Erros identificados:
+                </p>
+                {details.diagnostics.detailed_errors.map((err, idx) => (
+                  <p key={idx} style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                    <span style={{ color: 'var(--warning)' }}>{err.service}:</span>{' '}
+                    <span style={{ color: 'var(--danger)' }}>{err.type}</span>{' '}
+                    {err.message?.slice(0, 50)}
+                    {err.missing_dependency && (
+                      <span style={{ color: 'var(--secondary)' }}> → Instalar: {err.missing_dependency}</span>
+                    )}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

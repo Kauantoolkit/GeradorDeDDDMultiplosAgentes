@@ -1,0 +1,25 @@
+{
+  "trace_id": "b8e3dff3-4b29-444d-b518-c8dd5ad97e5f",
+  "started_at": "2026-03-10T19:28:28.237440+00:00",
+  "metadata": "{'requirements': 'gere um sistema de academia', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia3'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T19:28:28.592881+00:00",
+      "trace_id": "4e9a8acf-5132-426f-8d18-ae1525a9f1d7",
+      "message_id": "59cf277d-aebe-4daf-b2bf-b8152654a722",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': 'fb6ef2a8-d735-4437-97c3-c65d418f84e9', 'description': 'gere um sistema de academia', 'output_directory': 'academia3'}"
+    },
+    {
+      "timestamp": "2026-03-10T19:30:03.283144+00:00",
+      "trace_id": "4e9a8acf-5132-426f-8d18-ae1525a9f1d7",
+      "message_id": "1eda12f0-55a9-49d6-91fb-6a9f24c72332",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'gere um sistema de academia', 'output_directory': 'academia3', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 52, 'database_urls': {'users_service': 'postgresql://postgres:postgres@localhost:5432/users_db', 'courses_service': 'postgresql://postgres:postgres@localhost:5432/courses_db', 'enrollments_service': 'postgresql://postgres:postgres@localhost:5432/enrollments_db'}, 'execution_time': 94.687258}",
+      "execution_time_ms": 94687.26,
+      "status": "success"
+    }
+  ]
+}

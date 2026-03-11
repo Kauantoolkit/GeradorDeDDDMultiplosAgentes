@@ -179,6 +179,13 @@ class OrchestratorV3:
                 # Success!
                 generation_success = True
                 result.files_generated.extend(generation_result.files_created)
+                
+                # Copy database_urls from generation result
+                if hasattr(generation_result, 'database_urls') and generation_result.database_urls:
+                    result.database_urls = generation_result.database_urls
+                    logger.info(f"📦 Database URLs: {result.database_urls}")
+                    result.add_log(f"Database URLs to create: {result.database_urls}")
+                
                 logger.info(f"✅ Initial code generated: {len(generation_result.files_created)} files")
             
             if not generation_success:
@@ -186,6 +193,47 @@ class OrchestratorV3:
                 result.success = False
                 result.error_message = f"Failed to generate code after {max_generation_attempts} attempts"
                 return result
+            
+            # ==========================================
+            # STEP 1.5: USER MUST CREATE DATABASES
+            # ==========================================
+            logger.info("\n📋 STEP 1.5: Waiting for user to create databases...")
+            result.add_log("STEP 1.5: Waiting for database creation")
+            
+            # Send WebSocket message asking user to create databases
+            agent_logger = get_logger()
+            if hasattr(agent_logger, 'send_websocket_message'):
+                await agent_logger.send_websocket_message({
+                    "type": "database_creation_required",
+                    "message": "Please create the databases before continuing",
+                    "database_urls": result.database_urls,
+                    "task_id": trace_id
+                })
+            
+            # Wait for user confirmation (via event)
+            # The orchestrator will be resumed by the API when user clicks "Continue"
+            logger.info("⏸️ Waiting for user to create databases...")
+            result.add_log("Waiting for database creation - please create databases in pgAdmin")
+            
+            # Return early with "waiting" status - API will handle continuation
+            result.success = True  # Code was generated successfully
+            result.project_path = requirement.project_config.output_directory
+            
+            # Extract service names
+            services = []
+            for f in result.files_generated:
+                if "/services/" in f:
+                    parts = f.split("/services/")
+                    if len(parts) > 1:
+                        service = parts[1].split("/")[0]
+                        if service and service not in services:
+                            services.append(service)
+            result.services = services
+            
+            # Add waiting status to result
+            result.waiting_for_databases = True
+            
+            return result
             
             # ==========================================
             # STEP 2: RUNTIME VALIDATION + SELF-REPAIR LOOP

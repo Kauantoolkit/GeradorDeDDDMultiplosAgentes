@@ -127,13 +127,19 @@ class CodeAgent:
             logger.info(f"LLM response received ({len(llm_output)} chars)")
             
             # Parse and create files
-            created_files = self._generate_and_create_files(
+            parsed_data, created_files = self._generate_and_create_files(
                 file_manager,
                 llm_output,
                 requirement.project_config
             )
             
             result.files_created = created_files
+            
+            # Extract database_urls from LLM response for user to create
+            database_urls = self._extract_database_urls(parsed_data)
+            if database_urls:
+                result.database_urls = database_urls
+                logger.info(f"Database URLs extracted: {database_urls}")
             
             # CRITICAL: Only mark SUCCESS if files were actually created
             if not created_files:
@@ -151,6 +157,7 @@ class CodeAgent:
             context.end(
                 output_data={
                     "files_created": len(created_files),
+                    "database_urls": database_urls,
                     "execution_time": result.execution_time
                 },
                 status="success"
@@ -297,7 +304,7 @@ class CodeAgent:
         file_manager: FileManager,
         llm_output: str,
         config: Any
-    ) -> list[str]:
+    ) -> tuple[Any, list[str]]:
         """
         Parse LLM output and create project files.
         
@@ -307,15 +314,16 @@ class CodeAgent:
             config: Project configuration
             
         Returns:
-            List of created file paths
+            Tuple of (parsed_data, list of created file paths)
         """
         created_files = []
+        parsed_data = None
         
         try:
             parsed_data = self._parse_llm_output(llm_output)
             if not parsed_data:
                 logger.warning("Could not parse LLM output")
-                return created_files
+                return None, created_files
             
             normalized_data = self._normalize_llm_data(parsed_data)
             
@@ -367,7 +375,43 @@ class CodeAgent:
         except Exception as e:
             logger.error(f"Error creating files: {e}")
         
-        return created_files
+        return parsed_data, created_files
+    
+    def _extract_database_urls(self, parsed_data: Any) -> dict:
+        """
+        Extract database URLs from parsed LLM response.
+
+        Args:
+            parsed_data: Parsed JSON from LLM
+            
+        Returns:
+            Dictionary of database URLs
+        """
+        if not parsed_data or not isinstance(parsed_data, dict):
+            return {}
+        
+        database_urls = parsed_data.get("database_urls", {})
+        
+        if database_urls:
+            return database_urls
+        
+        # Try to extract from bounded_contexts
+        bounded_contexts = parsed_data.get("bounded_contexts", [])
+        for ctx in bounded_contexts:
+            ctx_name = ctx.get("name", "unknown")
+            if ctx_name not in database_urls:
+                # Generate default URL based on context name
+                database_urls[ctx_name] = f"postgresql://postgres:postgres@localhost:5432/{ctx_name}_db"
+        
+        # NEW: Extract from microservices if no URLs found
+        microservices = parsed_data.get("microservices", [])
+        for svc in microservices:
+            svc_name = svc.get("name", "unknown")
+            if svc_name not in database_urls:
+                # Generate default URL based on service name
+                database_urls[svc_name] = f"postgresql://postgres:postgres@localhost:5432/{svc_name}_db"
+        
+        return database_urls
     
     def _format_runtime_errors(self, runtime_errors: list[dict]) -> str:
         """
@@ -541,7 +585,9 @@ IMPORTANT:
         existing_files: list[str]
     ) -> list[str]:
         """
-        Apply fixes from LLM output.
+        Apply fixes from LLM output - handles ANY format.
+        
+        Tries JSON parsing first, then falls back to text extraction.
         
         Args:
             file_manager: File manager instance
@@ -554,68 +600,227 @@ IMPORTANT:
         files_modified = []
         
         try:
+            # First try: JSON parsing
             fix_data = self._parse_fix_json(llm_output)
-            if not fix_data:
-                logger.warning("Could not parse fix JSON")
-                return files_modified
             
-            fixes = fix_data.get("fixes", [])
+            if fix_data and fix_data.get("fixes"):
+                # JSON parsing succeeded
+                fixes = fix_data.get("fixes", [])
+                logger.info(f"JSON parsing succeeded: {len(fixes)} fixes found")
+                files_modified = self._apply_json_fixes(file_manager, fixes, existing_files)
             
-            for fix in fixes:
-                file_path = fix.get("file_path")
-                if not file_path:
-                    continue
-                
-                action = fix.get("action", "modify")
-                
-                # Skip placeholder content
-                content = fix.get("content", "")
-                if self._looks_like_placeholder(content):
-                    logger.warning(f"Skipping placeholder: {file_path}")
-                    continue
-                
-                if action == "modify":
-                    existing = file_manager.read_file(file_path)
-                    if existing is None:
-                        # Try to find similar file
-                        similar = self._find_similar_file(file_path, existing_files)
-                        if similar:
-                            file_path = similar
-                        else:
-                            logger.warning(f"File not found for modification: {file_path}")
-                            continue
-                    
-                    if not self._is_valid_python(file_path, content):
-                        logger.warning(f"Invalid Python for {file_path}")
-                        continue
-                    
-                    if file_manager.create_file(file_path, content):
-                        files_modified.append(file_path)
-                        logger.info(f"Modified: {file_path}")
-                
-                elif action == "patch":
-                    existing = file_manager.read_file(file_path)
-                    if existing is None:
-                        similar = self._find_similar_file(file_path, existing_files)
-                        if similar:
-                            file_path = similar
-                            existing = file_manager.read_file(similar)
-                        else:
-                            logger.warning(f"File not found for patch: {file_path}")
-                            continue
-                    
-                    search = fix.get("search", "")
-                    replace = fix.get("replace", "")
-                    
-                    if search and search in existing:
-                        new_content = existing.replace(search, replace)
-                        if self._is_valid_python(file_path, new_content):
-                            if file_manager.create_file(file_path, new_content):
-                                files_modified.append(file_path)
-                                logger.info(f"Patched: {file_path}")
+            elif fix_data and fix_data.get("_text_extraction_needed"):
+                # JSON failed - try text extraction fallback
+                logger.info("JSON parsing failed - trying text extraction fallback")
+                files_modified = self._extract_and_apply_fixes_from_text(
+                    file_manager, llm_output, existing_files
+                )
+            
+            # Last resort: Try direct code block extraction
+            if not files_modified:
+                logger.info("Trying direct code block extraction")
+                files_modified = self._extract_and_apply_fixes_from_text(
+                    file_manager, llm_output, existing_files
+                )
         
         except Exception as e:
             logger.error(f"Error applying fixes: {e}")
+        
+        return files_modified
+    
+    def _apply_json_fixes(
+        self,
+        file_manager: FileManager,
+        fixes: list[dict],
+        existing_files: list[str]
+    ) -> list[str]:
+        """Apply fixes from parsed JSON data."""
+        files_modified = []
+        
+        for fix in fixes:
+            file_path = fix.get("file_path")
+            if not file_path:
+                continue
+            
+            action = fix.get("action", "modify")
+            
+            # Skip placeholder content
+            content = fix.get("content", "")
+            if self._looks_like_placeholder(content):
+                logger.warning(f"Skipping placeholder: {file_path}")
+                continue
+            
+            if action == "modify":
+                existing = file_manager.read_file(file_path)
+                if existing is None:
+                    # Try to find similar file
+                    similar = self._find_similar_file(file_path, existing_files)
+                    if similar:
+                        file_path = similar
+                    else:
+                        logger.warning(f"File not found for modification: {file_path}")
+                        continue
+                
+                if not self._is_valid_python(file_path, content):
+                    logger.warning(f"Invalid Python for {file_path}")
+                    continue
+                
+                if file_manager.create_file(file_path, content):
+                    files_modified.append(file_path)
+                    logger.info(f"Modified: {file_path}")
+            
+            elif action == "patch":
+                existing = file_manager.read_file(file_path)
+                if existing is None:
+                    similar = self._find_similar_file(file_path, existing_files)
+                    if similar:
+                        file_path = similar
+                        existing = file_manager.read_file(similar)
+                    else:
+                        logger.warning(f"File not found for patch: {file_path}")
+                        continue
+                
+                search = fix.get("search", "")
+                replace = fix.get("replace", "")
+                
+                if search and search in existing:
+                    new_content = existing.replace(search, replace)
+                    if self._is_valid_python(file_path, new_content):
+                        if file_manager.create_file(file_path, new_content):
+                            files_modified.append(file_path)
+                            logger.info(f"Patched: {file_path}")
+        
+        return files_modified
+    
+    def _extract_and_apply_fixes_from_text(
+        self,
+        file_manager: FileManager,
+        llm_output: str,
+        existing_files: list[str]
+    ) -> list[str]:
+        """
+        Extract fixes from text/markdown/code response - FORMAT AGNOSTIC.
+        
+        This is the key fallback: when JSON parsing fails, we extract
+        file paths and code from ANY format the LLM returns.
+        
+        Args:
+            file_manager: File manager instance
+            llm_output: LLM response (any format)
+            existing_files: List of existing files
+            
+        Returns:
+            List of modified file paths
+        """
+        files_modified = []
+        
+        # Strategy 1: Look for file paths mentioned in the response
+        # Patterns like: "file: path/to/file.py" or "path/to/file.py" near code
+        file_patterns = [
+            r'(?:file|arquivo|path)[:\s]+([a-zA-Z0-9_/\\.-]+\.py)',
+            r'([a-zA-Z0-9_/\\.-]+\.py)[:\s]',
+            r'(services/[a-zA-Z0-9_/-]+/[a-zA-Z0-9_/-]+\.py)',
+        ]
+        
+        found_files = set()
+        for pattern in file_patterns:
+            matches = re.finditer(pattern, llm_output, re.IGNORECASE)
+            for match in matches:
+                file_path = match.group(1).strip()
+                # Normalize path
+                file_path = file_path.replace('\\', '/')
+                if file_path in existing_files:
+                    found_files.add(file_path)
+        
+        # Strategy 2: Look for code blocks and try to match with existing files
+        code_blocks = []
+        
+        # Extract code blocks (```python ... ```)
+        python_blocks = re.findall(r'```python\s*(.*?)```', llm_output, re.DOTALL)
+        for block in python_blocks:
+            if len(block) > 50:  # Skip tiny fragments
+                code_blocks.append(("python", block))
+        
+        # Extract any code blocks
+        any_blocks = re.findall(r'```\s*(.*?)```', llm_output, re.DOTALL)
+        for block in any_blocks:
+            if len(block) > 50 and ('def ' in block or 'class ' in block or 'import ' in block):
+                code_blocks.append(("code", block))
+        
+        # Strategy 3: Look for requirements.txt additions (common fix)
+        req_matches = re.findall(r'(email-validator|passlib|pydantic\[|python-multipart)', llm_output, re.IGNORECASE)
+        if req_matches:
+            # Try to add to requirements.txt files
+            for existing_file in existing_files:
+                if 'requirements.txt' in existing_file:
+                    content = file_manager.read_file(existing_file)
+                    if content:
+                        # Add missing dependencies
+                        for dep in req_matches:
+                            dep_normalized = dep.lower().replace('[', '').replace(']', '')
+                            if dep_normalized not in content.lower():
+                                if 'email' in dep_normalized:
+                                    content += "\nemail-validator>=2.0.0"
+                                elif 'passlib' in dep_normalized:
+                                    content += "\npasslib[bcrypt]>=1.7.4"
+                                elif 'pydantic' in dep_normalized:
+                                    content += "\npydantic[email]>=2.5.0"
+                                elif 'multipart' in dep_normalized:
+                                    content += "\npython-multipart>=0.0.6"
+                        
+                        if file_manager.create_file(existing_file, content):
+                            files_modified.append(existing_file)
+                            logger.info(f"Updated requirements.txt: {existing_file}")
+        
+        # Apply fixes to found files with code blocks
+        if code_blocks:
+            for file_path in found_files:
+                existing = file_manager.read_file(file_path)
+                if existing is None:
+                    continue
+                
+                # Try to find relevant code block for this file
+                for block_type, block_content in code_blocks:
+                    # Check if block contains relevant code for this file
+                    if any(x in block_content.lower() for x in ['import ', 'def ', 'class ', 'from ']):
+                        # Use the code from the block if it's substantial
+                        if len(block_content) > len(existing) * 0.5:
+                            # Validate it's valid Python
+                            if self._is_valid_python(file_path, block_content):
+                                if file_manager.create_file(file_path, block_content):
+                                    files_modified.append(file_path)
+                                    logger.info(f"Fixed (text extraction): {file_path}")
+                                break
+        
+        # If we found files but no code blocks, try simple fixes
+        if found_files and not files_modified:
+            for file_path in found_files:
+                existing = file_manager.read_file(file_path)
+                if existing is None:
+                    continue
+                
+                # Look for common fixes in the text
+                fixed = existing
+                
+                # Check for missing imports mentioned in response
+                if 'from dataclasses import dataclass' in llm_output.lower():
+                    if 'from dataclasses import dataclass' not in existing:
+                        fixed = "from dataclasses import dataclass\n" + existing
+                
+                if 'from datetime import' in llm_output.lower():
+                    if 'from datetime import' not in existing:
+                        fixed = "from datetime import datetime\n" + existing
+                
+                if fixed != existing:
+                    if self._is_valid_python(file_path, fixed):
+                        if file_manager.create_file(file_path, fixed):
+                            files_modified.append(file_path)
+                            logger.info(f"Fixed (import): {file_path}")
+        
+        if files_modified:
+            logger.info(f"Text extraction succeeded: {len(files_modified)} files modified")
+        else:
+            logger.warning("Text extraction also failed - no fixes could be applied")
         
         return files_modified
     
@@ -737,14 +942,95 @@ IMPORTANT:
         return result
     
     def _parse_fix_json(self, llm_output: str) -> dict:
-        """Parse fix JSON from LLM output."""
-        try:
-            json_match = re.search(r'\{.*\}', llm_output, re.DOTALL)
-            if json_match:
-                return json.loads(json_match.group())
-        except:
-            pass
-        return None
+        """
+        Parse fix instructions from LLM output - FORMAT AGNOSTIC.
+        
+        Tries multiple strategies:
+        1. JSON in markdown code blocks
+        2. Plain JSON
+        3. Clean and retry
+        4. Extract from text/markdown patterns
+        
+        Returns dict with 'fixes' key or empty dict if all fail.
+        """
+        # Strategy 1: Try JSON in markdown code blocks
+        if "```" in llm_output:
+            blocks = llm_output.split("```")
+            for block in blocks[1:]:  # Skip text before first ```
+                content = block.strip()
+                # Remove language specifier
+                for lang in ["json", "python", "py"]:
+                    if content.startswith(lang):
+                        content = content[len(lang):].strip()
+                        break
+                
+                # Try to find JSON object
+                json_start = content.find('{')
+                if json_start >= 0:
+                    depth = 0
+                    for i, char in enumerate(content[json_start:]):
+                        if char == '{':
+                            depth += 1
+                        elif char == '}':
+                            depth -= 1
+                            if depth == 0:
+                                try:
+                                    parsed = json.loads(content[json_start:json_start+i+1])
+                                    if "fixes" in parsed:
+                                        logger.info("Strategy 1 (markdown JSON) succeeded")
+                                        return parsed
+                                except:
+                                    pass
+                                break
+        
+        # Strategy 2: Try plain JSON
+        json_start = llm_output.find('{')
+        if json_start >= 0:
+            depth = 0
+            for i, char in enumerate(llm_output[json_start:]):
+                if char == '{':
+                    depth += 1
+                elif char == '}':
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            parsed = json.loads(llm_output[json_start:json_start+i+1])
+                            if "fixes" in parsed:
+                                logger.info("Strategy 2 (plain JSON) succeeded")
+                                return parsed
+                        except:
+                            pass
+                        break
+        
+        # Strategy 3: Clean common issues and retry
+        cleaned = llm_output.strip()
+        cleaned = re.sub(r'^```json\s*', '', cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r'^```\s*', '', cleaned)
+        cleaned = re.sub(r'```$', '', cleaned)
+        cleaned = re.sub(r',\s*}', '}', cleaned)  # trailing commas
+        cleaned = re.sub(r',\s*]', ']', cleaned)
+        
+        json_start = cleaned.find('{')
+        if json_start >= 0:
+            depth = 0
+            for i, char in enumerate(cleaned[json_start:]):
+                if char == '{':
+                    depth += 1
+                elif char == '}':
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            parsed = json.loads(cleaned[json_start:json_start+i+1])
+                            if "fixes" in parsed:
+                                logger.info("Strategy 3 (cleaned JSON) succeeded")
+                                return parsed
+                        except:
+                            pass
+                        break
+        
+        # Strategy 4: Return empty but signal that we should try text extraction
+        logger.warning("All JSON strategies failed - will try text extraction")
+        return {"fixes": [], "_text_extraction_needed": True}
     
     def _looks_like_placeholder(self, content: str) -> bool:
         """Check if content is a placeholder."""

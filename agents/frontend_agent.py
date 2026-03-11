@@ -373,93 +373,175 @@ export default {{{methods}
 """
     
     def _generate_crud_components(self, project_path: str, routes: list, entities: list) -> dict:
-        """Gera componentes CRUD para cada entidade."""
+        """Generate CRUD components using LLM based on backend context."""
         components = {}
+        
+        # Extract more context for better LLM generation
+        all_routes_text = self._format_routes_for_llm(routes)
+        entities_text = self._format_entities_for_llm(project_path, entities)
         
         for entity in entities:
             entity_routes = [r for r in routes if r.get("entity") == entity]
-            components[f"frontend/src/components/{entity}List.jsx"] = self._generate_crud_component(entity, entity_routes)
+            routes_text = self._format_routes_for_llm(entity_routes)
+            
+            # Use LLM to generate component based on context
+            component_content = self._generate_component_with_llm(
+                entity, routes_text, entities_text
+            )
+            
+            if component_content:
+                components[f"frontend/src/components/{entity}List.jsx"] = component_content
         
         components["frontend/src/index.css"] = self._generate_css()
         
         return components
     
-    def _generate_crud_component(self, entity: str, routes: list) -> str:
-        # Using regular string to avoid f-string issues with JSX braces
+    def _format_routes_for_llm(self, routes: list) -> str:
+        """Format routes for LLM context."""
+        lines = []
+        for route in routes:
+            method = route.get("method", "GET")
+            path = route.get("path", "")
+            entity = route.get("entity", "Entity")
+            lines.append(f"- {method} {path} (entity: {entity})")
+        return "\n".join(lines)
+    
+    def _format_entities_for_llm(self, project_path: str, entities: list) -> str:
+        """Extract entity details for LLM context."""
+        lines = []
+        services_path = Path(project_path) / "services"
+        
+        for entity in entities:
+            # Try to find entity definition in domain files
+            for service_dir in services_path.iterdir():
+                if not service_dir.is_dir():
+                    continue
+                entity_file = service_dir / "domain" / f"{service_dir.name}_entities.py"
+                if not entity_file.exists():
+                    # Try generic entities.py
+                    entity_file = service_dir / "domain" / "entities.py"
+                
+                if entity_file.exists():
+                    try:
+                        with open(entity_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        # Extract entity class if found
+                        if f"class {entity}" in content:
+                            # Find the class definition and next 50 lines
+                            start = content.find(f"class {entity}")
+                            if start >= 0:
+                                end = content.find("\n\nclass ", start + 1)
+                                if end < 0:
+                                    end = min(start + 2000, len(content))
+                                entity_code = content[start:end]
+                                lines.append(f"\n=== Entity {entity} ===")
+                                lines.append(entity_code[:1000])  # Limit size
+                    except Exception:
+                        pass
+        
+        return "\n".join(lines)
+    
+    def _generate_component_with_llm(self, entity: str, routes_text: str, entities_text: str) -> str:
+        """Generate component using LLM based on context."""
+        if not self.llm_provider:
+            # Fallback to simple component if no LLM
+            return self._generate_simple_component(entity)
+        
+        prompt = f"""Generate a complete React component for CRUD operations.
+
+Entity: {entity}
+
+Available API Routes:
+{routes_text}
+
+Entity Definitions (use these fields for forms and tables):
+{entities_text}
+
+Requirements:
+1. Generate a complete React functional component
+2. Include: useState for items, loading, error, formData
+3. Include: useEffect to load data on mount
+4. Include form with fields based on entity definition
+5. Include table to display items
+6. Include create, update, delete operations if API supports
+7. Use proper React hooks patterns
+8. Use axios for API calls
+9. Component name: {entity}List
+10. Import from '../services/api'
+
+Return ONLY the React component code, no explanations.
+"""
+        
+        try:
+            import asyncio
+            loop = asyncio.get_event_loop()
+            result = loop.run_until_complete(
+                self.llm_provider.generate(prompt, temperature=0.3, max_tokens=2000)
+            )
+            return result.strip()
+        except Exception as e:
+            logger.warning(f"LLM generation failed for {entity}: {e}")
+            return self._generate_simple_component(entity)
+    
+    def _generate_simple_component(self, entity: str) -> str:
+        """Generate simple fallback component."""
         entity_lower = entity.lower()
-        return """import React, { useState, useEffect } from 'react';
+        return f"""import React, {{ useState, useEffect }} from 'react';
 import ApiService from '../services/api';
 
-function ENTITYList() {
+function {entity}List() {{
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  useEffect(() => {
+  useEffect(() => {{
     loadItems();
-  }, []);
+  }}, []);
   
-  async function loadItems() {
-    try {
+  async function loadItems() {{
+    try {{
       setLoading(true);
-      const data = await ApiService.getENTITYs();
+      const data = await ApiService.get{entity}s();
       setItems(data);
-    } catch (err) {
+    }} catch (err) {{
       setError(err.message);
-    } finally {
+    }} finally {{
       setLoading(false);
-    }
-  }
-  
-  async function handleDelete(id) {
-    if (!confirm('Tem certeza que deseja excluir?')) return;
-    try {
-      await ApiService.deleteENTITY(id);
-      setItems(items.filter(item => item.id !== id));
-    } catch (err) {
-      alert('Erro ao excluir: ' + err.message);
-    }
-  }
+    }}
+  }}
   
   if (loading) return <div className="loading">Carregando...</div>;
-  if (error) return <div className="error">Erro: {error}</div>;
+  if (error) return <div className="error">Erro: {{error}}</div>;
   
   return (
     <div className="crud-container">
-      <h1>ENTITYs</h1>
-      
+      <h1>{entity}s</h1>
       <table className="crud-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Nome</th>
-            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
-          {items.map(item => (
-            <tr key={item.id}>
-              <td>{item.id}</td>
-              <td>{item.nome || item.name || 'N/A'}</td>
-              <td>
-                <button onClick={() => handleDelete(item.id)} className="btn-delete">
-                  Excluir
-                </button>
-              </td>
+          {{items.map(item => (
+            <tr key={{item.id}}>
+              <td>{{item.id}}</td>
+              <td>{{item.nome || item.name || 'N/A'}}</td>
             </tr>
-          ))}
+          ))}}
         </tbody>
       </table>
-      
-      {items.length === 0 && (
-        <p className="empty">Nenhum {entity} encontrado</p>
-      )}
+      {{items.length === 0 && (
+        <p className="empty">Nenhum {entity_lower} encontrado</p>
+      )}}
     </div>
   );
-}
+}}
 
-export default ENTITYList;
-""".replace("ENTITY", entity).replace("ENTITY_lower", entity_lower)
+export default {entity}List;
+"""
     
     def _generate_css(self) -> str:
         return """* {

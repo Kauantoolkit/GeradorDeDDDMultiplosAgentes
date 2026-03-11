@@ -1,0 +1,25 @@
+{
+  "trace_id": "cba1a323-8dc1-4876-b90e-e2e7503ccb94",
+  "started_at": "2026-03-10T20:11:13.067985+00:00",
+  "metadata": "{'requirements': 'gere um sistemas de academia com frontend e foco nas transações dos donos, tipo, entradas e saidas', 'model': 'qwen2.5-coder', 'framework': 'python-fastapi', 'database': 'postgresql', 'output_dir': 'academia4'}",
+  "events": [
+    {
+      "timestamp": "2026-03-10T20:11:13.419388+00:00",
+      "trace_id": "8829defb-de6c-429c-a9f9-0d901339448f",
+      "message_id": "2421c1cb-c7d9-4bf3-a4a5-805fca7e1c7e",
+      "type": "TRACE_START",
+      "metadata": "{'requirement_id': '00e921e3-76c6-422a-890a-5beec20a1625', 'description': 'gere um sistemas de academia com frontend e foco nas transações dos donos, tipo, entradas e saidas', 'output_directory': 'academia4'}"
+    },
+    {
+      "timestamp": "2026-03-10T20:12:05.579566+00:00",
+      "trace_id": "8829defb-de6c-429c-a9f9-0d901339448f",
+      "message_id": "7c3eb778-e1b3-4509-8aab-45a367477197",
+      "type": "AGENT_EXECUTION",
+      "agent_name": "Code Agent",
+      "input": "{'requirement': 'gere um sistemas de academia com frontend e foco nas transações dos donos, tipo, entradas e saidas', 'output_directory': 'academia4', 'framework': 'python-fastapi', 'database': 'postgresql', 'mode': 'generation'}",
+      "output": "{'files_created': 35, 'database_urls': {'academia_api': 'postgresql://postgres:postgres@localhost:5432/academia_api_db', 'academia_auth': 'postgresql://postgres:postgres@localhost:5432/academia_auth_db'}, 'execution_time': 52.156175}",
+      "execution_time_ms": 52156.17,
+      "status": "success"
+    }
+  ]
+}

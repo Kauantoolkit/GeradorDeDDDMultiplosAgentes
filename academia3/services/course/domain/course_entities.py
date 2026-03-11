@@ -1,0 +1,88 @@
+"""Entity: Course"""
+from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID, uuid4
+
+@dataclass
+class Course:
+    """Domain entity for course."""
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    
+    @staticmethod
+    def create(**kwargs) -> "Course":
+        now = datetime.now()
+        return Course(
+            id=uuid4(),
+            created_at=now,
+            updated_at=now,
+            **{k: v for k, v in kwargs.items() if k not in ['id', 'created_at', 'updated_at']}
+        )
+    
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        self.updated_at = datetime.now()
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+class CourseRepository:
+    """Repository interface for Course."""
+    async def get_by_id(self, id: UUID) -> "Course | None":
+        raise NotImplementedError
+    async def get_all(self) -> list["Course"]:
+        raise NotImplementedError
+    async def save(self, entity: "Course") -> "Course":
+        raise NotImplementedError
+
+
+"""Entity: Lesson"""
+from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID, uuid4
+
+@dataclass
+class Lesson:
+    """Domain entity for course."""
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    
+    @staticmethod
+    def create(**kwargs) -> "Lesson":
+        now = datetime.now()
+        return Lesson(
+            id=uuid4(),
+            created_at=now,
+            updated_at=now,
+            **{k: v for k, v in kwargs.items() if k not in ['id', 'created_at', 'updated_at']}
+        )
+    
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+        self.updated_at = datetime.now()
+    
+    def to_dict(self) -> dict:
+        return {
+            "id": str(self.id),
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+class LessonRepository:
+    """Repository interface for Lesson."""
+    async def get_by_id(self, id: UUID) -> "Lesson | None":
+        raise NotImplementedError
+    async def get_all(self) -> list["Lesson"]:
+        raise NotImplementedError
+    async def save(self, entity: "Lesson") -> "Lesson":
+        raise NotImplementedError

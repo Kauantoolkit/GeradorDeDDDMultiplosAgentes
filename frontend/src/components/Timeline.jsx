@@ -56,15 +56,30 @@ function Timeline({ agents, isActive, eventLogs = [] }) {
 
       {eventLogs.length > 0 && (
         <div className="event-log-panel">
-          <h3>Últimos eventos (debug rápido)</h3>
+          <h3>Últimos eventos</h3>
           <ul>
-            {eventLogs.slice(0, 8).map((event) => (
+            {eventLogs.slice(0, 10).map((event) => (
               <li key={event.id}>
                 <span className="event-log-time">{new Date(event.at).toLocaleTimeString()}</span>
                 <span className="event-log-kind">{event.kind}</span>
                 <span className="event-log-message">
                   {event.content?.message || event.content?.status || 'evento sem mensagem'}
                 </span>
+                {/* Show detailed errors if available */}
+                {event.content?.detailed_errors && event.content.detailed_errors.length > 0 && (
+                  <div className="event-log-errors">
+                    {event.content.detailed_errors.map((err, idx) => (
+                      <div key={idx} className="error-item">
+                        <span className="error-service">{err.service}:</span>
+                        <span className="error-type">{err.type}</span>
+                        <span className="error-msg">{err.message?.slice(0, 60)}</span>
+                        {err.missing_dependency && (
+                          <span className="error-dep"> → Instalar: {err.missing_dependency}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {event.content?.error_code && (
                   <span className="event-log-error">code={event.content.error_code}</span>
                 )}
